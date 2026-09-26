@@ -1,7 +1,7 @@
 # Kickoff plugin — design
 
 - **Date:** 2026-09-26
-- **Status:** Approved in brainstorming, pending written-spec review
+- **Status:** Approved (brainstorming and written-spec review, 2026-09-26); amended while writing the implementation plan
 - **Origin:** the project-start workflow run on AI Minute (ivai-dev/ai-minute, PRs #27 and #82), packaged for reuse
 
 ## 1. Purpose
@@ -180,27 +180,45 @@ epics:
 ```yaml
 schema_version: 1
 start: 2026-09-28
-phases:
-  - { id: "1", name: Discovery and sign-off }
-packages:
+phases:                # level 1; optional descriptive fields feed the workbook's phase sheet
+  - { code: "1", name: Preparation and technical validation, objective: "...", in_scope: "...", out_scope: "...",
+      deliverables: "...", exit: "...", risks: "..." }
+groups:                # level 2
+  - { code: "1.2", name: Requirements, architecture and design, desc: "..." }
+packages:              # level 3 leaves, in plan order
   - code: 1.2.7
-    name: Customer feature sign-off
+    name: Customer feature sign-off          # workbook language
+    desc: Signed feature list
+    ref: F0.9
     role: lead
     effort: 1          # person-days at 100% focus
     done: 0            # fraction complete, overridden by pulled actuals
     prio: P0
-    deps: [1.2.2]
-    features: [F0.9]
+    deps: [1.2.3]
+    coop: Customer
+    note: ""
     release: MVP
+    schedule: seq      # default; or {fixed: [start, end]} | {span: [from, to]} | {period: {after: code, months: 12}} | {tail: {of: code, days: 5}}
+    effort_rate: null  # level-of-effort packages: effort = round(workdays / 5 * rate, 1)
+    ticket:            # present only for packages pushed to the tracker
+      title: Customer sign-off of the full-product prototype   # repo language
+      type: task       # story | task
+      epic: E0
+      areas: [area:planning]
+      desc: "..."
+      ac: ["Signed feature list stored in docs/01-discovery", "..."]
+      sprint: Preparation
+order_after:           # code -> place it right after this code in its role's queue (applied in order)
+  "1.2.7": "1.3.4"
 gates:
-  - { id: G5, name: MVP acceptance, after: [4.9.3], hard: true }
-chain_after:           # explicit ordering inside one role's queue
-  lead: [[1.2.5, 1.2.7]]
+  - { id: G5, name: MVP acceptance, at: "3", hard: true, criteria: "...", evidence: "...", approver: Customer }
+sprints:               # tracker iterations
+  - { name: Preparation, start: 2026-09-28, days: 14 }
 cut_order: [F14.3, F8.6]
 risks:
-  - { id: R19, title: Late feature sign-off, p: 3, i: 4, owner: lead, mitigation: "Book the workshop date now; freeze scope questions by 2026-09-30", status: open }
+  - { id: R19, title: Late feature sign-off, phase: "GĐ1", p: 3, i: 3, mitigation: "Book the workshop date now", trigger: "No signed list by 2026-10-07", status: open }
 assumptions:
-  - { id: A1, text: "Trial units use test data only over the development VPN", source: Q15, status: open }
+  - { id: A10, kind: Dependency, text: "Customer answers Q1, Q6, Q7 before 2026-10-02", scope: "GĐ1", source: Open questions, status: Pending }
 ```
 
 ### tickets.yaml (written by the CLI only)
@@ -225,6 +243,12 @@ prototype: { artifact: "https://claude.ai/artifact/<id>", version: 6 }
 stale: [plan, tickets]
 ```
 
+### Languages in data files
+
+- `plan.yaml` and the text fields of `project.yaml` (role and release names) are written in the workbook language; `features.yaml` in the repository language. `ticket` blocks are always in the repository language.
+- Any item may carry translations: `i18n: {<lang>: {<field>: "..."}}`. Generators pick `item.i18n[lang][field]` when present, else `item[field]`. Workbook output uses the workbook language, Markdown documents and tracker issues use the repository language.
+- The tracker priority mapping lives in `tracker.priority: {source: org-field, map: {P0: High, ...}}`; org issue-field IDs (Priority options, Start, Target) in `tracker.issue_fields`, because GitHub offers no stable lookup for them.
+
 ### ID rules
 
 - IDs are permanent: `E<n>`, `F<epic>.<n>`, screens `SC-nn` (web), `W-nn` (Windows), `A-nn` (Android) or prefixes from `project.yaml`, WBS codes in dotted numbers, `R<n>`, `A<n>`, `Q<n>`, `D-<date>`, `FB-<n>`.
@@ -233,33 +257,40 @@ stale: [plan, tickets]
 
 ## 6. CLI `kickoff`
 
-Python 3.11+, installed with `uv tool install <plugin>/cli` or `pipx install <plugin>/cli`. Dependencies: `pyyaml`, `openpyxl`, `jsonschema`, `jinja2`. The tracker adapter calls the `gh` CLI, so the plugin stores no tokens.
+Python 3.11+, installed with `uv tool install <plugin>/cli` or `pipx install <plugin>/cli`. Dependencies: `pyyaml`, `openpyxl`, `jsonschema`. The tracker adapter calls the `gh` CLI, so the plugin stores no tokens.
 
 | Command | Behaviour |
 | --- | --- |
-| `kickoff validate` | Schema check; duplicate or dangling IDs; features without WBS and WBS without features; unknown roles; cycles across `deps` and `chain_after` (reports the exact cycle). Exit code 1 on any error. |
+| `kickoff validate` | Schema check; duplicate or dangling IDs; features without WBS and WBS without features; unknown roles; cycles across `deps` and `order_after` (reports the exact cycle); dependencies and span ends that point at a package that is not `seq` or `fixed`. Exit code 1 on any error. |
 | `kickoff schedule [--json]` | Role-based schedule (below). Prints gate dates; warns when a hard date slips and lists the `cut_order` candidates with the effort each frees. `--json` writes `{code: [start, end, workdays, effort, name, role]}`. |
 | `kickoff workbook [--verify]` | Writes a formula-only xlsx. `--verify` recalculates it with LibreOffice headless in Docker (`cli/docker/lo-calc`), requires zero `#` error cells, and compares gate dates with `schedule`. Without Docker it says the recalculation was skipped and verifies against the simulation only. |
 | `kickoff docs [--check]` | Generates `feature-map.md`, `wbs.md`, `risk-register.md` and the tables inside `plan.md` between `<!-- kickoff:begin <name> -->` and `<!-- kickoff:end <name> -->`; hand-written prose is kept. `--check` fails if regeneration would change anything. |
-| `kickoff tickets plan` | Builds the intended issue set: Epic per phase or epic, Story per level-2 package, Task per leaf. English bodies with the owning role, acceptance criteria and spec links. |
+| `kickoff tickets plan` | Builds the intended issue set: one Epic per feature-map epic (`[E6] Minutes`), and one Story or Task per package that has a `ticket` block (`[1.2.7] ...`), linked to its epic as a sub-issue. Bodies in the repo language state WBS code, owning role, effort, planned dates and priority, then the description, acceptance criteria and references. |
 | `kickoff tickets push [--dry]` | Idempotent sync through the adapter: create/update issues, sub-issues, blocked-by, `type:*`/`area:*` labels, milestones, Project fields (Status, Release, Sprint), org fields (Priority, Start date, Target date). `--dry` prints the diff. Body drift made in the tracker is reported, not overwritten. |
 | `kickoff tickets pull` | Reads state and dates into `actuals`, then re-runs `schedule` and prints which gates moved. |
 | `kickoff status [--json]` | Phases, gates, stale items and the suggested next skill; used by `using-kickoff`. |
+| `kickoff init --name NAME` | Creates `.kickoff/` from a valid template and the docs folders; refuses if `.kickoff/` exists. |
+| `kickoff can <phase> [--baseline]` | Exit 0 when the phase may start, 1 with the blocking phases and gates. |
+| `kickoff phase start\|done <phase>` | Records phase progress; `done` clears the phase's stale marker. |
+| `kickoff gate approve\|reopen <id>` | Approves a gate with `--by` and `--evidence` (both required), or reopens it with `--reason`, marking later phases stale. |
+| `kickoff tickets link <key> <number>` | Maps a WBS code or epic to an existing issue before the first push (adopting a tracker populated by hand). |
 | `kickoff proto new` | Scaffolds a prototype from the kit and one stub per screen in `ux-spec.md`. |
 | `kickoff proto check [routes]` | Section 7. |
 | `kickoff proto lint` | Section 7. |
 
 ### Scheduling model
 
-- One person per role; each role works its packages one after another, in plan order adjusted by `chain_after`.
+- One person per role; each `seq` package joins its role's queue in plan order, then `order_after` moves are applied in file order (remove the code, insert it right after its target).
 - `duration = max(1, round(effort * (1 - done) / focus))` working days.
 - `start = WORKDAY(max(plan_start - 1, previous package end of the same role, end of every dependency), 1, holidays)`; `end = WORKDAY(start, duration - 1, holidays)`.
+- Other modes: `fixed` keeps given dates; `span` runs from the start of one package to the end of another; `period` starts the working day after a package ends and lasts N months (`EDATE(start, N) - 1`); `tail` ends with a package and covers its last N working days. Level-of-effort packages derive effort from `effort_rate`.
+- Groups and phases take the earliest start, the latest end and the summed effort of their leaves. A gate's date is the end date of the code in `at`.
 - Actuals override: a done package uses its real dates; a started package keeps its real start.
 - The workbook expresses the same model in formulas (`WORKDAY`, `MAX`, `ROUND`) with a holidays named range, so a customer or manager can edit an estimate and see dates move. The Python simulation is the test oracle for the formulas.
 
 ### Workbook sheets
 
-Overview, Roles, WBS, Schedule, Gantt, Gates, Features, Risks, Assumptions, Holidays, Changes, Guide. Labels come from a language table keyed by `languages.workbook` (`en` and `vi` in v1).
+Overview, Lists, Holidays, Resources, WBS (with the schedule columns), Gates, Phases and scope, Weekly Gantt, Monthly roadmap, Features, Resource analysis, Risks, Assumptions — the thirteen sheets of the AI Minute workbook, generalised. Labels come from a language table keyed by `languages.workbook` (`en` and `vi` in v1).
 
 ### Tracker adapter
 
@@ -355,8 +386,8 @@ The prototype is a design artifact. Its CDN use does not relax the product's own
 
 ## 11. Testing
 
-- **CLI:** pytest for the scheduler (holidays, weekends, `chain_after`, cycles, actuals), validate, docs round-trip, workbook formulas against the simulation, and the GitHub adapter against a fake `gh`.
-- **Golden test:** `examples/ai-minute/.kickoff` reproduces the current AI Minute plan: G1 2026-10-14 and G5 2026-11-26, MVP effort 84.75 person-days.
+- **CLI:** pytest for the scheduler (holidays, weekends, order_after, cycles, actuals), validate, docs round-trip, workbook formulas against the simulation, and the GitHub adapter against a fake `gh`.
+- **Golden test:** `examples/ai-minute/.kickoff` reproduces the current AI Minute plan: G1 2026-10-14 and G5 2026-11-26, MVP effort (phases 1–3) 84.75 person-days, whole project 336.75; every package's start and end equal the legacy `sched.json`.
 - **Kit:** `proto check` on `examples/mini` with every core feature exercised (roles, scope modes, a scenario, phone frame).
 - **Skills:** developed with `superpowers:writing-skills`, including pressure scenarios for `using-kickoff` (refuses `solution` before C3/C4; lists stale items after feedback) and `feedback` (classifies a mixed note correctly).
 - **CI:** GitHub Actions running lint, pytest, `kickoff validate` on both examples, and `proto check` with headless Chrome.

@@ -1,0 +1,75 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Prototype check at 390 px</title>
+<!--
+  Headless Edge clamps --window-size to about 500 px wide, so a 390 px screenshot of
+  the prototype itself still has a ~520 px layout. This wrapper loads the prototype in
+  a 390 x 844 iframe, so the page inside gets a true 390 px viewport.
+  Usage: narrow.html#<route> (the hash is passed to the prototype unchanged).
+  After load it copies any script error (data-err) of the prototype onto this page's
+  <html data-err>, and reports horizontal overflow at 390 px the same way, so
+  check.sh can read both from --dump-dom. Needs --allow-file-access-from-files.
+-->
+<style>
+  html,
+  body {
+    margin: 0;
+    background: #7a868b;
+  }
+  iframe {
+    display: block;
+    width: 390px;
+    height: 844px;
+    border: 0;
+    background: #fff;
+  }
+</style>
+<iframe id="f" title="Prototype at 390 px"></iframe>
+<script>
+  const f = document.getElementById("f");
+  f.src = "../../docs/05-design/prototype/index.html" + location.hash;
+  // A #scn-<route> auto-runs a guided scenario, one step every ~600 ms (up to about
+  // 5 s), and stamps data-err only when a step fails, so wait past the whole run.
+  const wait = location.hash.startsWith("#scn-") ? 8000 : 3500;
+  const report = (msg) => {
+    document.documentElement.dataset.err = msg;
+  };
+  setTimeout(() => {
+    let doc;
+    try {
+      doc = f.contentDocument;
+    } catch (e) {
+      report("narrow: cannot read the iframe (" + e.message + ")");
+      return;
+    }
+    if (!doc) {
+      report("narrow: iframe not loaded");
+      return;
+    }
+    const err = doc.documentElement.dataset.err;
+    if (err) {
+      report(err);
+      return;
+    }
+    // Horizontal scroll at 390 px: the page itself, or any scroll container wider than its box.
+    const wide = [doc.scrollingElement, ...doc.querySelectorAll("#app *")].filter((el) => {
+      if (!el || el.scrollWidth <= el.clientWidth + 1) return false;
+      if (el === doc.scrollingElement) return true;
+      const ox = getComputedStyle(el).overflowX;
+      return (ox === "auto" || ox === "scroll") && !el.closest(".table-wrap");
+    });
+    if (wide.length) {
+      const el = wide[0];
+      report(
+        "narrow-overflow: " +
+          ((el.getAttribute && el.getAttribute("class")) || el.tagName) +
+          " " +
+          el.scrollWidth +
+          ">" +
+          el.clientWidth,
+      );
+    } else {
+      document.documentElement.dataset.ok = "narrow";
+    }
+  }, wait);
+</script>
