@@ -1,0 +1,202 @@
+schema_version: 1
+name: AI Minute
+languages:
+  repo: en
+  chat: vi
+  workbook: vi
+  ui: vi
+docs_root: docs
+date_format: "%d/%m/%Y"
+calendar:
+  weekend:
+  - sat
+  - sun
+  holidays:
+  - date: 2027-01-01
+    name: Tết Dương lịch
+    kind: Chính thức
+  - date: 2027-02-04
+    name: Nghỉ Tết Nguyên đán Đinh Mùi
+    kind: Dự kiến
+  - date: 2027-02-05
+    name: Nghỉ Tết Nguyên đán Đinh Mùi
+    kind: Dự kiến
+  - date: 2027-02-08
+    name: Nghỉ Tết Nguyên đán Đinh Mùi
+    kind: Dự kiến
+  - date: 2027-02-09
+    name: Nghỉ Tết Nguyên đán Đinh Mùi
+    kind: Dự kiến
+  - date: 2027-02-10
+    name: Nghỉ Tết Nguyên đán Đinh Mùi
+    kind: Dự kiến
+  - date: 2027-04-16
+    name: Giỗ Tổ Hùng Vương (10/3 âm lịch)
+    kind: Dự kiến
+  - date: 2027-04-30
+    name: Ngày Giải phóng miền Nam
+    kind: Chính thức
+  - date: 2027-05-03
+    name: Nghỉ bù Quốc tế Lao động
+    kind: Dự kiến
+  - date: 2027-09-02
+    name: Quốc khánh
+    kind: Chính thức
+  - date: 2027-09-03
+    name: Quốc khánh (ngày liền kề)
+    kind: Dự kiến
+  - date: 2028-01-03
+    name: Nghỉ bù Tết Dương lịch
+    kind: Dự kiến
+  - date: 2028-01-24
+    name: Nghỉ Tết Nguyên đán Mậu Thân
+    kind: Dự kiến
+  - date: 2028-01-25
+    name: Nghỉ Tết Nguyên đán Mậu Thân
+    kind: Dự kiến
+  - date: 2028-01-26
+    name: Nghỉ Tết Nguyên đán Mậu Thân
+    kind: Dự kiến
+  - date: 2028-01-27
+    name: Nghỉ Tết Nguyên đán Mậu Thân
+    kind: Dự kiến
+  - date: 2028-01-28
+    name: Nghỉ Tết Nguyên đán Mậu Thân
+    kind: Dự kiến
+  - date: 2028-04-04
+    name: Giỗ Tổ Hùng Vương (10/3 âm lịch)
+    kind: Dự kiến
+  - date: 2028-05-01
+    name: Quốc tế Lao động
+    kind: Chính thức
+  - date: 2028-05-02
+    name: Nghỉ bù Giải phóng miền Nam
+    kind: Dự kiến
+  - date: 2028-09-01
+    name: Quốc khánh (ngày liền kề)
+    kind: Dự kiến
+  - date: 2029-01-01
+    name: Tết Dương lịch
+    kind: Chính thức
+  - date: 2029-02-12
+    name: Nghỉ Tết Nguyên đán Kỷ Dậu
+    kind: Dự kiến
+  - date: 2029-02-13
+    name: Nghỉ Tết Nguyên đán Kỷ Dậu
+    kind: Dự kiến
+  - date: 2029-02-14
+    name: Nghỉ Tết Nguyên đán Kỷ Dậu
+    kind: Dự kiến
+  - date: 2029-02-15
+    name: Nghỉ Tết Nguyên đán Kỷ Dậu
+    kind: Dự kiến
+  - date: 2029-02-16
+    name: Nghỉ Tết Nguyên đán Kỷ Dậu
+    kind: Dự kiến
+  - date: 2029-04-23
+    name: Giỗ Tổ Hùng Vương (10/3 âm lịch)
+    kind: Dự kiến
+  - date: 2029-04-30
+    name: Ngày Giải phóng miền Nam
+    kind: Chính thức
+  - date: 2029-05-01
+    name: Quốc tế Lao động
+    kind: Chính thức
+  - date: 2029-09-03
+    name: Nghỉ bù Quốc khánh
+    kind: Dự kiến
+  - date: 2029-09-04
+    name: Quốc khánh (ngày liền kề)
+    kind: Dự kiến
+roles:
+- id: lead
+  name: Trưởng dự án
+  focus: 0.8
+  duties: Quản lý dự án, làm việc với khách hàng, kiến trúc, backend, ASR/LLM, triển khai máy chủ
+  i18n:
+    en:
+      name: Project lead
+- id: dev
+  name: Lập trình viên
+  focus: 0.9
+  duties: "Lập trình viên fullstack: giao diện web, bộ ghi âm, trình soạn biên bản, ứng dụng desktop và mobile"
+  i18n:
+    en:
+      name: Developer
+- id: qa
+  name: Kiểm thử viên
+  focus: 0.9
+  duties: Dữ liệu kiểm thử, công cụ đo chất lượng, kiểm thử trình duyệt và thiết bị, tài liệu hướng dẫn, hỗ trợ UAT và thí
+    điểm
+  i18n:
+    en:
+      name: QA
+releases:
+- id: MVP
+  name: MVP
+- id: Pilot
+  name: Thí điểm
+- id: Apps
+  name: Ứng dụng
+- id: R2
+  name: R2
+- id: R3
+  name: R3
+- id: Rollout
+  name: Triển khai
+- id: Warranty
+  name: Bảo hành
+hard_dates:
+  G5: 2026-11-27
+tracker:
+  kind: github
+  org: ivai-dev
+  repo: ai-minute
+  project: 1
+  assignee: hienlpv
+  milestone: MVP
+  blob_base: https://github.com/ivai-dev/ai-minute/blob/main
+  priority:
+    source: org-field
+    map:
+      P0: High
+      P1: Medium
+      P2: Low
+  issue_fields:
+    Priority:
+      id: IFSS_kgDOAr4JFQ
+      options:
+        High: IFSSO_kgDOBMzLIA
+        Medium: IFSSO_kgDOBMzLIQ
+        Low: IFSSO_kgDOBMzLIg
+        Urgent: IFSSO_kgDOBMzLHw
+    Start:
+      id: IFD_kgDOAr4JFg
+    Target:
+      id: IFD_kgDOAr4JFw
+rules:
+  owners_by_role: true
+  synthetic_data_only: true
+  forbidden_phrases:
+  - \bClaude\b
+  - AI[- ]assist
+  - \bLLM[- ]assisted estimate
+security:
+- "Never log, print, or send to analytics any meeting content: audio, transcript text, minutes text, document text, participant\
+  \ names."
+- "No cloud SaaS at runtime: no Firebase, Sentry cloud, Crashlytics, Google Fonts or CDN assets, telemetry SDKs, or cloud\
+  \ editions of libraries. Bundle fonts and assets."
+- Every server address is configuration, never a hard-coded public host.
+- Before adding a dependency, check that it does not phone home at runtime. Note the result in the PR.
+- Never commit secrets, tokens, certificates, signing keys, recordings, or real meeting data. Test fixtures must be synthetic
+  or explicitly cleared for use.
+- "Shells are hardened: Electron with contextIsolation, sandbox, no nodeIntegration, strict CSP, no remote content; Capacitor\
+  \ with cleartext disabled and no live reload in release builds."
+- Tailscale is only the development path to the customer's trial server (ADR-005). Do not build product features that depend
+  on it.
+proto:
+  dir: docs/05-design/prototype
+  ux_spec: docs/05-design/ux-spec.md
+  forbidden:
+  - Tailscale
+  - \b100\.64\.
