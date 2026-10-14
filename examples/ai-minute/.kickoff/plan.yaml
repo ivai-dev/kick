@@ -1,0 +1,3871 @@
+schema_version: 1
+start: 2026-09-28
+phases:
+- code: "0"
+  name: Khởi động dự án
+  label: GĐ0
+  objective: Khởi động lại dự án theo phạm vi đã thống nhất với khách hàng ngày 24/09/2026.
+  in_scope: Chốt phạm vi mới; kho mã nguồn và quy tắc phát triển; quyết định kiến trúc ADR-001 đến ADR-008; tầm nhìn, bản
+    đồ tính năng, yêu cầu phi chức năng, câu hỏi mở; định hướng thiết kế và mockup v1; WBS, kế hoạch và bảng quản lý công
+    việc.
+  out_scope: Viết mã sản phẩm.
+  deliverables: Kho mã nguồn ivai-dev/ai-minute; bộ ADR; tài liệu yêu cầu; mockup v1; kế hoạch tổng thể; ticket trên GitHub
+    Project.
+  exit: Hoàn thành.
+  risks: —
+  i18n:
+    en:
+      name: Initiation
+- code: "1"
+  name: Chuẩn bị và xác nhận kỹ thuật
+  label: GĐ1
+  objective: Có đủ dữ liệu, mô hình ASR đã chọn, kiến trúc, thiết kế và nền tảng kỹ thuật để xây dựng từ tuần thứ 3.
+  in_scope: Bộ dữ liệu kiểm thử tiếng Việt và công cụ đo; chọn mô hình ASR (2 ứng viên) và cấu hình GPU; kiến trúc hệ thống;
+    prototype sản phẩm đầy đủ, buổi duyệt và chốt tính năng với khách hàng; thống nhất phạm vi và NFR; công cụ phát triển,
+    CI, khung web, token thiết kế, khung backend, staging, giao thức ghi âm; chiến lược kiểm thử.
+  out_scope: "Kiểm chứng riêng (spike) cho ứng dụng desktop/mobile và LLM: thực hiện trực tiếp trong các hạng mục xây dựng."
+  deliverables: ADR-009 (mô hình ASR, cấu hình GPU); bộ dữ liệu ≥ 2 giờ; công cụ đo; tài liệu kiến trúc; prototype đã duyệt,
+    biên bản chốt tính năng; CI xanh; staging chạy; story đợt 1.
+  exit: "G1: mô hình ASR và cấu hình GPU đã chốt; khách hàng đã duyệt prototype và phạm vi MVP."
+  risks: Độ chính xác ASR với micro laptop; khách hàng trả lời chậm; khó có dữ liệu thực tế.
+  i18n:
+    en:
+      name: Preparation and technical validation
+- code: "2"
+  name: Xây dựng MVP web
+  label: GĐ2
+  objective: Xây dựng toàn bộ luồng chính của MVP trên trình duyệt.
+  in_scope: "Đợt 1: bộ ghi âm web, nhận âm thanh, ASR streaming, bản ghi trực tiếp, đăng nhập và cô lập dữ liệu theo đơn vị,\
+    \ cuộc họp. Đợt 2: tự khôi phục khi mất mạng hoặc tải lại tab, nhận dạng lượt 2, rà soát bản ghi, sinh biên bản theo mẫu,\
+    \ trình soạn, xuất DOCX/PDF, in, tìm kiếm cơ bản, từ khóa nhận dạng. Đợt 3: duyệt biên bản, script tạo đơn vị và tài khoản,\
+    \ giao diện di động để xem và duyệt, nhật ký kiểm toán, gói cài đặt offline, sao lưu, giám sát cơ bản. Ổn định: ma trận\
+    \ độ tin cậy, kiểm thử hiệu năng và đầu-cuối, diễn tập cài đặt, sửa lỗi."
+  out_scope: Ứng dụng desktop và Android (GĐ5); nhận diện người nói, nhiều thiết bị thu, lịch họp, quản trị, thống kê (R2).
+  deliverables: Bản phát hành ứng viên (RC) chạy trên Chrome/Edge; gói cài đặt offline máy chủ; báo cáo kiểm thử.
+  exit: G2 demo ghi âm và bản ghi trực tiếp; G3 demo toàn bộ luồng chính; G4 bản RC đạt ma trận độ tin cậy, kiểm thử hiệu
+    năng, diễn tập cài đặt offline.
+  risks: Ghi âm trên trình duyệt phụ thuộc thao tác người dùng; độ trễ khi nhiều cuộc họp trên một GPU.
+  i18n:
+    en:
+      name: Build the web MVP
+- code: "3"
+  name: UAT và nghiệm thu MVP
+  label: GĐ3
+  objective: Khách hàng nghiệm thu MVP web trên máy chủ của mình.
+  in_scope: Hướng dẫn vận hành và hướng dẫn nhanh cho thư ký; cài đặt từ gói offline tại máy chủ khách hàng; UAT với người
+    dùng thật; sửa lỗi; biên bản nghiệm thu.
+  out_scope: Tính năng mới.
+  deliverables: Hệ thống MVP chạy tại khách hàng; tài liệu hướng dẫn; biên bản nghiệm thu MVP.
+  exit: "G5: khách hàng nghiệm thu MVP theo kịch bản đã thống nhất (trước 12/2026)."
+  risks: Máy chủ chính thức của khách hàng sẵn sàng muộn.
+  i18n:
+    en:
+      name: UAT and MVP acceptance
+- code: "4"
+  name: Thí điểm và ổn định
+  label: GĐ4
+  objective: Vận hành thật tại 2–3 đơn vị bằng bản web, đo chỉ số thực tế và ổn định hệ thống.
+  in_scope: Cài đặt và đào tạo tại đơn vị thí điểm; hỗ trợ trực tiếp; theo dõi chỉ số (độ trễ, độ chính xác, tỉ lệ gián đoạn
+    ghi âm, thời gian soạn biên bản); thu thập phản hồi; bản cập nhật 1.1.
+  out_scope: Tính năng lớn mới.
+  deliverables: Bản 1.1; báo cáo đánh giá thí điểm; đề xuất ưu tiên cho ứng dụng và R2.
+  exit: "G6: chỉ số thí điểm đạt, không còn lỗi nghiêm trọng."
+  risks: Người dùng chưa quen; điều kiện phòng họp thực tế khác phòng thử.
+  i18n:
+    en:
+      name: Pilot and stabilization
+- code: "5"
+  name: Ứng dụng desktop và mobile
+  label: GĐ5
+  objective: Đưa ra ứng dụng Windows và Android – cách dùng được khuyến nghị của sản phẩm cuối – để ghi âm ổn định khi chạy
+    nền, khóa màn hình, mất mạng.
+  in_scope: "Ứng dụng Windows (Electron): bộ ghi âm ở tiến trình chính, lưu cục bộ có mã hóa, khôi phục sau sự cố, bộ cài\
+    \ có ký mã, tự cập nhật từ máy chủ nội bộ. Ứng dụng Android (Capacitor + plugin Kotlin): dịch vụ ghi âm nền, mã hóa bằng\
+    \ Android Keystore, phân phối APK. Ghi âm khi chưa kết nối máy chủ. Kiểm thử độ tin cậy trên laptop và 2–3 hãng điện thoại."
+  out_scope: iOS/macOS (ngoài phạm vi dự án).
+  deliverables: Bản phát hành 1.5 gồm ứng dụng Windows và Android; tài liệu và đào tạo cho ứng dụng.
+  exit: "G7: ứng dụng đạt ma trận độ tin cậy và được khách hàng chấp nhận."
+  risks: Điện thoại Android dừng ghi nền; chính sách cài đặt phần mềm của cơ quan (ký mã, APK, MDM).
+  i18n:
+    en:
+      name: Windows and Android apps
+- code: "6"
+  name: Phát hành R2
+  label: GĐ6
+  objective: Bổ sung các tính năng quản lý cuộc họp và nhận diện người nói.
+  in_scope: Nhận diện người nói (đăng ký giọng nói); nhiều thiết bị thu cho một cuộc họp; micro rời/hội nghị; lịch họp, mời
+    họp, nhắc lịch; phòng họp; độ mật và quy tắc truy cập; màn quản trị đơn vị và quản trị hệ thống; thống kê, báo cáo định
+    kỳ, trung tâm thông báo; chính sách lưu trữ; tìm kiếm toàn văn; giao diện tối; các hạng mục P2 từ MVP.
+  out_scope: SSO, tiếng Khmer, hỏi đáp trên kho biên bản (R3).
+  deliverables: Bản phát hành 2.0; tài liệu cập nhật; biên bản nghiệm thu R2.
+  exit: "G8: khách hàng nghiệm thu R2."
+  risks: Độ chính xác nhận diện người nói; khối lượng màn quản trị và thống kê.
+  i18n:
+    en:
+      name: Release 2
+- code: "7"
+  name: Phát hành R3
+  label: GĐ7
+  objective: Mở rộng tích hợp, ngôn ngữ và khai thác kho biên bản.
+  in_scope: Đăng nhập một lần (SSO); họp định kỳ; tiếng Khmer, nhận dạng ngôn ngữ và dịch; tìm kiếm ngữ nghĩa và hỏi đáp;
+    mở rộng nhiều máy chủ/HA; kiểm thử bảo mật.
+  out_scope: iOS/macOS.
+  deliverables: Bản phát hành 3.0; báo cáo kiểm thử bảo mật; biên bản nghiệm thu R3.
+  exit: "G9: khách hàng nghiệm thu R3."
+  risks: Thiếu dữ liệu tiếng Khmer; phụ thuộc hệ thống của bên thứ ba khi tích hợp.
+  i18n:
+    en:
+      name: Release 3
+- code: "8"
+  name: Triển khai diện rộng và chuyển giao
+  label: GĐ8
+  objective: Đưa hệ thống đến các đơn vị còn lại và chuyển giao cho đội IT khách hàng.
+  in_scope: Kế hoạch triển khai theo đợt; tài liệu và video hướng dẫn; đào tạo giảng viên nguồn; triển khai 3 đợt; hỗ trợ
+    sau triển khai; chuyển giao tài liệu, mã nguồn, cấu hình; nghiệm thu tổng thể.
+  out_scope: Phát triển tính năng mới.
+  deliverables: Hệ thống vận hành tại các đơn vị; bộ hồ sơ chuyển giao; biên bản nghiệm thu tổng thể.
+  exit: "G10: nghiệm thu tổng thể và chuyển giao."
+  risks: Mức độ sử dụng thấp ở một số đơn vị; năng lực tiếp nhận của đội IT khách hàng.
+  i18n:
+    en:
+      name: Rollout and handover
+- code: "9"
+  name: Bảo hành và hỗ trợ vận hành
+  label: GĐ9
+  objective: Duy trì hệ thống ổn định, an toàn trong thời gian bảo hành (giả định 12 tháng).
+  in_scope: Hỗ trợ và xử lý sự cố theo SLA; bản vá bảo mật và cập nhật phụ thuộc hàng tháng; cập nhật mô hình hàng quý; kiểm
+    tra sao lưu và khôi phục hàng quý; báo cáo vận hành hàng tháng; đánh giá cuối kỳ.
+  out_scope: Tính năng mới (thực hiện theo yêu cầu thay đổi riêng).
+  deliverables: 12 báo cáo vận hành tháng; các bản vá; báo cáo kết thúc bảo hành.
+  exit: "G11: kết thúc bảo hành."
+  risks: Phụ thuộc một người trong thời gian bảo hành; thay đổi hạ tầng phía khách hàng.
+  i18n:
+    en:
+      name: Warranty (12 months)
+- code: "10"
+  name: Quản lý dự án (xuyên suốt)
+  label: QL
+  objective: Điều hành, kiểm soát và bảo đảm chất lượng xuyên suốt từ khởi động đến chuyển giao.
+  in_scope: Báo cáo tuần; điều phối đội; họp cổng và demo; quản lý rủi ro, thay đổi, cấu hình và phát hành; rà soát bảo mật
+    mỗi bản phát hành; kiểm soát dữ liệu mật.
+  out_scope: —
+  deliverables: Báo cáo tuần; biên bản họp cổng; sổ rủi ro và nhật ký thay đổi cập nhật.
+  exit: Theo từng cổng G1–G10.
+  risks: —
+  i18n:
+    en:
+      name: Project management (throughout)
+groups:
+- code: "0.1"
+  name: Khởi động và định hình lại dự án
+  desc: Nền móng dự án theo phạm vi mới
+- code: "1.1"
+  name: Dữ liệu kiểm thử và chọn mô hình ASR
+  desc: Bộ dữ liệu, công cụ đo, ADR-009
+  i18n:
+    en:
+      name: Test data and ASR model selection
+- code: "1.2"
+  name: Yêu cầu, kiến trúc và thiết kế
+  desc: Phạm vi, kiến trúc, prototype đã duyệt
+  i18n:
+    en:
+      name: Requirements, architecture and design
+- code: "1.3"
+  name: Nền tảng kỹ thuật
+  desc: Công cụ, CI, khung web, backend, staging, giao thức
+  i18n:
+    en:
+      name: Technical foundation
+- code: "1.4"
+  name: Cổng G1
+  desc: Quyết định kỹ thuật và phạm vi
+  i18n:
+    en:
+      name: Gate G1
+- code: "2.1"
+  name: Đợt 1 – Ghi âm web và bản ghi trực tiếp
+  desc: Demo ghi âm có bản ghi trực tiếp (G2)
+  i18n:
+    en:
+      name: Build batch 1 – web recording and live transcript
+- code: "2.2"
+  name: Đợt 2 – Biên bản đầu-cuối
+  desc: Demo toàn bộ luồng chính (G3)
+  i18n:
+    en:
+      name: Build batch 2 – minutes end to end
+- code: "2.3"
+  name: Đợt 3 – Hoàn thiện và đóng gói
+  desc: Đủ tính năng MVP
+  i18n:
+    en:
+      name: Build batch 3 – completion and packaging
+- code: "2.4"
+  name: Ổn định và bản phát hành ứng viên
+  desc: Bản RC (G4)
+  i18n:
+    en:
+      name: Stabilization and release candidate
+- code: "3.1"
+  name: Chuẩn bị UAT
+  desc: Hệ thống sẵn sàng tại khách hàng
+  i18n:
+    en:
+      name: UAT preparation
+- code: "3.2"
+  name: UAT và nghiệm thu MVP
+  desc: Biên bản nghiệm thu MVP (G5)
+  i18n:
+    en:
+      name: UAT and acceptance
+- code: "4.1"
+  name: Chuẩn bị thí điểm
+  desc: Đơn vị thí điểm sẵn sàng
+- code: "4.2"
+  name: Vận hành thí điểm
+  desc: Dữ liệu sử dụng thực tế
+- code: "4.3"
+  name: Bản cập nhật 1.1
+  desc: Bản 1.1 và báo cáo thí điểm
+- code: "5.1"
+  name: Chuẩn bị ứng dụng
+  desc: Thiết kế, kiến trúc, phương án phân phối
+- code: "5.2"
+  name: Ứng dụng Windows (Electron)
+  desc: Ứng dụng desktop
+- code: "5.3"
+  name: Ứng dụng Android (Capacitor + Kotlin)
+  desc: Ứng dụng mobile
+- code: "5.4"
+  name: Phát hành 1.5
+  desc: Ứng dụng được khách hàng chấp nhận (G7)
+- code: "6.1"
+  name: Kế hoạch và thiết kế R2
+  desc: Phạm vi, thiết kế và backlog R2
+- code: "6.2"
+  name: Đợt R2.1 – Nhận diện người nói, độ mật
+  desc: Bản ghi có tên người nói
+- code: "6.3"
+  name: Đợt R2.2 – Nhiều thiết bị thu
+  desc: Ghi đồng thời nhiều thiết bị
+- code: "6.4"
+  name: Đợt R2.3 – Lịch họp, phòng họp, tìm kiếm
+  desc: Quản lý cuộc họp
+- code: "6.5"
+  name: Đợt R2.4 – Quản trị, thống kê, báo cáo, thông báo
+  desc: Màn quản trị, thống kê và thông báo
+- code: "6.6"
+  name: Ổn định và nghiệm thu R2
+  desc: Bản 2.0 được nghiệm thu (G8)
+- code: "7.1"
+  name: Kế hoạch và thiết kế R3
+  desc: Phạm vi, thiết kế và backlog R3
+- code: "7.2"
+  name: Đợt R3.1 – SSO, họp định kỳ, dữ liệu Khmer
+  desc: Tích hợp định danh
+- code: "7.3"
+  name: Đợt R3.2 – Tiếng Khmer
+  desc: Nhận dạng và dịch tiếng Khmer
+- code: "7.4"
+  name: Đợt R3.3 – Tìm kiếm ngữ nghĩa, hỏi đáp
+  desc: Khai thác kho biên bản
+- code: "7.5"
+  name: Đợt R3.4 – Mở rộng hạ tầng
+  desc: Nhiều máy chủ, HA
+- code: "7.6"
+  name: Ổn định và nghiệm thu R3
+  desc: Bản 3.0 được nghiệm thu (G9)
+- code: "8.1"
+  name: Chuẩn bị triển khai
+  desc: Kế hoạch và tài liệu triển khai
+- code: "8.2"
+  name: Triển khai theo đợt
+  desc: Hệ thống chạy tại các đơn vị
+- code: "8.3"
+  name: Chuyển giao và nghiệm thu tổng thể
+  desc: Biên bản nghiệm thu tổng thể (G10)
+- code: "9.1"
+  name: Hỗ trợ vận hành
+  desc: Hệ thống ổn định theo SLA
+- code: "9.2"
+  name: Bảo trì kỹ thuật
+  desc: Hệ thống an toàn, cập nhật
+- code: "9.3"
+  name: Kết thúc bảo hành
+  desc: Báo cáo kết thúc
+- code: "10.1"
+  name: Điều hành và báo cáo
+  desc: Báo cáo, điều phối, họp cổng
+- code: "10.2"
+  name: Kiểm soát dự án
+  desc: Rủi ro, thay đổi, phiên bản được kiểm soát
+- code: "10.3"
+  name: Chất lượng và tuân thủ
+  desc: Bảo mật và dữ liệu mật được kiểm soát
+packages:
+- code: 0.1.1
+  name: Họp chốt phạm vi mới với khách hàng
+  desc: Không trang bị phòng họp, 1 thiết bị thu, không phân biệt người nói
+  role: lead
+  effort: 0.5
+  done: 1
+  prio: P0
+  deps: []
+  coop: Khách hàng
+  release: MVP
+  status: done
+  schedule:
+    fixed:
+    - 2026-09-24
+    - 2026-09-24
+- code: 0.1.2
+  name: Kho mã nguồn monorepo và quy tắc phát triển
+  desc: Repo ivai-dev/ai-minute, quy tắc bảo mật, pnpm workspace
+  role: lead
+  effort: 0.5
+  done: 1
+  prio: P0
+  deps: []
+  release: MVP
+  status: done
+  schedule:
+    fixed:
+    - 2026-09-24
+    - 2026-09-25
+- code: 0.1.3
+  name: Quyết định kiến trúc ADR-001 đến ADR-008
+  desc: Nền tảng theo giai đoạn, mạng, lưu trữ, ghi âm, môi trường, triển khai, backend
+  ref: ADR-001..008
+  role: lead
+  effort: 0.5
+  done: 1
+  prio: P0
+  deps: []
+  release: MVP
+  status: done
+  schedule:
+    fixed:
+    - 2026-09-25
+    - 2026-09-25
+- code: 0.1.4
+  name: Tầm nhìn, bản đồ tính năng, NFR, câu hỏi mở
+  desc: vision-scope, feature-map, nfr, open-questions
+  ref: docs/01, docs/02
+  role: lead
+  effort: 0.5
+  done: 1
+  prio: P0
+  deps: []
+  release: MVP
+  status: done
+  schedule:
+    fixed:
+    - 2026-09-25
+    - 2026-09-25
+- code: 0.1.5
+  name: Định hướng thiết kế, UX spec, mockup v1
+  desc: design-system.md, ux-spec.md, 10 mockup
+  ref: docs/05
+  role: lead
+  effort: 0.5
+  done: 1
+  prio: P0
+  deps: []
+  release: MVP
+  status: done
+  schedule:
+    fixed:
+    - 2026-09-25
+    - 2026-09-25
+- code: 0.1.6
+  name: WBS, kế hoạch, phạm vi từng giai đoạn, bảng công việc
+  desc: Workbook này; wbs.md; plan.md; GitHub Project
+  ref: docs/06
+  role: lead
+  effort: 0.5
+  done: 1
+  prio: P0
+  deps: []
+  release: MVP
+  status: done
+  schedule:
+    fixed:
+    - 2026-09-25
+    - 2026-09-25
+- code: 1.1.1
+  name: Kịch bản họp mẫu và đợt ghi âm 1 (≥ 1 giờ, có bản chuẩn đối chiếu)
+  desc: Bản ghi giọng Bắc, Nam, nói chồng, cách 1–5 m
+  ref: F5.12
+  role: qa
+  effort: 3
+  done: 0.0
+  prio: P0
+  deps: []
+  coop: Tình nguyện viên
+  note: 6–10 người tham gia, có giấy đồng ý ghi âm
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Test data: scripted meetings and first recording round (≥ 1 h)"
+  ticket:
+    title: "Test data: scripted meetings and first recording round (≥ 1 h)"
+    type: task
+    epic: E5
+    areas:
+    - area:qa
+    - area:ai
+    desc: Write Vietnamese meeting scripts (agenda, reports, discussion, decisions, names from a glossary) and record the
+      first round with volunteers in a normal meeting room using a Windows laptop.
+    ac:
+    - Scripts for at least 3 meeting types, each with a glossary of names and terms
+    - "≥ 1 hour recorded: Northern and Southern accents, one session with overlapping speech, speakers at 1, 3 and 5 m"
+    - Every speaker signed a consent form
+    - Reference transcripts follow the normalization guide; data kept on controlled storage, never in Git or cloud services
+    sprint: Preparation
+- code: 1.1.2
+  name: Công cụ đo chất lượng ASR (tỉ lệ lỗi âm tiết, độ trễ)
+  desc: Script đo và báo cáo tự động
+  ref: F5.8
+  role: qa
+  effort: 1.5
+  done: 0.0
+  prio: P0
+  deps: []
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "ASR quality harness: syllable error rate and latency"
+  ticket:
+    title: "ASR quality harness: syllable error rate and latency"
+    type: task
+    epic: E5
+    areas:
+    - area:qa
+    - area:ai
+    desc: Scripts that score any ASR endpoint against the reference transcripts and report latency from timestamped logs.
+    ac:
+    - Syllable error rate per condition (distance, accent, overlap) after documented normalization
+    - Partial and final latency p50/p95
+    - Markdown report generated in one command; endpoint configured, not hard-coded
+    sprint: Preparation
+- code: 1.1.3
+  name: "Chọn mô hình ASR: đánh giá 2 ứng viên, chốt cấu hình GPU"
+  desc: ADR-009; báo cáo đánh giá
+  ref: F5.11
+  role: lead
+  effort: 3
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.1.1
+  - 1.1.2
+  coop: IT khách hàng
+  note: Cần GPU trên máy chủ thử
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "ASR model selection: evaluate two candidates and size the GPU (ADR-009)"
+  ticket:
+    title: "ASR model selection: evaluate two candidates and size the GPU (ADR-009)"
+    type: task
+    epic: E5
+    areas:
+    - area:ai
+    desc: Evaluate two Vietnamese-capable ASR candidates on the trial server with round-1 data and the harness; decide single-
+      vs two-pass recognition.
+    ac:
+    - Both candidates scored per condition; latency and concurrent streams per GPU measured
+    - Recommendation for browser audio processing (echo cancellation, noise suppression, AGC)
+    - ADR-009 written with the chosen model, serving setup and GPU sizing for the target concurrency
+    sprint: Preparation
+- code: 1.1.4
+  name: Đợt ghi âm 2 và hoàn thiện bộ dữ liệu (≥ 2 giờ)
+  desc: Bộ dữ liệu kiểm thử hoàn chỉnh
+  ref: F5.12
+  role: qa
+  effort: 2.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.1.1
+  coop: Tình nguyện viên
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Test data: second recording round, complete set (≥ 2 h)"
+  ticket:
+    title: "Test data: second recording round, complete set (≥ 2 h)"
+    type: task
+    epic: E5
+    areas:
+    - area:qa
+    desc: Complete the Vietnamese test set used by all later quality checks and by UAT.
+    ac:
+    - ≥ 2 hours in total covering accents, distances and overlap
+    - Reference transcripts reviewed by a second person
+    - Data catalogue (file, condition, speakers, duration) committed without audio
+    sprint: Preparation
+- code: 1.2.1
+  name: Gửi câu hỏi mở cho khách hàng và theo dõi câu trả lời
+  desc: Nhật ký quyết định cập nhật
+  ref: F0.1
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps: []
+  coop: Khách hàng
+  note: Q1, Q6, Q7 cần trước 02/10/2026
+  release: MVP
+  status: todo
+  schedule:
+    span:
+    - 1.1.1
+    - 1.4.1
+  i18n:
+    en:
+      name: Send open questions to the customer and track answers
+  ticket:
+    title: Send open questions to the customer and track answers
+    type: task
+    epic: E0
+    areas:
+    - area:docs
+    desc: Send Q1–Q14 from open-questions.md and record every answer in the decision log.
+    ac:
+    - Questions sent on the first working day
+    - Q1 (server), Q6 (templates), Q7 (test recordings) answered before 02/10/2026 or escalated
+    - Decision log updated with each answer
+    sprint: Preparation
+- code: 1.2.2
+  name: Tài liệu kiến trúc hệ thống
+  desc: system-architecture.md, mô hình dữ liệu
+  ref: F0.3
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.2.7
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: System architecture document and data model
+  ticket:
+    title: System architecture document and data model
+    type: task
+    epic: E0
+    areas:
+    - area:docs
+    - area:backend
+    - area:ai
+    desc: "Write docs/04-architecture/system-architecture.md and the data model, once the customer has signed off the feature\
+      \ set (1.2.7): components, data flows, deployment, security and capacity assumptions."
+    ac:
+    - Covers web client, API, ingest, ASR, LLM, workers, storage and deployment (ADR-007/008)
+    - Data model covers meetings, minutes, units and accounts
+    - Recording data flow and failure handling described
+    - Written after feature sign-off (1.2.7); reviewed by the developer
+    sprint: Preparation
+- code: 1.2.3
+  name: Prototype sản phẩm đầy đủ và buổi duyệt với khách hàng
+  desc: Prototype SC-00…SC-32, W-, A-; phản hồi khách hàng
+  ref: F0.5, F0.6
+  role: dev
+  effort: 2.5
+  done: 0.0
+  prio: P0
+  deps: []
+  coop: Khách hàng
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Full-product prototype and customer review session
+  ticket:
+    title: Full-product prototype and customer review session
+    type: task
+    epic: E0
+    areas:
+    - area:ui
+    - area:docs
+    desc: Build a clickable prototype of the full product (SC-00…SC-32, wireframes and app screens, laptop and phone widths)
+      and run a review session with the customer that leads to feature sign-off.
+    ac:
+    - Every screen in the prototype has loading, empty, error and offline states
+    - Recording condition warnings designed (tab open, laptop plugged in)
+    - Customer feedback recorded; design tokens ready for packages/ui
+    sprint: Preparation
+- code: 1.2.4
+  name: Thống nhất phạm vi MVP và NFR với khách hàng
+  desc: Phạm vi và chỉ tiêu được xác nhận
+  ref: F0.2
+  role: lead
+  effort: 0.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.2.7
+  coop: Khách hàng
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Agree MVP scope and NFRs with the customer
+  ticket:
+    title: Agree MVP scope and NFRs with the customer
+    type: task
+    epic: E0
+    areas:
+    - area:docs
+    desc: Walk the customer through vision-scope, the feature map (MVP line) and the NFRs, after the feature set is signed
+      off (1.2.7).
+    ac:
+    - MVP scope and web-first recording conditions accepted
+    - NFR targets marked (calibrate) confirmed or adjusted
+    - Changes recorded in the decision log
+    sprint: Preparation
+- code: 1.2.5
+  name: Story và tiêu chí chấp nhận đợt 1
+  desc: Story đợt 1 ở trạng thái Ready
+  ref: F0.8
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.2.2
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Stories and acceptance criteria for build batch 1
+  ticket:
+    title: Stories and acceptance criteria for build batch 1
+    type: task
+    epic: E0
+    areas:
+    - area:docs
+    desc: Refine the batch 1 stories (this backlog) so development can start without questions.
+    ac:
+    - Every batch 1 story has acceptance criteria and test notes
+    - Dependencies set as blocked-by links
+    - Stories marked Ready
+    sprint: Preparation
+- code: 1.2.6
+  name: Chiến lược kiểm thử, ma trận trình duyệt và thiết bị
+  desc: test-strategy.md
+  ref: F10.1
+  role: qa
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps: []
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Test strategy, browser and device matrix
+  ticket:
+    title: Test strategy, browser and device matrix
+    type: task
+    epic: E10
+    areas:
+    - area:qa
+    desc: "Write docs/06-planning/test-strategy.md: levels, tools, environments, the browser/laptop matrix and the recording\
+      \ reliability scenarios."
+    ac:
+    - Unit, contract, end-to-end, manual and performance levels defined
+    - Browser × scenario matrix for the web recorder
+    - Test data rules (synthetic or consented only)
+    sprint: Preparation
+- code: 1.2.7
+  name: Khách hàng duyệt prototype sản phẩm đầy đủ và chốt tính năng
+  desc: Biên bản chốt tính năng
+  ref: F0.9
+  role: lead
+  effort: 0.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.2.3
+  coop: Khách hàng
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Customer approves the full-product prototype and signs off features
+  ticket:
+    title: Customer approves the full-product prototype and signs off features
+    type: task
+    epic: E0
+    areas:
+    - area:ui
+    desc: Decision meeting where the customer reviews the full-product prototype (1.2.3) and confirms the feature set before
+      architecture work starts.
+    ac:
+    - Feature sign-off record produced (F0.9)
+    - Unresolved items deferred to after the MVP
+    - Architecture and data model work (1.2.2) starts only after this sign-off
+    sprint: Preparation
+- code: 1.3.1
+  name: Công cụ monorepo, CI và khung ứng dụng web
+  desc: ESLint, Vitest, Playwright, build web, composition root
+  ref: F1.1, F1.2, F1.3
+  role: dev
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps: []
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Monorepo tooling, CI and web app shell
+  ticket:
+    title: Monorepo tooling, CI and web app shell
+    type: task
+    epic: E1
+    areas:
+    - area:app
+    - area:web
+    - area:deploy
+    desc: Set up ESLint, Vitest and Playwright in the pnpm workspace, the GitHub Actions pipeline and the web entry with its
+      composition root.
+    ac:
+    - pnpm format:check, lint, typecheck and test pass locally and in CI
+    - Web app starts and builds
+    - CI uses synthetic data only
+    sprint: Preparation
+- code: 1.3.2
+  name: Token thiết kế, thành phần cơ sở, ghi log che nội dung, đa ngôn ngữ
+  desc: packages/ui, logger, i18n tiếng Việt
+  ref: F1.4, F1.5, F1.6
+  role: dev
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.2.3
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Design tokens, base components, redacting logger and i18n
+  ticket:
+    title: Design tokens, base components, redacting logger and i18n
+    type: task
+    epic: E1
+    areas:
+    - area:ui
+    - area:app
+    desc: Implement the design system tokens and core components in packages/ui, the app logger that strips meeting content,
+      and Vietnamese i18n.
+    ac:
+    - Tokens match docs/05-design/design-system.md, light theme; fonts bundled
+    - Logger unit tests prove meeting content is never logged
+    - All UI strings come from i18n resources
+    sprint: Preparation
+- code: 1.3.3
+  name: "Khung backend: API, OpenAPI, CSDL, migration (ADR-008)"
+  desc: API chạy trong Docker Compose
+  ref: F8.1, F8.2
+  role: lead
+  effort: 1.5
+  done: 0.0
+  prio: P0
+  deps: []
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Backend skeleton: FastAPI, OpenAPI, PostgreSQL, migrations (ADR-008)"
+  ticket:
+    title: "Backend skeleton: FastAPI, OpenAPI, PostgreSQL, migrations (ADR-008)"
+    type: task
+    epic: E8
+    areas:
+    - area:backend
+    desc: Create services/api with the ADR-008 stack and generate the TypeScript client into packages/protocol.
+    ac:
+    - API runs in Docker Compose with health endpoint
+    - Alembic migrations run on start
+    - OpenAPI → TypeScript client generation in CI
+    - services/AGENTS.md with the security rules
+    sprint: Preparation
+- code: 1.3.4
+  name: Docker Compose và staging trên máy chủ thử
+  desc: Staging truy cập được
+  ref: F9.1, F9.2
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.3.3
+  coop: IT khách hàng
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Docker Compose profiles and staging on the trial server
+  ticket:
+    title: Docker Compose profiles and staging on the trial server
+    type: task
+    epic: E9
+    areas:
+    - area:deploy
+    desc: Compose base/dev/gpu profiles (ADR-007) and a staging deployment on the customer's trial server.
+    ac:
+    - dev profile runs on a laptop with ASR/LLM mocks
+    - gpu profile runs on the trial server
+    - Staging reachable by the team; no real meeting data
+    sprint: Preparation
+- code: 1.3.5
+  name: Đặc tả giao thức ghi âm và bộ kiểm thử hợp đồng
+  desc: recording-protocol.md
+  ref: F4.2
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.2.2
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Recording protocol spec and contract test suite
+  ticket:
+    title: Recording protocol spec and contract test suite
+    type: task
+    epic: E4
+    areas:
+    - area:protocol
+    - area:core
+    desc: Specify the WebSocket recording protocol and provide Zod schemas and a contract test suite for recorder implementations.
+    ac:
+    - Frame format, (meetingId, sequence), acks, resume, transcript events, errors and versioning specified
+    - Zod schemas for every message
+    - Contract tests run against a mock server in CI
+    sprint: Preparation
+- code: 1.4.1
+  name: "Họp cổng G1: chốt mô hình ASR, cấu hình GPU, phạm vi MVP"
+  desc: ADR-009 được chấp thuận; NFR hiệu chỉnh
+  ref: F0.4
+  role: lead
+  effort: 0.25
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.1.3
+  - 1.2.3
+  - 1.2.4
+  coop: Khách hàng
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Gate G1: accept ADR-009, confirm GPU sizing and MVP scope"
+  ticket:
+    title: "Gate G1: accept ADR-009, confirm GPU sizing and MVP scope"
+    type: task
+    epic: E0
+    areas:
+    - area:docs
+    desc: Decision meeting closing the preparation phase.
+    ac:
+    - ADR-009 accepted; GPU sizing sent to the customer
+    - Prototype and MVP scope signed off
+    - NFRs recalibrated; plan updated if needed
+    sprint: Preparation
+- code: 2.1.1
+  name: Máy trạng thái ghi âm và hàng đợi tải lên
+  desc: packages/core, kiểm thử đơn vị
+  ref: F4.1
+  role: dev
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.3.5
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Recording state machine and upload queue
+  ticket:
+    title: Recording state machine and upload queue
+    type: story
+    epic: E4
+    areas:
+    - area:core
+    desc: As a secretary, I want the recording to keep a consistent state whatever happens, so that no audio is lost.
+    ac:
+    - XState machine with idle, preparing, recording, recordingOffline, paused, stopping, uploadingPending, completed, failed
+    - Chunks identified by (meetingId, sequence); deleted only after ack
+    - Every transition unit-tested
+    sprint: Build batch 1
+- code: 2.1.2
+  name: "Bộ ghi âm web: AudioWorklet, lưu tạm OPFS, Wake Lock, cảnh báo điều kiện"
+  desc: Ghi âm ổn định trên Chrome/Edge
+  ref: F4.5
+  role: dev
+  effort: 2.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.1.1
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Web recorder: AudioWorklet, OPFS buffer, Wake Lock, condition warnings"
+  ticket:
+    title: "Web recorder: AudioWorklet, OPFS buffer, Wake Lock, condition warnings"
+    type: story
+    epic: E4
+    areas:
+    - area:web
+    - area:app
+    desc: As a secretary, I want to record a meeting in Chrome or Edge on my laptop and be warned about what could interrupt
+      it.
+    ac:
+    - PCM16 16 kHz mono frames of 100–200 ms streamed and buffered in OPFS
+    - Wake Lock held while recording; storage.persist requested
+    - Clear warning to keep the tab open and the laptop plugged in
+    - Passes the protocol contract tests
+    sprint: Build batch 1
+- code: 2.1.3
+  name: Cổng nhận âm thanh, lưu đoạn, xác nhận, tiếp tục
+  desc: Nhận đoạn idempotent
+  ref: F8.3
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.3.3
+  - 1.3.5
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Audio ingest gateway: chunk storage, idempotent acks, resume"
+  ticket:
+    title: "Audio ingest gateway: chunk storage, idempotent acks, resume"
+    type: story
+    epic: E8
+    areas:
+    - area:backend
+    desc: As the system, I want to receive audio chunks safely so that recordings are complete even after reconnects.
+    ac:
+    - WebSocket endpoint per ADR-002 and the protocol spec
+    - Idempotent by (meetingId, sequence); acks only after durable write
+    - Resume after reconnect; contract tests pass
+    sprint: Build batch 1
+- code: 2.1.4
+  name: Dịch vụ ASR streaming trên staging
+  desc: Chữ tạm và chữ chốt qua WebSocket
+  ref: F5.1
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.1.3
+  - 1.3.4
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Streaming ASR service on staging (partial and final text)
+  ticket:
+    title: Streaming ASR service on staging (partial and final text)
+    type: story
+    epic: E5
+    areas:
+    - area:ai
+    desc: As a secretary, I want to see the transcript appear while people speak.
+    ac:
+    - Chosen model (ADR-009) served on the trial GPU
+    - Partial and final segments pushed over the WebSocket
+    - Latency measured with the harness and reported
+    sprint: Build batch 1
+- code: 2.1.5
+  name: Đăng nhập, vai trò, cô lập dữ liệu theo đơn vị, đổi mật khẩu lần đầu, khóa tài khoản
+  desc: Luồng đăng nhập
+  ref: F2.1, F2.2, F2.3, F2.11
+  role: dev
+  effort: 2.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.3.3
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Sign in, roles, unit data isolation, first-login password change and account lockout
+  ticket:
+    title: Sign in, roles, unit data isolation, first-login password change and account lockout
+    type: story
+    epic: E2
+    areas:
+    - area:app
+    - area:backend
+    desc: As a user, I want to sign in so that only authorized people in my unit see its meetings, with basic account safety
+      rules.
+    ac:
+    - Username/password sign-in, sign-out, session refresh
+    - "Roles: secretary, chairperson, reader, admin enforced by the API"
+    - Every table carries `unit_id`
+    - Every query is scoped to the caller's unit
+    - A cross-unit read returns 404
+    - First sign-in forces a password change
+    - 5 failures lock the account
+    sprint: Build batch 1
+- code: 2.1.6
+  name: Màn hình ghi âm và bản ghi trực tiếp
+  desc: SC-05 trên web
+  ref: F5.6, F4.7, F4.8
+  role: dev
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.1.2
+  - 1.3.2
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Recording screen and live transcript
+  ticket:
+    title: Recording screen and live transcript
+    type: story
+    epic: E5
+    areas:
+    - area:app
+    - area:ui
+    desc: As a secretary, I want a calm recording screen with the timer, state and live transcript.
+    ac:
+    - "Screen SC-05 per the mockups: timer, state pill, level meter, start/pause/stop"
+    - Partial text muted, final text normal; auto-scroll with 'back to live'
+    - Pre-flight microphone check and selection
+    sprint: Build batch 1
+- code: 2.1.7
+  name: "Cuộc họp: tạo, ghi âm nhanh, danh sách"
+  desc: SC-02, SC-03
+  ref: F3.1, F3.5, F3.6, F7.1
+  role: dev
+  effort: 1.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.1.5
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Meetings: create, quick record, list"
+  ticket:
+    title: "Meetings: create, quick record, list"
+    type: story
+    epic: E3
+    areas:
+    - area:app
+    desc: As a secretary, I want to start recording in two actions or prepare a meeting in advance.
+    ac:
+    - Quick record creates a meeting with a default title
+    - Create/edit meeting with title, time, location, chairperson, agenda, template
+    - Meeting list with filters (SC-02)
+    sprint: Build batch 1
+- code: 2.1.8
+  name: "Kiểm thử đợt 1: ghi 2 giờ trên Chrome/Edge, mất mạng, tải lại tab"
+  desc: Báo cáo kiểm thử đợt 1
+  ref: F10.2
+  role: qa
+  effort: 2.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.1.6
+  - 2.1.3
+  - 2.1.4
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Batch 1 test: 2-hour recording on Chrome/Edge, network loss, tab reload"
+  ticket:
+    title: "Batch 1 test: 2-hour recording on Chrome/Edge, network loss, tab reload"
+    type: task
+    epic: E10
+    areas:
+    - area:qa
+    desc: Test the batch 1 journey on real laptops.
+    ac:
+    - 2-hour session on Chrome and Edge without missing sequences
+    - Network loss up to 30 min and tab reload recovered
+    - Defects filed; report attached
+    sprint: Build batch 1
+- code: 2.1.9
+  name: Báo cáo chất lượng và độ trễ ASR trên staging
+  desc: Báo cáo tự động
+  ref: F5.8
+  role: qa
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.1.4
+  - 1.1.2
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: ASR quality and latency report on staging
+  ticket:
+    title: ASR quality and latency report on staging
+    type: task
+    epic: E5
+    areas:
+    - area:qa
+    - area:ai
+    desc: Run the harness against the staging ASR with the full test set.
+    ac:
+    - Syllable error rate per condition and latency p50/p95 reported
+    - Comparison with the NFR targets
+    - Report stored in docs/03-research/
+    sprint: Build batch 1
+- code: 2.1.10
+  name: Story và tiêu chí chấp nhận đợt 2
+  desc: Story đợt 2 sẵn sàng
+  ref: F0.8
+  role: lead
+  effort: 0.25
+  done: 0.0
+  prio: P0
+  deps: []
+  release: MVP
+  status: todo
+  schedule:
+    span:
+    - 2.1.1
+    - 2.1.9
+  i18n:
+    en:
+      name: Stories and acceptance criteria for build batch 2
+  ticket:
+    title: Stories and acceptance criteria for build batch 2
+    type: task
+    epic: E0
+    areas:
+    - area:docs
+    desc: Refine batch 2 stories during batch 1.
+    ac:
+    - Every batch 2 story has acceptance criteria
+    - Blocked-by links set
+    - Stories marked Ready before batch 2 starts
+    sprint: Build batch 1
+- code: 2.2.1
+  name: Tự khôi phục khi mất mạng hoặc tải lại tab, tải lên đầy đủ
+  desc: Không mất âm thanh trong điều kiện đã thống nhất
+  ref: F4.6
+  role: dev
+  effort: 1.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.1.2
+  - 2.1.3
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Automatic recovery after network loss or tab reload, complete upload
+  ticket:
+    title: Automatic recovery after network loss or tab reload, complete upload
+    type: story
+    epic: E4
+    areas:
+    - area:web
+    - area:core
+    desc: As a secretary, I want recording to continue and catch up after a network drop or an accidental reload.
+    ac:
+    - Recording continues offline into OPFS; state shows 'offline – will process later'
+    - After reload the unfinished session is detected and resumed or uploaded
+    - Zero missing sequences in the test scenarios
+    sprint: Build batch 2
+- code: 2.2.2
+  name: Nhận dạng lượt 2, nhận dạng hàng loạt, chuẩn hóa tiếng Việt, ưu tiên từ khóa
+  desc: Bản ghi chính xác sau cuộc họp
+  ref: F5.2, F5.3, F5.4, F5.5
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.1.4
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Second pass, batch transcription, Vietnamese normalization, glossary biasing
+  ticket:
+    title: Second pass, batch transcription, Vietnamese normalization, glossary biasing
+    type: story
+    epic: E5
+    areas:
+    - area:ai
+    desc: As a secretary, I want an accurate transcript after the meeting, including names from the glossary.
+    ac:
+    - Batch transcription for audio uploaded after an interruption
+    - Second pass replaces partial text for finished segments
+    - Punctuation, capitalization, numbers; glossary terms prioritized
+    sprint: Build batch 2
+- code: 2.2.3
+  name: Dịch vụ LLM, hàng đợi, chọn mô hình (ADR-010)
+  desc: LLM chạy nền, không tranh GPU với ASR
+  ref: F6.1, F8.4
+  role: lead
+  effort: 1.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.3.4
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: LLM service and job queue; model selection (ADR-010)
+  ticket:
+    title: LLM service and job queue; model selection (ADR-010)
+    type: story
+    epic: E6
+    areas:
+    - area:ai
+    - area:backend
+    desc: As the system, I want minutes generation to run in a queue that never slows live transcription.
+    ac:
+    - Two candidate models tried on the test transcripts; ADR-010 written
+    - Model served on the GPU with a job queue separate from ASR
+    - Live ASR latency unchanged while minutes are generated
+    sprint: Build batch 2
+- code: 2.2.4
+  name: Sinh biên bản theo mẫu có sẵn
+  desc: 3 mẫu theo thể thức văn bản hành chính
+  ref: F6.2, F6.3
+  role: lead
+  effort: 2.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.2.3
+  coop: Khách hàng
+  note: Cần mẫu biên bản chính thức (Q6)
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Minutes generation from built-in templates
+  ticket:
+    title: Minutes generation from built-in templates
+    type: story
+    epic: E6
+    areas:
+    - area:ai
+    desc: As a secretary, I want draft minutes in the official template right after the meeting.
+    ac:
+    - Three built-in templates in the official format (customer samples, Q6)
+    - Draft marked as AI-generated; sections traceable to transcript times
+    - No invented participants or decisions in the test set
+    sprint: Build batch 2
+- code: 2.2.5
+  name: Xuất DOCX/PDF theo mẫu
+  desc: File xuất đúng thể thức
+  ref: F6.7
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.2.4
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: DOCX and PDF export from the template
+  ticket:
+    title: DOCX and PDF export from the template
+    type: story
+    epic: E6
+    areas:
+    - area:backend
+    desc: As a secretary, I want to export the minutes as DOCX and PDF in the official layout.
+    ac:
+    - Server-side DOCX from the template; PDF conversion inside the stack
+    - Vietnamese fonts and diacritics render correctly
+    - No external service used
+    sprint: Build batch 2
+- code: 2.2.6
+  name: "Rà soát bản ghi: phát từng đoạn, sửa chữ"
+  desc: SC-07
+  ref: F5.7
+  role: dev
+  effort: 1.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.1.6
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Transcript review: play a segment, edit text"
+  ticket:
+    title: "Transcript review: play a segment, edit text"
+    type: story
+    epic: E5
+    areas:
+    - area:app
+    desc: As a secretary, I want to listen to a segment and correct the transcript.
+    ac:
+    - Click a segment to play its audio
+    - Edit text; edits saved and versioned
+    - Find in transcript
+    sprint: Build batch 2
+- code: 2.2.7
+  name: Trình soạn biên bản cạnh bản ghi
+  desc: SC-08
+  ref: F6.4
+  role: dev
+  effort: 2.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.3.2
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Minutes editor beside the transcript
+  ticket:
+    title: Minutes editor beside the transcript
+    type: story
+    epic: E6
+    areas:
+    - area:app
+    - area:ui
+    desc: As a secretary, I want to edit the minutes next to the transcript (SC-08).
+    ac:
+    - TipTap open-source editor with the official layout
+    - Transcript panel with audio player on the left
+    - Autosave; submit action
+    sprint: Build batch 2
+- code: 2.2.8
+  name: Chi tiết cuộc họp, lịch sử, tìm kiếm cơ bản, in
+  desc: SC-09, SC-10, SC-11
+  ref: F7.2, F7.3, F6.8
+  role: dev
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.1.7
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Meeting detail, history, basic search and print
+  ticket:
+    title: Meeting detail, history, basic search and print
+    type: story
+    epic: E7
+    areas:
+    - area:app
+    desc: As a reader, I want to find past meetings and print the minutes.
+    ac:
+    - Meeting detail with info, audio, transcript, minutes
+    - Search by title, date and participants; filters
+    - Print preview and print from the browser
+    sprint: Build batch 2
+- code: 2.2.9
+  name: Người tham dự và từ khóa nhận dạng
+  desc: Từ khóa gửi sang ASR và LLM
+  ref: F3.2, F3.3
+  role: dev
+  effort: 1
+  done: 0.0
+  prio: P1
+  deps:
+  - 2.1.7
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Participants and recognition glossary
+  ticket:
+    title: Participants and recognition glossary
+    type: story
+    epic: E3
+    areas:
+    - area:app
+    desc: As a secretary, I want to add participants and a glossary so that names are recognized correctly.
+    ac:
+    - Participants from a list or free text
+    - Glossary chips per meeting
+    - Glossary sent to ASR and LLM
+    sprint: Build batch 2
+- code: 2.2.10
+  name: Kiểm thử đợt 2 và chấm điểm biên bản
+  desc: Báo cáo kiểm thử đợt 2
+  ref: F10.2, F6.2
+  role: qa
+  effort: 3
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.2.4
+  - 2.2.7
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Batch 2 test and minutes quality rating
+  ticket:
+    title: Batch 2 test and minutes quality rating
+    type: task
+    epic: E10
+    areas:
+    - area:qa
+    desc: Test the full critical journey and rate generated minutes.
+    ac:
+    - Critical journey passes on Chrome and Edge
+    - Minutes rated with the rubric (completeness, correctness, no invented facts)
+    - Defects filed; report attached
+    sprint: Build batch 2
+- code: 2.2.11
+  name: Story và tiêu chí chấp nhận đợt 3
+  desc: Story đợt 3 sẵn sàng
+  ref: F0.8
+  role: lead
+  effort: 0.25
+  done: 0.0
+  prio: P0
+  deps: []
+  release: MVP
+  status: todo
+  schedule:
+    span:
+    - 2.2.1
+    - 2.2.10
+  i18n:
+    en:
+      name: Stories and acceptance criteria for build batch 3
+  ticket:
+    title: Stories and acceptance criteria for build batch 3
+    type: task
+    epic: E0
+    areas:
+    - area:docs
+    desc: Refine batch 3 stories during batch 2.
+    ac:
+    - Every batch 3 story has acceptance criteria
+    - Blocked-by links set
+    - Stories marked Ready before batch 3 starts
+    sprint: Build batch 2
+- code: 2.3.1
+  name: Duyệt biên bản (nháp → chờ duyệt → đã duyệt)
+  desc: Luồng duyệt đơn giản
+  ref: F6.6
+  role: dev
+  effort: 1
+  done: 0.0
+  prio: P1
+  deps:
+  - 2.2.7
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Minutes approval: draft → submitted → approved"
+  ticket:
+    title: "Minutes approval: draft → submitted → approved"
+    type: story
+    epic: E6
+    areas:
+    - area:app
+    desc: As a chairperson, I want to approve minutes submitted by the secretary.
+    ac:
+    - States draft, submitted, approved with who and when
+    - Only the chairperson role can approve
+    - Approved minutes are read-only
+    sprint: Build batch 3 and RC
+- code: 2.3.2
+  name: Script tạo đơn vị và tài khoản; nạp mẫu biên bản có sẵn
+  desc: Script chạy trên máy chủ, không có màn quản trị
+  ref: F2.10, F6.3
+  role: dev
+  effort: 0.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.1.5
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Unit and account CLI; load built-in minutes templates
+  ticket:
+    title: Unit and account CLI; load built-in minutes templates
+    type: story
+    epic: E2
+    areas:
+    - area:backend
+    desc: As a system admin, I want a CLI to create a unit and its first accounts and load the built-in minutes templates,
+      since the MVP has no administration screens (F2.10).
+    ac:
+    - A CLI creates a unit with its header fields
+    - A CLI creates users with roles and prints a one-time password
+    - A CLI resets passwords and unlocks accounts
+    - A CLI loads the built-in templates
+    - The CLI is idempotent
+    - No administration UI in the MVP; admin screens come in R2
+    sprint: Build batch 3 and RC
+- code: 2.3.3
+  name: "Giao diện di động: xem, duyệt, chia sẻ biên bản"
+  desc: Web trên điện thoại
+  ref: F6.13
+  role: dev
+  effort: 1
+  done: 0.0
+  prio: P1
+  deps:
+  - 2.3.1
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Mobile web: view, approve and share minutes"
+  ticket:
+    title: "Mobile web: view, approve and share minutes"
+    type: story
+    epic: E6
+    areas:
+    - area:app
+    - area:ui
+    desc: As a chairperson, I want to read and approve minutes on my phone.
+    ac:
+    - Responsive views for meeting list, minutes, approval
+    - Share/download DOCX or PDF
+    - No recording offered on mobile browsers
+    sprint: Build batch 3 and RC
+- code: 2.3.4
+  name: Nhật ký kiểm toán, mã hóa dữ liệu trên máy chủ
+  desc: Audit log; volume mã hóa
+  ref: F8.5
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P1
+  deps:
+  - 2.1.5
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Audit log and server-side encryption at rest
+  ticket:
+    title: Audit log and server-side encryption at rest
+    type: story
+    epic: E8
+    areas:
+    - area:backend
+    desc: As an admin, I want to know who viewed, edited, exported or approved minutes.
+    ac:
+    - Audit events for sign-in, view, edit, export, approve, delete
+    - Audio and database on an encrypted volume
+    - Audit log never contains meeting content
+    sprint: Build batch 3 and RC
+- code: 2.3.5
+  name: Gói cài đặt offline, TLS, sao lưu và khôi phục
+  desc: Gói cài đặt; quy trình sao lưu
+  ref: F9.3, F9.4, F9.5
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 1.3.4
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Offline install bundle, TLS, backup and restore
+  ticket:
+    title: Offline install bundle, TLS, backup and restore
+    type: task
+    epic: E9
+    areas:
+    - area:deploy
+    desc: Package the server side for an offline install (ADR-007).
+    ac:
+    - docker save bundle with pinned images and model artifacts
+    - TLS with the internal CA through the reverse proxy
+    - Scheduled backups and a tested restore procedure
+    sprint: Build batch 3 and RC
+- code: 2.3.6
+  name: Giám sát cơ bản, health check
+  desc: Health check và log tập trung
+  ref: F9.6
+  role: lead
+  effort: 0.5
+  done: 0.0
+  prio: P1
+  deps:
+  - 2.3.5
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Basic monitoring and health checks
+  ticket:
+    title: Basic monitoring and health checks
+    type: task
+    epic: E9
+    areas:
+    - area:deploy
+    desc: Minimal operations visibility for the MVP.
+    ac:
+    - Health checks for API, ASR, LLM, database
+    - Central logs with content redaction
+    - GPU, queue length and disk visible
+    sprint: Build batch 3 and RC
+- code: 2.3.7
+  name: Kiểm thử đợt 3
+  desc: Báo cáo kiểm thử đợt 3, kiểm thử cô lập đơn vị
+  ref: F10.2
+  role: qa
+  effort: 2.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.3.1
+  - 2.3.2
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Batch 3 test
+  ticket:
+    title: Batch 3 test
+    type: task
+    epic: E10
+    areas:
+    - area:qa
+    desc: Test approval, the unit/account creation script, mobile web and audit, including unit data isolation.
+    ac:
+    - Batch 3 stories verified
+    - Unit isolation verified (one unit cannot see another unit's data)
+    - Regression of the critical journey
+    - Defects filed; report attached
+    sprint: Build batch 3 and RC
+- code: 2.4.1
+  name: Ma trận độ tin cậy ghi âm web (trình duyệt × tình huống)
+  desc: Báo cáo ma trận độ tin cậy
+  ref: F10.2
+  role: qa
+  effort: 2.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.2.1
+  - 2.2.10
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Web recording reliability matrix (browsers × scenarios)
+  ticket:
+    title: Web recording reliability matrix (browsers × scenarios)
+    type: task
+    epic: E10
+    areas:
+    - area:qa
+    desc: Run the reliability matrix from the test strategy.
+    ac:
+    - Chrome and Edge on ≥ 2 laptop models
+    - "Scenarios: 2 h session, network loss, tab reload, sleep prevention, low disk"
+    - Zero missing sequences under the stated conditions
+    sprint: Build batch 3 and RC
+- code: 2.4.2
+  name: "Kiểm thử hiệu năng: nhiều cuộc họp đồng thời"
+  desc: Báo cáo hiệu năng
+  ref: F10.4
+  role: qa
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.3.5
+  - 2.2.2
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Performance test: concurrent meetings"
+  ticket:
+    title: "Performance test: concurrent meetings"
+    type: task
+    epic: E10
+    areas:
+    - area:qa
+    - area:backend
+    desc: Measure latency at the agreed concurrency on the trial server.
+    ac:
+    - Partial and final latency p95 at target concurrency
+    - Minutes generation does not degrade live ASR
+    - Results compared with NFRs
+    sprint: Build batch 3 and RC
+- code: 2.4.3
+  name: Kiểm thử đầu-cuối tự động (Playwright)
+  desc: Bộ kiểm thử luồng chính (mở rộng dần qua các đợt)
+  ref: F10.3
+  role: qa
+  effort: 1.5
+  done: 0.0
+  prio: P1
+  deps:
+  - 2.1.6
+  - 2.1.7
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Automated end-to-end tests (Playwright), extended per batch
+  ticket:
+    title: Automated end-to-end tests (Playwright), extended per batch
+    type: task
+    epic: E10
+    areas:
+    - area:qa
+    desc: Automate the critical journey on the web app and keep it green in CI.
+    ac:
+    - Sign in, quick record (fake audio), live transcript, minutes, export
+    - Runs in CI with synthetic fixtures
+    - Extended after each batch
+    sprint: Build batch 3 and RC
+- code: 2.4.4
+  name: Diễn tập cài đặt trên máy sạch không có internet
+  desc: Biên bản diễn tập
+  ref: F9.3
+  role: qa
+  effort: 0.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.3.5
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Install rehearsal on a clean machine without internet
+  ticket:
+    title: Install rehearsal on a clean machine without internet
+    type: task
+    epic: E9
+    areas:
+    - area:qa
+    - area:deploy
+    desc: Prove the offline bundle installs and runs following the guide.
+    ac:
+    - Clean machine without internet access
+    - Install completes following the operator guide
+    - Restore from backup rehearsed
+    sprint: Build batch 3 and RC
+- code: 2.4.5
+  name: Sửa lỗi giao diện và bộ ghi âm
+  desc: Không còn lỗi nghiêm trọng
+  role: dev
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.3.7
+  - 2.4.1
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Bug fixing: UI and recorder"
+  ticket:
+    title: "Bug fixing: UI and recorder"
+    type: task
+    epic: E10
+    areas:
+    - area:app
+    - area:web
+    desc: Fix defects found in batch 3 and the reliability matrix.
+    ac:
+    - No open critical or major defects in the client
+    - Regression tests added for fixed defects
+    sprint: Build batch 3 and RC
+- code: 2.4.6
+  name: Sửa lỗi máy chủ
+  desc: Không còn lỗi nghiêm trọng
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.3.7
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: "Bug fixing: server"
+  ticket:
+    title: "Bug fixing: server"
+    type: task
+    epic: E10
+    areas:
+    - area:backend
+    desc: Fix server-side defects found in batch 3.
+    ac:
+    - No open critical or major server defects
+    - Regression tests added for fixed defects
+    sprint: Build batch 3 and RC
+- code: 3.1.1
+  name: Hướng dẫn vận hành và hướng dẫn nhanh cho thư ký
+  desc: 2 tài liệu hướng dẫn
+  ref: F9.8
+  role: qa
+  effort: 1.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.2.8
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Operator guide and secretary quick guide
+  ticket:
+    title: Operator guide and secretary quick guide
+    type: task
+    epic: E9
+    areas:
+    - area:docs
+    - area:qa
+    desc: Write the installation/operations guide and a one-page secretary guide (Vietnamese).
+    ac:
+    - "Operator guide: install, TLS, backup, restore, monitoring"
+    - One-page secretary guide including recording conditions
+    - Reviewed by the project lead
+    sprint: UAT and acceptance
+- code: 3.1.2
+  name: Cài đặt tại máy chủ khách hàng từ gói offline
+  desc: Hệ thống chạy tại khách hàng
+  ref: F9.3
+  role: lead
+  effort: 0.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 2.4.4
+  - 2.4.6
+  coop: IT khách hàng
+  note: Cần máy chủ chính thức (Q1)
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Install on the customer server from the offline bundle
+  ticket:
+    title: Install on the customer server from the offline bundle
+    type: task
+    epic: E9
+    areas:
+    - area:deploy
+    desc: Install the release candidate on the customer's production server.
+    ac:
+    - Installed from the bundle following the guide
+    - TLS and backups configured
+    - Smoke test passed
+    sprint: UAT and acceptance
+- code: 3.2.1
+  name: Buổi UAT với người dùng thật
+  desc: Kết quả UAT theo kịch bản
+  ref: F10.5
+  role: lead
+  effort: 0.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 3.1.2
+  - 3.1.1
+  - 2.4.1
+  - 2.4.5
+  coop: Khách hàng
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: UAT session with real users
+  ticket:
+    title: UAT session with real users
+    type: task
+    epic: E10
+    areas:
+    - area:qa
+    - area:docs
+    desc: Run the agreed UAT scenarios with the customer's users.
+    ac:
+    - UAT scenarios agreed in advance (Q12)
+    - Results recorded per scenario
+    - Defects triaged with the customer
+    sprint: UAT and acceptance
+- code: 3.2.2
+  name: Hỗ trợ UAT, ghi nhận lỗi
+  desc: Danh sách lỗi UAT
+  ref: F10.5
+  role: qa
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 3.1.2
+  release: MVP
+  status: todo
+  schedule:
+    span:
+    - 3.2.1
+    - 3.2.3
+  i18n:
+    en:
+      name: UAT support and defect logging
+  ticket:
+    title: UAT support and defect logging
+    type: task
+    epic: E10
+    areas:
+    - area:qa
+    desc: Support users during UAT and log defects.
+    ac:
+    - All UAT observations logged as issues
+    - Retests after fixes
+    sprint: UAT and acceptance
+- code: 3.2.3
+  name: Sửa lỗi sau UAT
+  desc: Bản sửa lỗi
+  role: dev
+  effort: 1.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 3.2.1
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Fixes after UAT
+  ticket:
+    title: Fixes after UAT
+    type: task
+    epic: E10
+    areas:
+    - area:app
+    - area:backend
+    desc: Fix defects blocking acceptance.
+    ac:
+    - All blocking UAT defects fixed and retested
+    sprint: UAT and acceptance
+- code: 3.2.4
+  name: Biên bản nghiệm thu và bàn giao MVP
+  desc: Biên bản nghiệm thu
+  ref: F10.5
+  role: lead
+  effort: 0.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 3.2.3
+  coop: Khách hàng
+  release: MVP
+  status: todo
+  i18n:
+    en:
+      name: Acceptance report and MVP handover
+  ticket:
+    title: Acceptance report and MVP handover
+    type: task
+    epic: E10
+    areas:
+    - area:docs
+    desc: Close the MVP with the customer.
+    ac:
+    - Acceptance report signed
+    - Release notes and known limitations delivered
+    - Gate G5 passed
+    sprint: UAT and acceptance
+- code: 4.1.1
+  name: Chọn 2–3 đơn vị thí điểm, kế hoạch và chỉ số đánh giá
+  desc: Kế hoạch thí điểm
+  ref: F11.1
+  role: lead
+  effort: 0.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 3.2.4
+  coop: Khách hàng
+  release: Pilot
+  status: todo
+- code: 4.1.2
+  name: Cài đặt, cấu hình, kiểm tra laptop tại đơn vị
+  desc: Laptop và trình duyệt sẵn sàng
+  ref: F11.1
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 4.1.1
+  coop: IT khách hàng
+  release: Pilot
+  status: todo
+- code: 4.1.3
+  name: Đào tạo thư ký và lãnh đạo đơn vị
+  desc: Buổi đào tạo
+  ref: F11.3
+  role: qa
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 4.1.2
+  coop: Khách hàng
+  release: Pilot
+  status: todo
+- code: 4.2.1
+  name: Hỗ trợ trực tiếp trong các cuộc họp đầu
+  desc: Nhật ký hỗ trợ
+  ref: F11.1
+  role: qa
+  effort: 5
+  done: 0.0
+  prio: P0
+  deps:
+  - 4.1.3
+  release: Pilot
+  status: todo
+- code: 4.2.2
+  name: "Theo dõi chỉ số: độ trễ, độ chính xác, gián đoạn ghi âm, thời gian soạn"
+  desc: Bảng chỉ số tuần
+  ref: F11.1
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 4.1.3
+  release: Pilot
+  status: todo
+- code: 4.2.3
+  name: Thu thập phản hồi người dùng
+  desc: Tổng hợp phản hồi
+  ref: F11.1
+  role: qa
+  effort: 1
+  done: 0.0
+  prio: P1
+  deps:
+  - 4.2.1
+  coop: Khách hàng
+  release: Pilot
+  status: todo
+- code: 4.3.1
+  name: Sửa lỗi và cải tiến – bản 1.1
+  desc: Bản phát hành 1.1
+  role: dev
+  effort: 4
+  done: 0.0
+  prio: P0
+  deps:
+  - 4.1.3
+  release: Pilot
+  status: todo
+- code: 4.3.2
+  name: Báo cáo đánh giá thí điểm, đề xuất ưu tiên ứng dụng và R2
+  desc: Báo cáo thí điểm
+  ref: F11.1
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 4.2.2
+  - 4.2.3
+  coop: Khách hàng
+  release: Pilot
+  status: todo
+- code: 5.1.1
+  name: "UX ứng dụng: khay hệ thống, khóa màn hình, pin, cài đặt"
+  desc: Mockup ứng dụng
+  ref: F12.1, F13.1
+  role: dev
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 4.3.1
+  release: Apps
+  status: todo
+- code: 5.1.2
+  name: Cập nhật kiến trúc và ADR cho ứng dụng
+  desc: ADR-004 được chấp thuận
+  ref: ADR-004
+  role: lead
+  effort: 0.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 4.3.2
+  release: Apps
+  status: todo
+- code: 5.1.3
+  name: Chứng chỉ ký mã và phương án phân phối (MDM, APK)
+  desc: Phương án phân phối
+  ref: F12.4, F13.4
+  role: lead
+  effort: 0.5
+  done: 0.0
+  prio: P0
+  deps: []
+  coop: IT khách hàng
+  release: Apps
+  status: todo
+- code: 5.2.1
+  name: Khung Electron bảo mật (contextIsolation, sandbox, CSP)
+  desc: Ứng dụng khởi chạy
+  ref: F12.1
+  role: dev
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.1.1
+  release: Apps
+  status: todo
+- code: 5.2.2
+  name: Bộ ghi âm ở tiến trình chính, SQLite, khôi phục sau sự cố, ghi khi chưa kết nối
+  desc: Ghi âm khi thu nhỏ, treo, mất mạng
+  ref: F12.2, F12.5
+  role: dev
+  effort: 3
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.2.1
+  release: Apps
+  status: todo
+- code: 5.2.3
+  name: Mã hóa dữ liệu cục bộ (safeStorage)
+  desc: Dữ liệu cục bộ được mã hóa
+  ref: F12.3
+  role: dev
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.2.2
+  release: Apps
+  status: todo
+- code: 5.2.4
+  name: Bộ cài NSIS/MSI, ký mã, tự cập nhật từ máy chủ nội bộ
+  desc: Bộ cài có ký mã
+  ref: F12.4
+  role: dev
+  effort: 1.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.2.3
+  - 5.1.3
+  release: Apps
+  status: todo
+- code: 5.2.5
+  name: Kiểm thử độ tin cậy ứng dụng desktop
+  desc: Báo cáo ma trận desktop
+  ref: F12.6
+  role: qa
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.2.4
+  release: Apps
+  status: todo
+- code: 5.3.1
+  name: Khung Capacitor và adapter nền tảng
+  desc: Ứng dụng khởi chạy
+  ref: F13.1
+  role: dev
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.2.4
+  release: Apps
+  status: todo
+- code: 5.3.2
+  name: "Plugin ghi âm Kotlin: dịch vụ nền, khóa màn hình, mất mạng"
+  desc: Ghi âm khi khóa màn hình
+  ref: F13.2
+  role: lead
+  effort: 4
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.1.2
+  release: Apps
+  status: todo
+- code: 5.3.3
+  name: Mã hóa bằng Android Keystore, cấu hình mạng tin CA nội bộ
+  desc: Dữ liệu cục bộ được mã hóa
+  ref: F13.3
+  role: dev
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.3.1
+  release: Apps
+  status: todo
+- code: 5.3.4
+  name: Phân phối APK, hướng dẫn tắt tối ưu pin
+  desc: Trang tải APK, hướng dẫn
+  ref: F13.4
+  role: lead
+  effort: 0.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.3.2
+  release: Apps
+  status: todo
+- code: 5.3.5
+  name: Ma trận thiết bị Android (2–3 hãng)
+  desc: Báo cáo ma trận thiết bị
+  ref: F13.5
+  role: qa
+  effort: 3
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.3.2
+  - 5.3.3
+  release: Apps
+  status: todo
+- code: 5.4.1
+  name: "Cập nhật máy chủ cho ứng dụng: token thiết bị, phiên bản tối thiểu"
+  desc: API hỗ trợ ứng dụng
+  ref: F12.5
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.1.2
+  release: Apps
+  status: todo
+- code: 5.4.2
+  name: Tài liệu và đào tạo cho ứng dụng
+  desc: Hướng dẫn cài và dùng ứng dụng
+  ref: F9.8
+  role: qa
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.2.5
+  release: Apps
+  status: todo
+- code: 5.4.3
+  name: UAT ứng dụng và phát hành 1.5
+  desc: Biên bản chấp nhận ứng dụng
+  ref: F10.5
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 5.2.5
+  - 5.3.5
+  - 5.4.1
+  coop: Khách hàng
+  release: Apps
+  status: todo
+- code: 6.1.1
+  name: Chốt phạm vi R2
+  desc: Phạm vi R2 được duyệt
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 4.3.2
+  coop: Khách hàng
+  release: R2
+  status: todo
+- code: 6.1.2
+  name: Kiểm chứng nhận diện người nói (đăng ký giọng nói)
+  desc: ADR nhận diện người nói
+  ref: F5.9
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.1.1
+  release: R2
+  status: todo
+- code: 6.1.3
+  name: Thiết kế UX các tính năng R2
+  desc: Mockup R2
+  role: dev
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.1.1
+  - 5.3.3
+  release: R2
+  status: todo
+- code: 6.1.4
+  name: Cập nhật kiến trúc và ADR cho R2
+  desc: ADR mới
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.1.2
+  release: R2
+  status: todo
+- code: 6.1.5
+  name: Backlog R2 và ước lượng lại
+  desc: Story R2 sẵn sàng
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.1.4
+  release: R2
+  status: todo
+- code: 6.2.1
+  name: "Nhận diện người nói: đăng ký giọng, dịch vụ, gán tên trong bản ghi"
+  desc: Bản ghi có tên người nói
+  ref: F5.9
+  role: lead
+  effort: 6
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.1.5
+  release: R2
+  status: todo
+- code: 6.2.2
+  name: Độ mật cuộc họp và quy tắc truy cập
+  desc: Quy tắc truy cập theo độ mật
+  ref: F2.7
+  role: dev
+  effort: 2.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.1.3
+  coop: Khách hàng
+  release: R2
+  status: todo
+  i18n:
+    en:
+      name: Meeting classification and access rules
+  ticket:
+    title: Meeting classification and access rules
+    type: story
+    epic: E2
+    areas:
+    - area:app
+    - area:backend
+    desc: As an admin, I want to set a classification level on a meeting so that access follows the agreed rules.
+    ac:
+    - Classification levels configurable per meeting
+    - Access rules enforced by the API per classification
+    - Reviewed with the customer
+- code: 6.2.3
+  name: Giao diện tối
+  desc: Theme tối hoàn thiện
+  ref: F1.7
+  role: dev
+  effort: 1.5
+  done: 0.0
+  prio: P2
+  deps:
+  - 6.2.2
+  release: R2
+  status: todo
+- code: 6.3.1
+  name: Nhiều thiết bị thu cho một cuộc họp (ứng dụng)
+  desc: Ghi âm đồng thời 2–3 thiết bị
+  ref: F4.10
+  role: dev
+  effort: 6
+  done: 0.0
+  prio: P1
+  deps:
+  - 6.2.3
+  release: R2
+  status: todo
+- code: 6.3.2
+  name: "Máy chủ: gộp luồng âm thanh và dòng thời gian nhiều thiết bị"
+  desc: Bản ghi gộp
+  ref: F4.10
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P1
+  deps:
+  - 6.2.1
+  release: R2
+  status: todo
+- code: 6.3.3
+  name: "Micro rời/micro hội nghị (USB): kiểm thử và danh sách khuyến nghị"
+  desc: Danh sách micro khuyến nghị
+  ref: F4.11
+  role: qa
+  effort: 2
+  done: 0.0
+  prio: P2
+  deps:
+  - 6.1.5
+  release: R2
+  status: todo
+- code: 6.4.1
+  name: Lịch họp, mời họp, nhắc lịch
+  desc: Lịch họp trong ứng dụng
+  ref: F3.7
+  role: dev
+  effort: 5
+  done: 0.0
+  prio: P1
+  deps:
+  - 6.3.1
+  release: R2
+  status: todo
+- code: 6.4.2
+  name: Danh mục và đặt phòng họp
+  desc: Quản lý phòng họp
+  ref: F3.8
+  role: dev
+  effort: 3
+  done: 0.0
+  prio: P2
+  deps:
+  - 6.4.1
+  release: R2
+  status: todo
+- code: 6.4.3
+  name: Tài liệu tham khảo, đánh dấu thời điểm, tạo lại một mục
+  desc: 3 tính năng nhỏ
+  ref: F3.4, F4.9, F6.5
+  role: dev
+  effort: 3
+  done: 0.0
+  prio: P2
+  deps:
+  - 6.4.2
+  release: R2
+  status: todo
+  i18n:
+    en:
+      name: Reference documents, time markers, regenerate one section
+  ticket:
+    title: Reference documents, time markers, regenerate one section
+    type: story
+    epic: E6
+    areas:
+    - area:app
+    desc: As a secretary, I want to attach reference documents, mark a moment while recording, and regenerate one minutes
+      section without losing edits elsewhere.
+    ac:
+    - Attach and list reference documents on a meeting
+    - Add a time marker while recording
+    - Regenerate one section of the minutes while keeping manually edited sections
+- code: 6.4.4
+  name: Tìm kiếm toàn văn tiếng Việt (không phân biệt dấu)
+  desc: Tìm trong bản ghi và biên bản
+  ref: F7.7
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P1
+  deps:
+  - 6.3.2
+  release: R2
+  status: todo
+- code: 6.5.1
+  name: "Màn quản trị đơn vị: người dùng, vai trò, thông tin đơn vị, mẫu, phòng họp, giọng nói, nhật ký"
+  desc: Các màn quản trị đơn vị
+  ref: F2.4, F2.8, F2.9, F6.14, F5.13, F3.8
+  role: dev
+  effort: 5
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.4.3
+  release: R2
+  status: todo
+  i18n:
+    en:
+      name: "Unit administration screens: users, roles, unit profile, templates, rooms, voice profiles, activity log"
+  ticket:
+    title: "Unit administration screens: users, roles, unit profile, templates, rooms, voice profiles, activity log"
+    type: story
+    epic: E2
+    areas:
+    - area:app
+    desc: As a unit admin, I want screens to manage my unit's users, roles, profile, minutes templates, rooms, voice profiles
+      and activity log, replacing the MVP scripts (F2.10).
+    ac:
+    - Manage users and roles for the unit
+    - Edit unit profile (used in the minutes header)
+    - Upload/manage minutes templates, rooms and voice profiles
+    - View the unit's activity log
+- code: 6.5.2
+  name: "Màn quản trị hệ thống: đơn vị, mô hình và cập nhật, sao lưu, cài đặt máy chủ"
+  desc: Các màn quản trị hệ thống
+  ref: F2.5, F9.11, F9.12, F9.13
+  role: lead
+  effort: 4
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.4.4
+  release: R2
+  status: todo
+  i18n:
+    en:
+      name: "System administration screens: units, models and updates, backup, server settings"
+  ticket:
+    title: "System administration screens: units, models and updates, backup, server settings"
+    type: story
+    epic: E9
+    areas:
+    - area:app
+    - area:deploy
+    desc: As a system admin, I want screens to manage units, ASR/LLM models and updates, backups and server settings without
+      touching the server by hand.
+    ac:
+    - Create and manage units from the UI
+    - View and apply model updates
+    - Trigger and monitor backups
+    - Edit server settings (certificates, addresses, time)
+- code: 6.5.3
+  name: Chính sách lưu trữ và lưu trữ dài hạn
+  desc: Cấu hình thời hạn lưu
+  ref: F7.5
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P1
+  deps:
+  - 6.5.2
+  coop: Khách hàng
+  release: R2
+  status: todo
+  i18n:
+    en:
+      name: Retention policy and long-term archive
+  ticket:
+    title: Retention policy and long-term archive
+    type: task
+    epic: E7
+    areas:
+    - area:backend
+    desc: Configure how long audio, transcripts and minutes are kept, and where older records move to.
+    ac:
+    - Retention period configurable per data type
+    - Long-term archive storage configured
+    - Reviewed with the customer (Q9)
+- code: 6.5.4
+  name: "Thu thập số liệu: sử dụng, chất lượng nhận dạng, giám sát máy chủ"
+  desc: API số liệu thống kê
+  ref: F14.1, F14.2, F14.3
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P1
+  deps:
+  - 6.5.2
+  release: R2
+  status: todo
+  i18n:
+    en:
+      name: "Metrics collection: usage, recognition quality, server monitoring"
+  ticket:
+    title: "Metrics collection: usage, recognition quality, server monitoring"
+    type: task
+    epic: E14
+    areas:
+    - area:backend
+    desc: "Collect the metrics the statistics pages need: usage, ASR/LLM quality signals and server health."
+    ac:
+    - Usage metrics recorded (meetings, minutes, active users)
+    - Recognition quality metrics recorded
+    - Server monitoring metrics available via API
+- code: 6.5.5
+  name: "Trang thống kê: tổng quan đơn vị, chất lượng nhận dạng, giám sát máy chủ"
+  desc: Trang thống kê
+  ref: F14.1, F14.2, F14.3
+  role: dev
+  effort: 5
+  done: 0.0
+  prio: P1
+  deps:
+  - 6.5.1
+  - 6.5.4
+  release: R2
+  status: todo
+  i18n:
+    en:
+      name: "Statistics pages: unit overview, recognition quality, server monitoring"
+  ticket:
+    title: "Statistics pages: unit overview, recognition quality, server monitoring"
+    type: story
+    epic: E14
+    areas:
+    - area:app
+    - area:ui
+    desc: As a unit admin or system admin, I want statistics pages covering unit activity, recognition quality and server
+      health.
+    ac:
+    - Unit overview page (meetings, minutes, users)
+    - Recognition quality page
+    - Server monitoring page for system admins
+- code: 6.5.6
+  name: Báo cáo định kỳ và lịch gửi
+  desc: Báo cáo tháng, quý, năm xuất PDF/XLSX
+  ref: F14.4, F14.5
+  role: dev
+  effort: 3
+  done: 0.0
+  prio: P1
+  deps:
+  - 6.5.5
+  release: R2
+  status: todo
+  i18n:
+    en:
+      name: Periodic reports and delivery schedule
+  ticket:
+    title: Periodic reports and delivery schedule
+    type: story
+    epic: E14
+    areas:
+    - area:app
+    - area:backend
+    desc: As a unit admin, I want monthly, quarterly and yearly reports exported automatically on a schedule.
+    ac:
+    - Monthly, quarterly and yearly reports exported as PDF/XLSX
+    - Delivery schedule configurable
+    - Reports contain no meeting content beyond the agreed statistics
+- code: 6.5.7
+  name: Trung tâm thông báo
+  desc: Thông báo trong ứng dụng
+  ref: F15.1
+  role: dev
+  effort: 2
+  done: 0.0
+  prio: P1
+  deps:
+  - 6.5.1
+  release: R2
+  status: todo
+  i18n:
+    en:
+      name: Notification center
+  ticket:
+    title: Notification center
+    type: story
+    epic: E15
+    areas:
+    - area:app
+    desc: As a user, I want an in-app notification center for approvals, reports and system messages.
+    ac:
+    - In-app notifications list with a read/unread state
+    - Notifications for approval requests and ready reports
+    - No meeting content in notification text
+- code: 6.6.1
+  name: Kiểm thử hồi quy và hiệu năng
+  desc: Báo cáo kiểm thử R2
+  ref: F10.3, F10.4
+  role: qa
+  effort: 3
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.5.6
+  - 6.5.7
+  - 6.5.3
+  release: R2
+  status: todo
+- code: 6.6.2
+  name: Đánh giá độ chính xác nhận diện người nói
+  desc: Báo cáo độ chính xác
+  ref: F5.9
+  role: qa
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.3.2
+  release: R2
+  status: todo
+- code: 6.6.3
+  name: Cập nhật tài liệu và đào tạo bổ sung
+  desc: Tài liệu v2
+  ref: F9.8
+  role: qa
+  effort: 1.5
+  done: 0.0
+  prio: P1
+  deps:
+  - 6.6.1
+  coop: Khách hàng
+  release: R2
+  status: todo
+- code: 6.6.4
+  name: Sửa lỗi R2
+  desc: Không còn lỗi nghiêm trọng
+  role: dev
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.6.1
+  release: R2
+  status: todo
+- code: 6.6.5
+  name: UAT R2 và phát hành 2.0
+  desc: Biên bản nghiệm thu R2
+  ref: F10.5
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.6.4
+  - 6.6.2
+  coop: Khách hàng
+  release: R2
+  status: todo
+- code: 7.1.1
+  name: Chốt phạm vi R3
+  desc: Phạm vi R3 được duyệt
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 6.6.5
+  coop: Khách hàng
+  release: R3
+  status: todo
+- code: 7.1.2
+  name: Kiểm chứng tiếng Khmer và nhận dạng ngôn ngữ
+  desc: ADR ngôn ngữ
+  ref: F5.10
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 7.1.1
+  release: R3
+  status: todo
+- code: 7.1.3
+  name: Thiết kế UX các tính năng R3
+  desc: Mockup R3
+  role: dev
+  effort: 1.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 7.1.1
+  release: R3
+  status: todo
+- code: 7.1.4
+  name: Cập nhật kiến trúc, ADR và backlog R3
+  desc: ADR, story R3
+  role: lead
+  effort: 1.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 7.1.2
+  release: R3
+  status: todo
+- code: 7.2.1
+  name: Đăng nhập một lần (SSO), tích hợp hệ thống định danh
+  desc: Đăng nhập bằng tài khoản cơ quan
+  ref: F2.6
+  role: lead
+  effort: 5
+  done: 0.0
+  prio: P1
+  deps:
+  - 7.1.4
+  coop: IT khách hàng
+  release: R3
+  status: todo
+- code: 7.2.2
+  name: Họp định kỳ và chuỗi cuộc họp
+  desc: Tạo lịch lặp
+  ref: F3.9
+  role: dev
+  effort: 2
+  done: 0.0
+  prio: P2
+  deps:
+  - 7.1.3
+  release: R3
+  status: todo
+- code: 7.2.3
+  name: Thu thập dữ liệu tiếng Khmer
+  desc: Bộ dữ liệu Khmer
+  ref: F5.10
+  role: qa
+  effort: 3
+  done: 0.0
+  prio: P1
+  deps:
+  - 7.1.2
+  coop: Khách hàng
+  release: R3
+  status: todo
+- code: 7.3.1
+  name: Mô hình tiếng Khmer và nhận dạng ngôn ngữ
+  desc: Nhận dạng đoạn tiếng Khmer
+  ref: F5.10
+  role: lead
+  effort: 7
+  done: 0.0
+  prio: P1
+  deps:
+  - 7.2.1
+  - 7.2.3
+  release: R3
+  status: todo
+- code: 7.3.2
+  name: Dịch Khmer – Việt
+  desc: Bản dịch trong bản ghi
+  ref: F5.10
+  role: lead
+  effort: 3
+  done: 0.0
+  prio: P2
+  deps:
+  - 7.3.1
+  release: R3
+  status: todo
+- code: 7.3.3
+  name: Giao diện song ngữ
+  desc: Hiển thị song ngữ
+  ref: F5.10
+  role: dev
+  effort: 1
+  done: 0.0
+  prio: P2
+  deps:
+  - 7.2.2
+  release: R3
+  status: todo
+- code: 7.4.1
+  name: Tìm kiếm ngữ nghĩa trên kho biên bản
+  desc: Tìm theo ý nghĩa
+  ref: F7.4
+  role: dev
+  effort: 4
+  done: 0.0
+  prio: P1
+  deps:
+  - 7.3.3
+  release: R3
+  status: todo
+- code: 7.4.2
+  name: Hỏi đáp trên kho biên bản (có trích dẫn nguồn)
+  desc: Trả lời kèm trích dẫn
+  ref: F7.4
+  role: lead
+  effort: 4
+  done: 0.0
+  prio: P1
+  deps:
+  - 7.3.2
+  release: R3
+  status: todo
+- code: 7.5.2
+  name: Mở rộng nhiều máy chủ, tính sẵn sàng cao (HA)
+  desc: Triển khai 2 node
+  ref: F9.10
+  role: lead
+  effort: 6
+  done: 0.0
+  prio: P2
+  deps:
+  - 7.4.2
+  coop: IT khách hàng
+  release: R3
+  status: todo
+- code: 7.6.1
+  name: Kiểm thử bảo mật (pentest nội bộ)
+  desc: Báo cáo kiểm thử bảo mật
+  ref: F10.6
+  role: qa
+  effort: 3
+  done: 0.0
+  prio: P0
+  deps:
+  - 7.5.2
+  release: R3
+  status: todo
+- code: 7.6.2
+  name: Khắc phục lỗ hổng bảo mật
+  desc: Không còn lỗ hổng mức cao
+  ref: F10.6
+  role: dev
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 7.6.1
+  release: R3
+  status: todo
+- code: 7.6.3
+  name: Kiểm thử hồi quy và hiệu năng
+  desc: Báo cáo kiểm thử R3
+  ref: F10.3, F10.4
+  role: qa
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 7.6.1
+  - 7.5.2
+  release: R3
+  status: todo
+- code: 7.6.4
+  name: Cập nhật tài liệu
+  desc: Tài liệu v3
+  ref: F9.8
+  role: qa
+  effort: 1.5
+  done: 0.0
+  prio: P1
+  deps:
+  - 7.6.3
+  release: R3
+  status: todo
+- code: 7.6.5
+  name: UAT R3 và phát hành 3.0
+  desc: Biên bản nghiệm thu R3
+  ref: F10.5
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 7.6.2
+  - 7.6.3
+  coop: Khách hàng
+  release: R3
+  status: todo
+- code: 8.1.1
+  name: Kế hoạch triển khai theo đợt và danh sách đơn vị
+  desc: Kế hoạch triển khai
+  ref: F11.2
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 7.6.5
+  coop: Khách hàng
+  release: Rollout
+  status: todo
+- code: 8.1.2
+  name: Bộ tài liệu và video hướng dẫn
+  desc: Tài liệu, video
+  ref: F11.3
+  role: qa
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 7.6.4
+  release: Rollout
+  status: todo
+- code: 8.1.3
+  name: Đào tạo giảng viên nguồn (TOT)
+  desc: Đội giảng viên nguồn
+  ref: F11.3
+  role: qa
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 8.1.2
+  - 8.1.1
+  coop: Khách hàng
+  release: Rollout
+  status: todo
+- code: 8.2.1
+  name: Triển khai đợt 1
+  desc: Đơn vị đợt 1 vận hành
+  ref: F11.2
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 8.1.3
+  coop: IT khách hàng
+  release: Rollout
+  status: todo
+- code: 8.2.2
+  name: Triển khai đợt 2
+  desc: Đơn vị đợt 2 vận hành
+  ref: F11.2
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 8.2.1
+  coop: IT khách hàng
+  release: Rollout
+  status: todo
+- code: 8.2.3
+  name: Triển khai đợt 3
+  desc: Đơn vị đợt 3 vận hành
+  ref: F11.2
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 8.2.2
+  coop: IT khách hàng
+  release: Rollout
+  status: todo
+- code: 8.2.4
+  name: Hỗ trợ sau triển khai
+  desc: Nhật ký hỗ trợ
+  ref: F11.2
+  role: qa
+  effort: 3
+  done: 0.0
+  prio: P0
+  deps:
+  - 8.2.1
+  release: Rollout
+  status: todo
+- code: 8.3.1
+  name: "Hồ sơ chuyển giao: tài liệu vận hành, mã nguồn, cấu hình"
+  desc: Bộ hồ sơ chuyển giao
+  ref: F11.3
+  role: dev
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps:
+  - 7.6.2
+  release: Rollout
+  status: todo
+- code: 8.3.2
+  name: Chuyển giao kiến thức cho đội IT khách hàng
+  desc: Biên bản chuyển giao
+  ref: F11.3
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps:
+  - 8.3.1
+  - 8.2.3
+  coop: IT khách hàng
+  release: Rollout
+  status: todo
+- code: 8.3.3
+  name: Nghiệm thu tổng thể
+  desc: Biên bản nghiệm thu tổng thể
+  role: lead
+  effort: 0.5
+  done: 0.0
+  prio: P0
+  deps:
+  - 8.3.2
+  - 8.2.4
+  coop: Khách hàng
+  release: Rollout
+  status: todo
+- code: 9.1.1
+  name: Hỗ trợ và xử lý sự cố theo SLA
+  desc: Nhật ký sự cố
+  ref: F9.9
+  role: lead
+  effort: 24
+  done: 0.0
+  prio: P0
+  deps: []
+  coop: IT khách hàng
+  note: 2 ngày công/tháng
+  release: Warranty
+  status: todo
+  schedule:
+    period:
+      after: 8.3.3
+      months: 12
+- code: 9.1.2
+  name: Báo cáo vận hành hàng tháng
+  desc: 12 báo cáo
+  ref: F9.9
+  role: lead
+  effort: 3
+  done: 0.0
+  prio: P0
+  deps: []
+  coop: Khách hàng
+  release: Warranty
+  status: todo
+  schedule:
+    period:
+      after: 8.3.3
+      months: 12
+- code: 9.2.1
+  name: Bản vá bảo mật và cập nhật phụ thuộc hàng tháng
+  desc: 12 đợt cập nhật
+  ref: F9.9
+  role: lead
+  effort: 12
+  done: 0.0
+  prio: P0
+  deps: []
+  coop: IT khách hàng
+  release: Warranty
+  status: todo
+  schedule:
+    period:
+      after: 8.3.3
+      months: 12
+- code: 9.2.2
+  name: Cập nhật và đánh giá lại mô hình hàng quý
+  desc: 4 đợt cập nhật mô hình
+  ref: F9.9
+  role: lead
+  effort: 8
+  done: 0.0
+  prio: P1
+  deps: []
+  release: Warranty
+  status: todo
+  schedule:
+    period:
+      after: 8.3.3
+      months: 12
+- code: 9.2.3
+  name: Kiểm tra sao lưu và diễn tập khôi phục hàng quý
+  desc: 4 biên bản diễn tập
+  ref: F9.5
+  role: lead
+  effort: 2
+  done: 0.0
+  prio: P0
+  deps: []
+  coop: IT khách hàng
+  release: Warranty
+  status: todo
+  schedule:
+    period:
+      after: 8.3.3
+      months: 12
+- code: 9.3.1
+  name: Đánh giá cuối kỳ và báo cáo kết thúc bảo hành
+  desc: Báo cáo kết thúc bảo hành
+  role: lead
+  effort: 1
+  done: 0.0
+  prio: P0
+  deps: []
+  coop: Khách hàng
+  release: Warranty
+  status: todo
+  schedule:
+    tail:
+      of: 9.1.1
+      days: 5
+- code: 10.1.1
+  name: Báo cáo tiến độ hàng tuần
+  desc: Báo cáo tuần (thứ Sáu)
+  role: lead
+  effort: 0
+  done: 0.02
+  prio: P0
+  deps: []
+  status: wip
+  schedule:
+    span:
+    - 1.1.1
+    - 8.3.3
+  effort_rate: 0.2
+- code: 10.1.2
+  name: "Điều phối đội: họp ngắn hằng ngày, rà soát mã"
+  desc: Biên bản họp ngắn
+  role: lead
+  effort: 0
+  done: 0.02
+  prio: P0
+  deps: []
+  status: wip
+  schedule:
+    span:
+    - 1.1.1
+    - 8.3.3
+  effort_rate: 0.25
+- code: 10.1.3
+  name: Họp cổng và demo (G1–G10)
+  desc: Biên bản họp cổng
+  role: lead
+  effort: 0
+  done: 0.0
+  prio: P0
+  deps: []
+  coop: Khách hàng
+  status: todo
+  schedule:
+    span:
+    - 1.4.1
+    - 8.3.3
+  effort_rate: 0.05
+- code: 10.2.1
+  name: Quản lý rủi ro và yêu cầu thay đổi
+  desc: Sổ rủi ro, nhật ký thay đổi
+  role: lead
+  effort: 0
+  done: 0.02
+  prio: P0
+  deps: []
+  coop: Khách hàng
+  status: wip
+  schedule:
+    span:
+    - 1.1.1
+    - 8.3.3
+  effort_rate: 0.1
+- code: 10.2.2
+  name: Quản lý cấu hình và phát hành
+  desc: Ghi chú phát hành mỗi phiên bản
+  role: lead
+  effort: 0
+  done: 0.0
+  prio: P0
+  deps: []
+  status: todo
+  schedule:
+    span:
+    - 1.3.1
+    - 8.3.3
+  effort_rate: 0.05
+- code: 10.3.1
+  name: Rà soát bảo mật mỗi bản phát hành
+  desc: Checklist bảo mật
+  role: lead
+  effort: 0
+  done: 0.0
+  prio: P0
+  deps: []
+  status: todo
+  schedule:
+    span:
+    - 2.3.1
+    - 7.6.5
+  effort_rate: 0.05
+- code: 10.3.2
+  name: Kiểm soát dữ liệu mật trong phát triển và kiểm thử
+  desc: Quy định dữ liệu kiểm thử
+  role: lead
+  effort: 0
+  done: 0.05
+  prio: P0
+  deps: []
+  status: wip
+  schedule:
+    span:
+    - 1.1.1
+    - 8.3.3
+  effort_rate: 0.02
+order_after:
+  1.3.4: 1.3.3
+  1.2.7: 1.3.4
+  1.2.2: 1.2.7
+  1.3.5: 1.2.2
+  1.1.3: 1.3.5
+  1.2.4: 1.1.3
+  1.2.5: 1.2.4
+  5.3.2: 5.1.3
+  2.4.3: 2.1.9
+  2.4.1: 2.2.10
+  2.3.7: 2.4.1
+  2.4.4: 2.3.7
+  2.4.2: 2.4.4
+  3.1.1: 2.4.2
+  6.1.1: 5.4.1
+  6.1.2: 6.1.1
+gates:
+- id: G1
+  name: Chốt kỹ thuật và phạm vi MVP
+  at: "1"
+  hard: false
+  phase_label: GĐ1
+  criteria: Mô hình ASR và cấu hình GPU đã chốt (ADR-009); khách hàng đã duyệt prototype và phạm vi MVP; CI xanh; staging
+    chạy
+  evidence: ADR-009; báo cáo đánh giá ASR; prototype
+  approver: Khách hàng / Trưởng dự án
+  i18n:
+    en:
+      name: Technical and scope decisions
+- id: G2
+  name: Demo ghi âm và bản ghi trực tiếp
+  at: "2.1"
+  hard: false
+  phase_label: GĐ2
+  criteria: Ghi âm trên Chrome/Edge có bản ghi trực tiếp với staging; ghi 2 giờ không mất âm thanh
+  evidence: Video demo; báo cáo kiểm thử đợt 1
+  approver: Trưởng dự án
+  i18n:
+    en:
+      name: "Demo: web recording and live transcript"
+- id: G3
+  name: Demo đủ luồng chính
+  at: "2.2"
+  hard: false
+  phase_label: GĐ2
+  criteria: Toàn bộ luồng chính, gồm mất mạng và tải lại tab khi đang ghi
+  evidence: Demo; báo cáo kiểm thử đợt 2
+  approver: Khách hàng / Trưởng dự án
+  i18n:
+    en:
+      name: "Demo: full critical journey"
+- id: G4
+  name: Bản phát hành ứng viên (RC)
+  at: "2.4"
+  hard: false
+  phase_label: GĐ2
+  criteria: Đạt ma trận độ tin cậy web; kiểm thử hiệu năng ở mức đồng thời đã thống nhất; diễn tập cài đặt offline
+  evidence: Báo cáo kiểm thử; gói cài đặt
+  approver: Trưởng dự án
+  i18n:
+    en:
+      name: Release candidate
+- id: G5
+  name: Nghiệm thu MVP
+  at: "3"
+  hard: true
+  phase_label: GĐ3
+  criteria: Kịch bản UAT đạt theo tiêu chí đã thống nhất (Q12)
+  evidence: Biên bản nghiệm thu MVP
+  approver: Khách hàng
+  i18n:
+    en:
+      name: MVP acceptance
+- id: G6
+  name: Kết thúc thí điểm
+  at: "4"
+  hard: false
+  phase_label: GĐ4
+  criteria: Chỉ số thí điểm đạt; không còn lỗi nghiêm trọng
+  evidence: Báo cáo thí điểm; bản 1.1
+  approver: Khách hàng
+  i18n:
+    en:
+      name: End of pilot
+- id: G7
+  name: Phát hành ứng dụng desktop và mobile
+  at: "5"
+  hard: false
+  phase_label: GĐ5
+  criteria: Ứng dụng Windows và Android đạt ma trận độ tin cậy; khách hàng chấp nhận
+  evidence: Biên bản chấp nhận ứng dụng
+  approver: Khách hàng
+  i18n:
+    en:
+      name: Windows and Android apps released
+- id: G8
+  name: Nghiệm thu R2
+  at: "6"
+  hard: false
+  phase_label: GĐ6
+  criteria: Kịch bản UAT R2 đạt
+  evidence: Biên bản nghiệm thu R2
+  approver: Khách hàng
+  i18n:
+    en:
+      name: Release 2 acceptance
+- id: G9
+  name: Nghiệm thu R3
+  at: "7"
+  hard: false
+  phase_label: GĐ7
+  criteria: Kịch bản UAT R3 đạt; không còn lỗ hổng bảo mật mức cao
+  evidence: Biên bản nghiệm thu R3; báo cáo pentest
+  approver: Khách hàng
+  i18n:
+    en:
+      name: Release 3 acceptance
+- id: G10
+  name: Nghiệm thu tổng thể và chuyển giao
+  at: "8"
+  hard: false
+  phase_label: GĐ8
+  criteria: Hệ thống vận hành tại các đơn vị; hồ sơ chuyển giao đầy đủ
+  evidence: Biên bản nghiệm thu tổng thể
+  approver: Khách hàng
+  i18n:
+    en:
+      name: Final acceptance and handover
+- id: G11
+  name: Kết thúc bảo hành
+  at: "9"
+  hard: false
+  phase_label: GĐ9
+  criteria: Hoàn thành nghĩa vụ bảo hành
+  evidence: Báo cáo kết thúc bảo hành
+  approver: Khách hàng
+  i18n:
+    en:
+      name: End of warranty
+sprints:
+- name: Preparation
+  start: "2026-09-28"
+  days: 14
+- name: Build batch 1
+  start: "2026-10-12"
+  days: 17
+- name: Build batch 2
+  start: "2026-10-29"
+  days: 12
+- name: Build batch 3 and RC
+  start: "2026-11-10"
+  days: 9
+- name: UAT and acceptance
+  start: "2026-11-19"
+  days: 14
+cut_order:
+- F6.13
+- F9.6
+- F5.3
+- F10.3
+risks:
+- id: R00
+  title: Đội 3 người không sẵn sàng từ 28/09/2026 hoặc có người vào trễ, làm lỡ mốc MVP trước 12/2026
+  phase: GĐ1–GĐ3
+  p: 2
+  i: 3
+  mitigation: Xác nhận nhân sự ngay; nếu trễ, cắt phạm vi theo thứ tự đã thống nhất; đánh giá lại tại cổng G1
+  trigger: Chưa đủ 3 người vào ngày 05/10/2026
+  status: open
+  i18n:
+    en:
+      title: The three-person team is not ready from 28/09/2026 or someone joins late, putting the MVP milestone before 12/2026
+        at risk
+      mitigation: Confirm staffing now; if late, cut scope in the agreed order; reassess at gate G1
+      trigger: Fewer than three people on board on 05/10/2026
+- id: R01
+  title: Độ chính xác tiếng Việt với micro laptop (khoảng cách, giọng vùng miền, nói chồng) chưa đủ để viết biên bản
+  phase: GĐ1–GĐ4
+  p: 2
+  i: 3
+  mitigation: Chọn mô hình trên dữ liệu thật ngay GĐ1; nhận dạng 2 lượt; ưu tiên từ khóa; hướng dẫn đặt laptop; thống nhất
+    chỉ tiêu tại G1
+  trigger: Tỉ lệ lỗi âm tiết ở 3–5 m vượt xa mục tiêu
+  status: open
+  i18n:
+    en:
+      title: Vietnamese accuracy with a laptop microphone (distance, regional accents, overlapping speech) is not good enough
+        to write minutes
+      mitigation: Select the model on real data in phase 1; two-pass recognition; prioritise keywords; guidance on laptop
+        placement; agree the target at G1
+      trigger: Syllable error rate at 3–5 m is far above target
+- id: R02
+  title: Ghi âm trên trình duyệt bị gián đoạn khi người dùng đóng tab, máy ngủ hoặc rút sạc (MVP web)
+  phase: GĐ2–GĐ4
+  p: 2
+  i: 3
+  mitigation: Wake Lock, lưu tạm OPFS, tự khôi phục và tải lên lại; cảnh báo rõ trên màn hình; hướng dẫn 1 trang; ứng dụng
+    desktop/mobile ở GĐ5
+  trigger: Gián đoạn ghi âm trong kiểm thử hoặc thí điểm
+  status: open
+  i18n:
+    en:
+      title: Browser recording is interrupted when the user closes the tab, the machine sleeps or the charger is unplugged
+        (web MVP)
+      mitigation: Wake Lock, temporary OPFS storage, automatic recovery and re-upload; clear on-screen warning; one-page guide;
+        desktop and mobile apps in phase 5
+      trigger: A recording interruption during testing or the pilot
+- id: R03
+  title: Độ trễ cao khi nhiều cuộc họp chạy trên một GPU
+  phase: GĐ1–GĐ4
+  p: 2
+  i: 3
+  mitigation: Đo số luồng/GPU khi chọn mô hình; ưu tiên ASR hơn LLM; hàng đợi sinh biên bản; tính cấu hình từ Q1/Q2
+  trigger: Độ trễ p95 vượt mục tiêu ở mức đồng thời thiết kế
+  status: open
+  i18n:
+    en:
+      title: High latency when several meetings run on one GPU
+      mitigation: Measure streams per GPU when selecting the model; prioritise ASR over LLM; queue minutes generation; size
+        the configuration from Q1/Q2
+      trigger: p95 latency exceeds the target at the designed concurrency
+- id: R04
+  title: Trưởng dự án vừa quản lý vừa đảm nhận kỹ thuật lõi (backend, ASR/LLM)
+  phase: Tất cả
+  p: 2
+  i: 2
+  mitigation: Dành 20% thời gian cho quản lý; tài liệu kiến trúc và kiểm thử tự động; lập trình viên hỗ trợ phần triển khai
+  trigger: Hạng mục của trưởng dự án trễ quá 3 ngày
+  status: open
+  i18n:
+    en:
+      title: The project lead both manages and does core technical work (backend, ASR/LLM)
+      mitigation: Reserve 20% of time for management; architecture documents and automated tests; the developer supports deployment
+        work
+      trigger: A project lead item is more than 3 days late
+- id: R05
+  title: Phạm vi phình to từ phản hồi mockup và demo
+  phase: GĐ1–GĐ7
+  p: 2
+  i: 2
+  mitigation: Bản đồ tính năng có ranh giới MVP; yêu cầu mới chuyển sang giai đoạn sau trừ khi bỏ bớt hạng mục khác
+  trigger: Yêu cầu P0/P1 mới sau G1
+  status: open
+  i18n:
+    en:
+      title: Scope grows from mockup and demo feedback
+      mitigation: The feature map has an MVP boundary; new requests move to a later phase unless another item is dropped
+      trigger: A new P0/P1 request after G1
+- id: R06
+  title: Máy chủ, mạng và chứng chỉ chính thức của khách hàng sẵn sàng muộn
+  phase: GĐ2–GĐ3
+  p: 2
+  i: 2
+  mitigation: Phát triển trên máy chủ thử; triển khai theo cấu hình; diễn tập gói offline nội bộ
+  trigger: Chưa có câu trả lời Q1/Q3 khi bắt đầu đợt 3
+  status: open
+  i18n:
+    en:
+      title: The customer's official servers, network and certificates are ready late
+      mitigation: Develop on a trial server; deploy by configuration; rehearse the internal offline package
+      trigger: No answer to Q1/Q3 when batch 3 starts
+- id: R07
+  title: Chính sách cài đặt chặn ứng dụng (không ký mã, APK ngoài cửa hàng, không có MDM)
+  phase: GĐ5
+  p: 2
+  i: 2
+  mitigation: Hỏi sớm (Q4, Q5); xin chứng chỉ ký mã; hướng dẫn cài thủ công; bản web vẫn dùng được
+  trigger: Câu trả lời Q4/Q5 là không
+  status: open
+  i18n:
+    en:
+      title: Installation policy blocks the apps (no code signing, APKs from outside the store, no MDM)
+      mitigation: Ask early (Q4, Q5); obtain a code-signing certificate; manual install guide; the web version remains usable
+      trigger: The answer to Q4/Q5 is no
+- id: R08
+  title: LLM bịa thông tin hoặc bỏ sót kết luận trong biên bản
+  phase: GĐ2–GĐ7
+  p: 2
+  i: 2
+  mitigation: Chấm điểm biên bản ở đợt 2; gắn nhãn bản nháp; truy vết về thời điểm trong bản ghi; bước duyệt của con người
+  trigger: Phát hiện thông tin bịa khi kiểm thử hoặc UAT
+  status: open
+  i18n:
+    en:
+      title: The LLM invents information or omits conclusions in the minutes
+      mitigation: Score the minutes in batch 2; label drafts; trace to the time in the transcript; human review step
+      trigger: Invented information found during testing or UAT
+- id: R09
+  title: Khó có dữ liệu kiểm thử thực tế (đồng ý, bảo mật) trong tuần đầu
+  phase: GĐ1
+  p: 2
+  i: 2
+  mitigation: Họp đóng vai theo kịch bản có đồng ý; dữ liệu công khai để kiểm tra; hỏi Q7 ngay
+  trigger: Ghi được dưới 1 giờ sau 3 ngày
+  status: open
+  i18n:
+    en:
+      title: Real test data (consent, confidentiality) is hard to get in the first week
+      mitigation: Role-played meetings with a consent script; public data for checks; ask Q7 right away
+      trigger: Less than 1 hour recorded after 3 days
+- id: R10
+  title: Xử lý sai dữ liệu mật trong phát triển (máy chủ thử qua VPN, CI trên cloud)
+  phase: Tất cả
+  p: 1
+  i: 3
+  mitigation: Chỉ dùng dữ liệu tổng hợp hoặc có đồng ý; không đưa dữ liệu thật lên đường phát triển khi chưa được phép
+  trigger: Có yêu cầu thử bằng âm thanh cuộc họp thật
+  status: open
+  i18n:
+    en:
+      title: Confidential data is mishandled during development (trial server over VPN, cloud CI)
+      mitigation: Use only synthetic or consented data; do not put real data on the development path without permission
+      trigger: A request to test with real meeting audio
+- id: R11
+  title: Mẫu biên bản không đáp ứng yêu cầu thể thức
+  phase: GĐ2–GĐ3
+  p: 1
+  i: 2
+  mitigation: Thu thập mẫu chính thức (Q6); khách hàng duyệt biên bản sinh ra trước G3
+  trigger: Khách hàng từ chối bố cục mẫu
+  status: open
+  i18n:
+    en:
+      title: The minutes template does not meet formal requirements
+      mitigation: Collect the official templates (Q6); the customer approves generated minutes before G3
+      trigger: The customer rejects the template layout
+- id: R12
+  title: Điện thoại Android dừng bộ ghi âm khi chạy nền
+  phase: GĐ5
+  p: 2
+  i: 3
+  mitigation: Plugin native với dịch vụ nền; hướng dẫn tắt tối ưu pin; kiểm thử ≥ 2 hãng
+  trigger: Thiếu đoạn âm thanh trên một hãng máy
+  status: open
+  i18n:
+    en:
+      title: Android phones stop the recorder when it runs in the background
+      mitigation: Native plugin with a background service; guide to turn off battery optimisation; test on at least 2 vendors
+      trigger: Missing audio segments on one vendor's phone
+- id: R13
+  title: "Không kiểm chứng riêng trước khi làm ứng dụng: vấn đề nền tảng phát hiện muộn ở GĐ5"
+  phase: GĐ5
+  p: 1
+  i: 2
+  mitigation: MVP web không phụ thuộc ứng dụng; kiến trúc tách lớp ghi âm; plugin Kotlin dùng lại được nếu đổi khung
+  trigger: Ma trận thiết bị không đạt ở lần đầu
+  status: open
+  i18n:
+    en:
+      title: "No separate validation before building the apps: platform problems are found late, in phase 5"
+      mitigation: The web MVP does not depend on the apps; the recording layer is separated in the architecture; the Kotlin
+        plugin is reusable if the framework changes
+      trigger: The device matrix fails on the first run
+- id: R14
+  title: Độ chính xác nhận diện người nói thấp trong phòng họp thực tế
+  phase: GĐ6
+  p: 2
+  i: 2
+  mitigation: Kiểm chứng trước (6.1.2); cho phép sửa tên người nói; công bố độ chính xác thực tế
+  trigger: Độ chính xác gán người nói < 85% trên dữ liệu thử
+  status: open
+  i18n:
+    en:
+      title: Speaker identification accuracy is low in real meeting rooms
+      mitigation: Validate first (6.1.2); allow speaker names to be corrected; publish the accuracy actually achieved
+      trigger: Speaker attribution accuracy below 85% on test data
+- id: R16
+  title: Thiếu dữ liệu tiếng Khmer để huấn luyện và đánh giá
+  phase: GĐ7
+  p: 3
+  i: 2
+  mitigation: Thu thập dữ liệu từ đơn vị có đồng bào Khmer; bắt đầu từ nhận dạng ngôn ngữ và đánh dấu; cam kết thấp hơn tiếng
+    Việt
+  trigger: Dưới 3 giờ dữ liệu Khmer khi bắt đầu đợt R3.2
+  status: open
+  i18n:
+    en:
+      title: Not enough Khmer data to train and evaluate
+      mitigation: Collect data from units with Khmer communities; start with language identification and flagging; commit
+        to less than for Vietnamese
+      trigger: Less than 3 hours of Khmer data when batch R3.2 starts
+- id: R17
+  title: Mức độ sử dụng thấp ở một số đơn vị khi triển khai diện rộng
+  phase: GĐ8
+  p: 2
+  i: 2
+  mitigation: Giảng viên nguồn tại chỗ; video hướng dẫn; theo dõi số cuộc họp theo đơn vị
+  trigger: Đơn vị không ghi cuộc họp nào trong 2 tuần
+  status: open
+  i18n:
+    en:
+      title: Low usage in some units during the wide rollout
+      mitigation: On-site lead trainers; tutorial videos; track meetings per unit
+      trigger: A unit records no meeting in 2 weeks
+- id: R18
+  title: Phụ thuộc một người trong thời gian bảo hành
+  phase: GĐ9
+  p: 2
+  i: 3
+  mitigation: Tài liệu vận hành đầy đủ; chuyển giao cho IT khách hàng; quy trình xử lý sự cố viết sẵn
+  trigger: Sự cố không được xử lý trong SLA
+  status: open
+  i18n:
+    en:
+      title: Dependence on one person during the warranty
+      mitigation: Complete operations documentation; hand over to the customer's IT; pre-written incident procedure
+      trigger: An incident is not handled within the SLA
+- id: R19
+  title: Khách hàng góp ý muộn trên prototype làm chậm chốt tính năng
+  phase: GĐ1
+  p: 3
+  i: 3
+  mitigation: Buổi duyệt 01–02/10, chốt trước 07/10; phần chưa chốt để sau MVP
+  trigger: Chưa có biên bản chốt tính năng vào ngày 07/10/2026
+  status: open
+  i18n:
+    en:
+      title: Late customer feedback on the prototype slows feature sign-off
+      mitigation: Review sessions on 01–02/10, sign-off by 07/10; unsettled items go after the MVP
+      trigger: No feature sign-off record on 07/10/2026
+assumptions:
+- id: A01
+  kind: Mục tiêu
+  text: Nghiệm thu MVP web trước tháng 12/2026 (mục tiêu 27/11/2026); ngày thực tế của các mốc được tính từ WBS.
+  scope: GĐ1–GĐ3
+  source: Yêu cầu của khách hàng
+  status: Đã xác nhận
+- id: A02
+  kind: Nguồn lực
+  text: "Đội 3 người toàn thời gian từ 28/09/2026 đến hết triển khai diện rộng: trưởng dự án, lập trình viên fullstack, kiểm\
+    \ thử viên; mỗi vai trò 1 người. Bảo hành: trưởng dự án."
+  scope: Tất cả
+  source: Sheet Nguồn lực
+  status: Chờ xác nhận
+- id: A03
+  kind: Nguồn lực
+  text: "Tỷ lệ thời gian cho công việc chuyên môn: trưởng dự án 80% (20% quản lý, điều phối), lập trình viên 90%, kiểm thử\
+    \ viên 90%."
+  scope: Tất cả
+  source: Tham số ở sheet Nguồn lực
+  status: Đã xác nhận
+- id: A04
+  kind: Giả định
+  text: Công của mỗi gói là ngày công ước lượng, đã gồm thiết kế chi tiết, kiểm thử và tài liệu.
+  scope: Tất cả
+  source: —
+  status: Đã xác nhận
+- id: A05
+  kind: Giả định
+  text: Mỗi vai trò làm lần lượt các gói của mình theo thứ tự thực hiện; một gói chỉ bắt đầu khi các gói phụ thuộc đã xong.
+  scope: Tất cả
+  source: Cột Phụ thuộc trong WBS
+  status: Đã xác nhận
+- id: A06
+  kind: Giả định
+  text: Ước lượng từ GĐ5 trở đi là sơ bộ (±30%), sẽ ước lượng lại khi bắt đầu mỗi giai đoạn.
+  scope: GĐ5–GĐ8
+  source: Ước lượng lại tại 5.1, 6.1.5, 7.1.4
+  status: Đã xác nhận
+- id: A07
+  kind: Giả định
+  text: Phạm vi sau MVP (ứng dụng, R2, R3, triển khai) là đề xuất, chờ hợp đồng/phê duyệt.
+  scope: GĐ4–GĐ8
+  source: Phê duyệt tại G6
+  status: Chờ xác nhận
+- id: A08
+  kind: Giả định
+  text: Thời gian bảo hành 12 tháng sau nghiệm thu tổng thể.
+  scope: GĐ9
+  source: Theo hợp đồng
+  status: Chờ xác nhận
+- id: A09
+  kind: Phụ thuộc
+  text: Máy chủ thử của khách hàng có GPU, truy cập được qua VPN phát triển từ tuần đầu.
+  scope: GĐ1–GĐ2
+  source: Đã có quyền truy cập
+  status: Chờ xác nhận
+- id: A10
+  kind: Phụ thuộc
+  text: Khách hàng trả lời Q1 (máy chủ), Q6 (mẫu biên bản), Q7 (ghi dữ liệu thử) trước 02/10/2026.
+  scope: GĐ1
+  source: Câu hỏi mở
+  status: Chờ xác nhận
+- id: A11
+  kind: Phụ thuộc
+  text: Khách hàng cung cấp máy chủ chính thức trước đợt 3 của GĐ2.
+  scope: GĐ2–GĐ3
+  source: Câu hỏi Q1
+  status: Chờ xác nhận
+- id: A12
+  kind: Phụ thuộc
+  text: Khách hàng cử người dùng thật tham gia UAT và thí điểm.
+  scope: GĐ3, GĐ4
+  source: Câu hỏi Q12
+  status: Chờ xác nhận
+- id: A14
+  kind: Ràng buộc
+  text: MVP chạy trên Chrome/Edge bản hiện hành trên laptop Windows 10/11; khi ghi âm người dùng giữ tab mở và cắm sạc. Điện
+    thoại dùng để xem và duyệt biên bản.
+  scope: GĐ2–GĐ4
+  source: ADR-001
+  status: Đã xác nhận
+- id: A15
+  kind: Ràng buộc
+  text: Sản phẩm cuối khuyến nghị ghi âm bằng ứng dụng Windows và Android (GĐ5); web vẫn dùng để xem, soạn, quản trị.
+  scope: GĐ5 trở đi
+  source: ADR-001
+  status: Đã xác nhận
+- id: A16
+  kind: Ràng buộc
+  text: Không làm iOS/macOS.
+  scope: Tất cả
+  source: ADR-001
+  status: Đã xác nhận
+- id: A17
+  kind: Ràng buộc
+  text: Không phụ thuộc internet khi vận hành; không dùng dịch vụ cloud.
+  scope: Tất cả
+  source: ADR-005, ADR-007
+  status: Đã xác nhận
+- id: A18
+  kind: Ràng buộc
+  text: "Nội dung cuộc họp là dữ liệu mật: không ghi log nội dung, mã hóa khi lưu."
+  scope: Tất cả
+  source: Quy tắc bảo mật của dự án
+  status: Đã xác nhận
+- id: A19
+  kind: Ràng buộc
+  text: Không trang bị thiết bị phòng họp; một thiết bị thu cho phòng 10–15 người.
+  scope: Tất cả
+  source: Họp khách hàng 24/09/2026
+  status: Đã xác nhận
+- id: A20
+  kind: Ràng buộc
+  text: MVP chỉ cam kết tiếng Việt; tiếng Khmer ở R3.
+  scope: GĐ2, GĐ7
+  source: Quyết định 25/09/2026
+  status: Đã xác nhận
+- id: A21
+  kind: Giả định
+  text: Ngày nghỉ lễ từ năm 2027 là dự kiến (Tết, Giỗ Tổ, nghỉ bù); cập nhật theo thông báo chính thức.
+  scope: GĐ4–GĐ9
+  source: Sheet Ngày nghỉ
+  status: Chờ xác nhận

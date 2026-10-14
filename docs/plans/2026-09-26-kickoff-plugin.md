@@ -1,14 +1,14 @@
 # Kickoff Plugin Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** Execute this plan task by task, in order. Steps use checkbox (`- [ ]`) syntax for tracking. Run each task's verification commands and read their real output before moving on. No plugin other than the tools in the tech stack is needed.
 
 **Goal:** Ship v0.1.0 of the `kickoff` Claude Code plugin: twelve phase skills with approval gates, a tested Python CLI (validate, schedule, workbook, docs, tickets, status, proto), a no-build prototype kit, two examples and CI.
 
 **Architecture:** Skills carry the judgement work and call the CLI for everything that must be exactly right. The CLI reads `.kickoff/*.yaml` (validated by JSON Schema) into typed objects, computes the role-based schedule, and generates the workbook, Markdown documents and tracker issues. The prototype kit is plain JavaScript (Preact + htm from a CDN) that each project extends with its own screen modules; the CLI checks it with a headless browser.
 
-**Tech Stack:** Python 3.11+ (pyyaml, openpyxl, jsonschema; pytest, ruff), `uv`, `gh` CLI, Docker (LibreOffice recalculation, optional), Node 20+ (`node --test` for the kit), Preact 10.24.3 + htm 3.1.1, Edge or Chrome headless.
+**Tech Stack:** Python 3.11+ (pyyaml, openpyxl, jsonschema; pytest, ruff), `uv`, `gh` CLI, Docker (LibreOffice recalculation, optional), Node 22+ (`node --test` for the kit), Preact 10.24.3 + htm 3.1.1, Edge or Chrome headless.
 
-**Spec:** `docs/superpowers/specs/2026-09-26-kickoff-plugin-design.md`
+**Spec:** `docs/specs/2026-09-26-kickoff-plugin-design.md`
 
 ## Global Constraints
 
@@ -22,7 +22,7 @@
 - Generated documents, ticket bodies and templates never mention AI assistance, and name roles, never people or assistants, as owners.
 - Commits: Conventional Commits, one per task (fix rounds may add more), each ending with the line `Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>`.
 - Run CLI tests from `cli/`: `cd cli && uv run pytest -q`. Lint: `cd cli && uv run ruff check .`.
-- Legacy sources for porting live in `examples/ai-minute/legacy/` (already committed on `main`): `plan_data.py`, `build_plan.py`, `tickets_en.py`, `gen_wbs_md.py`, `dump_sched.py`, `sched.json`, `sync_github.py`, `nums.json`, `feature-map.md`, `check.sh`, `narrow.html`, `lo-calc.Dockerfile`. The AI Minute prototype to extract the kit from is `C:\Users\hienl\Workspace\ivai\ai-minute\docs\05-design\prototype\` (read only).
+- The AI Minute example is committed data, not generated code: `examples/ai-minute/.kickoff/*.yaml` and the golden schedule `examples/ai-minute/expected/schedule.json` (205 codes). Nothing in the repository reads from outside the repository except the prototype the kit is extracted from, `C:\Users\hienl\Workspace\ivai\ai-minute\docs\05-design\prototype\` (read only, Task 10).
 
 ## File Structure
 
@@ -37,21 +37,22 @@
 | `cli/src/kickoff/calendar.py` | Working-day arithmetic | 3 |
 | `cli/src/kickoff/schedule.py` | Role-based scheduler, JSON export, slip report | 3 |
 | `cli/src/kickoff/validate.py` | Cross-file consistency checks | 4 |
-| `examples/ai-minute/legacy/import_legacy.py`, `examples/ai-minute/.kickoff/*.yaml` | One-off import and the golden example | 5 |
+| `examples/ai-minute/.kickoff/*.yaml`, `examples/ai-minute/expected/schedule.json`, `cli/tests/test_golden_ai_minute.py` | Committed example data (before Task 1) and the golden schedule test | 5 |
 | `cli/src/kickoff/docs.py` | Markdown generation (feature map, WBS, risks, plan tables) | 6 |
-| `cli/src/kickoff/labels.py`, `cli/src/kickoff/workbook.py`, `cli/src/kickoff/lo_verify.py`, `cli/docker/lo-calc/Dockerfile` | Workbook labels, generator, LibreOffice verification | 7 |
+| `cli/src/kickoff/labels.py`, `cli/src/kickoff/workbook.py`, `cli/src/kickoff/lo_verify.py`, `cli/src/kickoff/docker/lo-calc/Dockerfile` | Estimate workbook labels and generator, LibreOffice verification (the Dockerfile ships inside the package) | 7 |
 | `cli/src/kickoff/tracker.py`, `cli/src/kickoff/tickets.py` | Tracker adapter (GitHub via `gh`), issue planning, push/pull/link | 8 |
 | `cli/src/kickoff/state.py`, `cli/src/kickoff/templates/*` | Phases, gates, stale markers, `init` skeleton | 9 |
-| `kit/prototype/**` | Prototype kit core | 10 |
+| `cli/src/kickoff/kit/prototype/**` | Prototype kit core | 10 |
 | `examples/mini/**` | Small example project with a working prototype | 10 |
 | `cli/src/kickoff/proto.py` | `proto new`, `proto check`, `proto lint` | 11 |
-| `skills/<name>/SKILL.md`, `skills/<name>/templates/*`, `skills/using-kickoff/references/*` | The twelve skills | 12–14 |
+| `skills/<name>/SKILL.md`, `skills/<name>/templates/*`, `skills/using-kickoff/references/{methods,conventions,lessons}.md` | The twelve skills and the shared working methods | 12–14 |
 | `commands/kickoff.md`, `commands/kickoff-sync.md` | Slash commands | 14 |
 | `README.md`, `skills/*/tests/*.md` | User docs, skill pressure scenarios | 15 |
 
-## Execution notes for the controller
+## Execution notes
 
-- Suggested models: Tasks 1, 4, 6, 9 — standard; Tasks 2, 3, 5, 8, 11 — standard (full code in the plan); Task 7 (workbook port) and Task 10 (kit extraction) — most capable; Tasks 12–14 (skills) — most capable; Task 15 — standard. Final whole-branch review — most capable.
+- Execute tasks in order, one at a time. A fresh subagent per task is optional; either way, run each task's verification commands and review the result before starting the next task.
+- Suggested models: Tasks 1, 4, 6, 9 — standard; Tasks 2, 3, 5, 7, 8, 11 — standard (full code in the plan); Task 10 (kit extraction) — most capable; Tasks 12–14 (skills) — most capable; Task 15 — standard. Final whole-branch review — most capable.
 - Task 5 is the regression anchor: after it, every later task must keep `tests/test_golden_ai_minute.py` green.
 
 ---
@@ -66,11 +67,13 @@
 **Interfaces:**
 - Produces: `kickoff.__version__ = "0.1.0"`; `kickoff.errors.KickoffError(Exception)`; `kickoff.cli.main(argv: list[str] | None = None) -> int`; `kickoff.cli.COMMANDS: list[module]` where each command module exposes `register(sub: argparse._SubParsersAction) -> None` and sets `func=run` via `set_defaults`, `run(args) -> int`.
 
-- [ ] **Step 1: Create the branch**
+- [ ] **Step 1: Switch to the branch**
 
 ```bash
-cd /c/Users/hienl/Workspace/ivai/kickoff-plugin && git checkout -b feat/v0.1.0
+cd /c/Users/hienl/Workspace/ivai/kickoff-plugin && git checkout feat/v0.1.0
 ```
+
+The branch already holds the preparation commit (`docs/specs/`, `docs/plans/`, and the AI Minute example data in `examples/ai-minute/` with its `.kickoff/` and `expected/` folders). Run `git status --short`: it must be clean. Files that are not part of this work (for example `projects/`) are excluded locally through `.git/info/exclude`; add any other such file there before the first `git add -A`.
 
 - [ ] **Step 2: Write the manifests and repo files**
 
@@ -99,7 +102,7 @@ cd /c/Users/hienl/Workspace/ivai/kickoff-plugin && git checkout -b feat/v0.1.0
     {
       "name": "kickoff",
       "source": "./",
-      "description": "Project kickoff workflow with approval gates, a full-product prototype kit, a role-based plan workbook and tracker sync.",
+      "description": "Project kickoff workflow with approval gates, a full-product prototype kit, a role-based estimate workbook and tracker sync.",
       "version": "0.1.0",
       "strict": true
     }
@@ -123,7 +126,6 @@ __pycache__/
 .venv/
 .pytest_cache/
 .ruff_cache/
-.superpowers/
 shots/
 dist/
 build/
@@ -154,7 +156,11 @@ packages = ["src/kickoff"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["docker: needs Docker", "browser: needs Edge or Chrome and network access to the CDN"]
+markers = [
+    "docker: needs Docker",
+    "browser: needs Edge or Chrome and network access to the CDN",
+    "github: needs a sandbox GitHub repository (env KICKOFF_SANDBOX=org/repo#project)",
+]
 
 [tool.ruff]
 line-length = 120
@@ -162,6 +168,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501"]  # long literals in generators and tests; the formatter owns line length
 ```
 
 - [ ] **Step 4: Write the failing tests**
@@ -1393,7 +1400,7 @@ git add -A && git commit -m "feat(cli): data model, JSON schemas and YAML I/O"
 - Consumes: `Project`, `Plan`, `Package`, `Features`, `to_date`, `code_key`, `resolve_root`, `load_*` (Task 2).
 - Produces:
   - `kickoff.calendar.WorkCalendar(weekend: Iterable[int], holidays: Iterable[date])` with `is_workday(d) -> bool`, `workday(d, n) -> date` (Excel WORKDAY; `n == 0` returns `d`), `networkdays(a, b) -> int`; `edate_minus1(d, months) -> date`.
-  - `kickoff.schedule`: `CycleError(KickoffError)` with `.cycle: list[str]`; `Slot(start, end, workdays, effort)`; `Schedule(slots)` with `gate_dates(plan) -> dict[str, date]`; `round_half_up(x) -> int`; `calendar_for(project) -> WorkCalendar`; `role_queues(plan) -> dict[str, list[str]]`; `build_schedule(project, plan, actuals: dict | None = None) -> Schedule`; `schedule_json(project, plan, sched) -> dict[str, list]`; `slip_report(project, plan, features, sched) -> list[str]`; `actuals_of(tickets: dict) -> dict`.
+  - `kickoff.schedule`: `CycleError(KickoffError)` with `.cycle: list[str]`; `Slot(start, end, workdays, effort)`; `Schedule(slots)` with `gate_dates(plan) -> dict[str, date]`; `round_half_up(x) -> int`; `calendar_for(project) -> WorkCalendar`; `role_queues(plan) -> dict[str, list[str]]`; `build_schedule(project, plan, actuals: dict | None = None, baseline: bool = False) -> Schedule` (`baseline=True` ignores `done` and actuals: the estimate workbook's model); `schedule_json(project, plan, sched) -> dict[str, list]`; `slip_report(project, plan, features, sched) -> list[str]`; `actuals_of(tickets: dict) -> dict`.
   - CLI: `kickoff schedule [--json PATH]` — exit 0, or 3 when a hard date slips.
 
 - [ ] **Step 1: Write the failing calendar tests**
@@ -1557,6 +1564,13 @@ def test_slip_report_lists_cut_candidates():
     lines = slip_report(pr, p, features, build_schedule(pr, p))
     assert lines[0] == "G1 slips: planned 2026-10-02, hard date 2026-09-30 (2 working days late)"
     assert lines[1] == "  cut candidate F1.1 Export: frees up to 3 person-days in 1.1.2"
+
+
+def test_baseline_ignores_done_and_actuals():
+    p = plan([pkg("1.1.1", effort=4, done=0.5), pkg("1.1.2", effort=3)])
+    s = build_schedule(project(), p, {"1.1.1": {"started": "2026-09-28", "done": "2026-10-06"}}, baseline=True)
+    assert dates(s, "1.1.1") == (D(2026, 9, 28), D(2026, 10, 1))
+    assert dates(s, "1.1.2") == (D(2026, 10, 2), D(2026, 10, 6))
 ```
 
 - [ ] **Step 3: Run to verify they fail**
@@ -1613,10 +1627,11 @@ def edate_minus1(d: date, months: int) -> date:
 ```python
 """Role-based schedule: one person per role, packages in queue order, dependencies across roles.
 
-Mirrors the workbook formulas exactly:
 duration = max(1, ROUND(effort * (1 - done) / focus, 0))
 start    = WORKDAY(MAX(plan_start - 1, previous package of the role, every dependency), 1, holidays)
 end      = WORKDAY(start, duration - 1, holidays)
+
+With baseline=True (done = 0, no actuals) it is the oracle of the estimate workbook's formulas.
 """
 
 from __future__ import annotations
@@ -1677,10 +1692,11 @@ def actuals_of(tickets: dict) -> dict:
     return dict(tickets.get("actuals") or {})
 
 
-def build_schedule(project: Project, plan: Plan, actuals: dict | None = None) -> Schedule:
+def build_schedule(project: Project, plan: Plan, actuals: dict | None = None, baseline: bool = False) -> Schedule:
+    """baseline=True: the plan as estimated; ignores `done` fractions and actuals."""
     cal = calendar_for(project)
     by = plan.by_code()
-    actuals = actuals or {}
+    actuals = {} if baseline else (actuals or {})
     prev: dict[str, str | None] = {}
     for queue in role_queues(plan).values():
         for i, code in enumerate(queue):
@@ -1706,7 +1722,8 @@ def build_schedule(project: Project, plan: Plan, actuals: dict | None = None) ->
             base.append(solve(prev[code]))
         base += [solve(dep) for dep in p.deps]
         act = actuals.get(code) or {}
-        duration = max(1, round_half_up(p.effort * (1 - p.done) / project.roles[p.role].focus))
+        done = 0.0 if baseline else p.done
+        duration = max(1, round_half_up(p.effort * (1 - done) / project.roles[p.role].focus))
         s = to_date(act["started"]) if act.get("started") else cal.workday(max(base), 1)
         e = to_date(act["done"]) if act.get("done") else cal.workday(s, duration - 1)
         start[code], end[code] = min(s, e), e
@@ -1863,7 +1880,7 @@ git add -A && git commit -m "feat(cli): working-day calendar and role-based sche
 
 **Interfaces:**
 - Consumes: loaders and dataclasses (Task 2), `build_schedule`, `CycleError` (Task 3).
-- Produces: `kickoff.validate.Finding(level: str, where: str, message: str)` (`__str__` → `"error: where: message"`); `validate_root(root: Path) -> list[Finding]`; `check_plan(project, plan) -> list[Finding]`; `check_features(project, plan, features) -> list[Finding]`; `check_phrases(project, raw: dict[str, dict]) -> list[Finding]`. CLI `kickoff validate` exits 1 when any finding is an error.
+- Produces: `kickoff.validate.Finding(level: str, where: str, message: str)` (`__str__` → `"error: where: message"`); `validate_root(root: Path) -> list[Finding]`; `check_plan(project, plan) -> list[Finding]`; `check_features(project, plan, features) -> list[Finding]`; `check_languages(project, plan) -> list[Finding]`; `check_phrases(project, raw: dict[str, dict]) -> list[Finding]`. CLI `kickoff validate` exits 1 when any finding is an error. `kickoff schedule` runs `check_plan` first and exits 1 with the findings instead of a traceback.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1945,6 +1962,27 @@ def test_forbidden_phrases_warn(tmp_path):
     out = run(tmp_path, [pkg("1.1.1", desc="Drafted with Claude")],
               project=project_dict(rules={"forbidden_phrases": ["\\bclaude\\b"]}))
     assert any(line.startswith("warning: plan.yaml packages/0/desc: forbidden phrase") for line in out)
+
+
+def test_ticket_epic_and_sprint_must_exist(tmp_path):
+    ticket = {"title": "x", "type": "task", "epic": "E9", "sprint": "Nope"}
+    out = run(tmp_path, [pkg("1.1.1", ticket=ticket)],
+              sprints=[{"name": "S1", "start": "2026-09-28", "days": 10}])
+    assert "error: 1.1.1: ticket epic E9 is not in features.yaml" in out
+    assert "error: 1.1.1: ticket sprint 'Nope' is not in sprints" in out
+
+
+def test_untranslated_plan_text_warns_when_languages_differ(tmp_path):
+    project = project_dict(languages={"repo": "en", "chat": "en", "workbook": "vi", "ui": "en"})
+    out = run(tmp_path, [pkg("1.1.1")], project=project)
+    assert any(line.startswith("warning: plan.yaml packages: 1 of 1 items have no i18n.en.name") for line in out)
+    assert run(tmp_path, [pkg("1.1.1")]) == []  # same repo and workbook language: nothing to translate
+
+
+def test_schedule_refuses_an_invalid_plan(tmp_path, capsys):
+    write_kickoff(tmp_path, plan=plan_dict([pkg("1.1.1", deps=["9.9.9"])]))
+    assert main(["--root", str(tmp_path), "schedule"]) == 1
+    assert "unknown dependency 9.9.9" in capsys.readouterr().out
 
 
 def test_cli_exit_codes(tmp_path, capsys):
@@ -2081,6 +2119,16 @@ def check_features(project: Project, plan: Plan, features: Features) -> list[Fin
             out.append(Finding("warning", f.id, "active feature without a WBS package"))
         if f.status == "removed" and not f.removed_by:
             out.append(Finding("warning", f.id, "removed feature without removed_by (decision reference)"))
+    epic_ids = {e.id for e in features.epics}
+    sprint_names = {s["name"] for s in plan.sprints}
+    for p in plan.packages:
+        t = p.ticket
+        if not t:
+            continue
+        if t["epic"] not in epic_ids:
+            out.append(Finding("error", p.code, f"ticket epic {t['epic']} is not in features.yaml"))
+        if t.get("sprint") and t["sprint"] not in sprint_names:
+            out.append(Finding("error", p.code, f"ticket sprint {t['sprint']!r} is not in sprints"))
     known = {f.id for f in all_features}
     for p in plan.packages:
         for fid in FEATURE_REF.findall(p.ref):
@@ -2089,6 +2137,29 @@ def check_features(project: Project, plan: Plan, features: Features) -> list[Fin
     for fid in plan.cut_order:
         if fid not in known:
             out.append(Finding("error", "cut_order", f"unknown feature {fid}"))
+    return out
+
+
+def check_languages(project: Project, plan: Plan) -> list[Finding]:
+    """Generated documents use the repo language; plan text is written in the workbook language."""
+    repo, book = project.languages["repo"], project.languages["workbook"]
+    if repo == book:
+        return []
+    kinds = {
+        "phases": ("name", [(n["code"], n) for n in plan.phases]),
+        "groups": ("name", [(n["code"], n) for n in plan.groups]),
+        "packages": ("name", [(p.code, {"i18n": p.i18n}) for p in plan.packages]),
+        "gates": ("name", [(g["id"], g) for g in plan.gates]),
+        "risks": ("title", [(r["id"], r) for r in plan.risks]),
+        "assumptions": ("text", [(a["id"], a) for a in plan.assumptions]),
+    }
+    out = []
+    for kind, (key, items) in kinds.items():
+        missing = [ident for ident, item in items if not ((item.get("i18n") or {}).get(repo) or {}).get(key)]
+        if missing:
+            out.append(Finding("warning", f"plan.yaml {kind}",
+                               f"{len(missing)} of {len(items)} items have no i18n.{repo}.{key}; generated documents "
+                               f"show them in the workbook language ({book}); first: {', '.join(missing[:3])}"))
     return out
 
 
@@ -2130,7 +2201,8 @@ def validate_root(root: Path) -> list[Finding]:
         features = Features.from_dict(raw["features"])
     except KickoffError as exc:
         return [Finding("error", "model", str(exc))]
-    return [*check_plan(project, plan), *check_features(project, plan, features), *check_phrases(project, raw)]
+    return [*check_plan(project, plan), *check_features(project, plan, features),
+            *check_languages(project, plan), *check_phrases(project, raw)]
 ```
 
 - [ ] **Step 4: Write the command**
@@ -2163,6 +2235,16 @@ def run(args) -> int:
 
 In `cli.py`: `from .commands import schedule_cmd, validate_cmd` and `COMMANDS: list = [schedule_cmd, validate_cmd]`.
 
+Modify `cli/src/kickoff/commands/schedule_cmd.py` so a bad plan prints findings instead of a traceback: add `from ..validate import check_plan` below the `..schedule` import (imports stay sorted for ruff) and, right after the three loaders in `run`:
+
+```python
+    errors = [f for f in check_plan(project, plan) if f.level == "error"]
+    if errors:
+        for f in errors:
+            print(f)
+        return 1
+```
+
 - [ ] **Step 5: Run the tests**
 
 Run: `cd cli && uv run pytest -q && uv run ruff check .`
@@ -2176,19 +2258,24 @@ git add -A && git commit -m "feat(cli): kickoff validate with cycle and cross-re
 
 ---
 
-### Task 5: AI Minute example and golden schedule test
+### Task 5: Golden schedule test on the AI Minute example
 
 **Files:**
-- Create: `examples/ai-minute/legacy/import_legacy.py`, `examples/ai-minute/legacy/README.md`
-- Create (generated, then committed): `examples/ai-minute/.kickoff/project.yaml`, `plan.yaml`, `features.yaml`
-- Create (hand-written): `examples/ai-minute/.kickoff/state.yaml`, `examples/ai-minute/.kickoff/tickets.yaml`
 - Test: `cli/tests/test_golden_ai_minute.py`
+- Data, committed before Task 1 (edit only to fix a defect that the checks below reveal): `examples/ai-minute/.kickoff/{project,plan,features,state,tickets}.yaml`, `examples/ai-minute/expected/schedule.json`
 
 **Interfaces:**
-- Consumes: `write_yaml`, loaders, `build_schedule`, `validate_root`.
-- Produces: the example project every later task tests against. Role ids `lead`, `dev`, `qa`; release ids `MVP, Pilot, Apps, R2, R3, Rollout, Warranty`; gates `G1…G11` with `at` = phase codes `1, 2.1, 2.2, 2.4, 3, 4, 5, 6, 7, 8, 9`.
+- Consumes: loaders, `build_schedule`, `validate_root`.
+- Produces: the regression anchor every later task tests against. Role ids `lead`, `dev`, `qa`; release ids `MVP, Pilot, Apps, R2, R3, Rollout, Warranty`; gates `G1…G11` with `at` = phase codes `1, 2.1, 2.2, 2.4, 3, 4, 5, 6, 7, 8, 9`.
 
-- [ ] **Step 1: Write the failing golden test**
+**About the data.** The files describe the AI Minute project as planned on 2026-09-26. They were written once and are maintained by hand like any project's `.kickoff/` folder.
+- `project.yaml`: repo language `en`, chat/workbook/UI language `vi`; roles `lead` 0.8, `dev` 0.9, `qa` 0.9; 32 holidays; hard date `G5: 2026-11-27`; GitHub tracker settings; security rules and forbidden phrases.
+- `plan.yaml`: 11 phases, 39 groups, 155 packages (205 WBS codes in all), 11 gates, 16 `order_after` entries, 66 packages with a `ticket` block, 19 risks (with `i18n.en`), 20 assumptions, 5 sprints, a four-feature `cut_order`. WBS codes are quoted strings. Names and descriptions are Vietnamese; ticket blocks and `i18n.en` names are English.
+- `features.yaml`: 16 epics, 122 features (F6.9–F6.12 are `status: removed`).
+- `tickets.yaml`: 57 package keys and epics E0–E13 mapped to issue numbers.
+- `expected/schedule.json`: `{code: [start, end, workdays, effort, name, role]}` for all 205 codes, taken from the workbook the customer received. It is the oracle: never edit it to make a test pass.
+
+- [ ] **Step 1: Write the golden test**
 
 `cli/tests/test_golden_ai_minute.py`:
 
@@ -2204,7 +2291,7 @@ from kickoff.schedule import build_schedule
 from kickoff.validate import validate_root
 
 ROOT = Path(__file__).resolve().parents[2] / "examples" / "ai-minute"
-LEGACY = json.loads((ROOT / "legacy" / "sched.json").read_text(encoding="utf-8"))
+EXPECTED = json.loads((ROOT / "expected" / "schedule.json").read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="module")
@@ -2218,10 +2305,10 @@ def test_example_validates():
     assert errors == []
 
 
-def test_every_code_matches_legacy(sched):
+def test_every_code_matches_expected_schedule(sched):
     _, s = sched
-    assert len(LEGACY) == 205
-    for code, (start, end, workdays, effort, *_rest) in LEGACY.items():
+    assert len(EXPECTED) == 205
+    for code, (start, end, workdays, effort, *_rest) in EXPECTED.items():
         slot = s.slots[code]
         assert (slot.start.isoformat(), slot.end.isoformat(), slot.workdays) == (start, end, workdays), code
         assert slot.effort == pytest.approx(effort), code
@@ -2245,297 +2332,26 @@ def test_effort_totals(sched):
     assert sum(s.slots[c].effort for c in leaves) == pytest.approx(336.75)
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [ ] **Step 2: Run the test**
 
 Run: `cd cli && uv run pytest tests/test_golden_ai_minute.py -q`
-Expected: FAIL — `missing file: …/examples/ai-minute/.kickoff/project.yaml`.
+Expected: `4 passed`.
 
-- [ ] **Step 3: Write the importer**
+If a test fails, find out which side is wrong before changing anything. A schema or reference error in the data (`validate` names the file and path): fix the YAML. A date mismatch on one code: compare that package's inputs (role, effort, `done`, `deps`, `order_after`, schedule mode) with the expected row; a mismatch that follows from the scheduling rules in the spec is a scheduler defect (fix Task 3's code); a mismatch from a data slip is a data fix. Never edit `expected/schedule.json`.
 
-`examples/ai-minute/legacy/import_legacy.py`:
+- [ ] **Step 3: Validate and schedule the example from the command line**
 
-```python
-"""One-off import of the AI Minute planning sources into examples/ai-minute/.kickoff/.
+Run: `cd cli && uv run kickoff --root ../examples/ai-minute validate && uv run kickoff --root ../examples/ai-minute schedule`
+Expected: `validate` prints `0 errors, 3 warnings` (untranslated groups, packages and assumptions: the repo language is `en`, the plan text is `vi`; if the count differs, explain it in the report); `schedule` prints G1 `2026-10-14` … G11 `2028-06-02` and exits 0 (G5 2026-11-26 is before the hard date 2026-11-27).
 
-Run from the repository root:  uv run --project cli python examples/ai-minute/legacy/import_legacy.py
-Inputs (this folder): plan_data.py, tickets_en.py, sync_github.py (GOALS/EPIC_* literals), feature-map.md.
-"""
+- [ ] **Step 4: Know what the example deliberately leaves pending**
 
-from __future__ import annotations
+The example is a snapshot of a tracker with work still to push. `tickets.yaml` maps 57 packages and epics E0–E13 to issue numbers; the plan also carries a `ticket` block on nine Release 2 packages (`6.2.2`, `6.4.3`, `6.5.1`–`6.5.7`) and epics E14 and E15 exist in the feature map, none of which are in the tracker yet. A dry-run push must therefore create exactly those eleven items (Task 8 tests this against a fake `gh`). Do not "fix" this by editing the data.
 
-import ast
-import re
-import sys
-from pathlib import Path
-
-HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
-import plan_data as d  # noqa: E402
-import tickets_en as t  # noqa: E402
-
-from kickoff.model import write_yaml  # noqa: E402
-
-OUT = HERE.parent / ".kickoff"
-ROLE_ID = {"TDA": "lead", "LTV": "dev", "KTV": "qa"}
-REL_EN = {"MVP": "MVP", "Thí điểm": "Pilot", "Ứng dụng": "Apps", "R2": "R2", "R3": "R3", "Triển khai": "Rollout",
-          "Bảo hành": "Warranty"}
-PHASE_REL = {"0": "MVP", "1": "MVP", "2": "MVP", "3": "MVP", "4": "Pilot", "5": "Apps", "6": "R2", "7": "R3",
-             "8": "Rollout", "9": "Warranty"}
-STATUS = {d.DONE: "done", d.WIP: "wip", d.TODO: "todo"}
-PH_EN = {"0": "Initiation", "1": "Preparation and technical validation", "2": "Build the web MVP",
-         "3": "UAT and MVP acceptance", "4": "Pilot and stabilization", "5": "Windows and Android apps",
-         "6": "Release 2", "7": "Release 3", "8": "Rollout and handover", "9": "Warranty (12 months)",
-         "10": "Project management (throughout)"}
-GRP_EN = {"1.1": "Test data and ASR model selection", "1.2": "Requirements, architecture and design",
-          "1.3": "Technical foundation", "1.4": "Gate G1", "2.1": "Build batch 1 – web recording and live transcript",
-          "2.2": "Build batch 2 – minutes end to end", "2.3": "Build batch 3 – completion and packaging",
-          "2.4": "Stabilization and release candidate", "3.1": "UAT preparation", "3.2": "UAT and acceptance"}
-GATE_EN = {"G1": "Technical and scope decisions", "G2": "Demo: web recording and live transcript",
-           "G3": "Demo: full critical journey", "G4": "Release candidate", "G5": "MVP acceptance",
-           "G6": "End of pilot", "G7": "Windows and Android apps released", "G8": "Release 2 acceptance",
-           "G9": "Release 3 acceptance", "G10": "Final acceptance and handover", "G11": "End of warranty"}
-SPRINTS = [("Preparation", "2026-09-28", 14), ("Build batch 1", "2026-10-12", 17), ("Build batch 2", "2026-10-29", 12),
-           ("Build batch 3 and RC", "2026-11-10", 9), ("UAT and acceptance", "2026-11-19", 14)]
-CUT_ORDER = ["F6.13", "F9.6", "F5.3", "F10.3"]
-SECURITY = [
-    "Never log, print, or send to analytics any meeting content: audio, transcript text, minutes text, document text, participant names.",
-    "No cloud SaaS at runtime: no Firebase, Sentry cloud, Crashlytics, Google Fonts or CDN assets, telemetry SDKs, or cloud editions of libraries. Bundle fonts and assets.",
-    "Every server address is configuration, never a hard-coded public host.",
-    "Before adding a dependency, check that it does not phone home at runtime. Note the result in the PR.",
-    "Never commit secrets, tokens, certificates, signing keys, recordings, or real meeting data. Test fixtures must be synthetic or explicitly cleared for use.",
-    "Shells are hardened: Electron with contextIsolation, sandbox, no nodeIntegration, strict CSP, no remote content; Capacitor with cleartext disabled and no live reload in release builds.",
-    "Tailscale is only the development path to the customer's trial server (ADR-005). Do not build product features that depend on it.",
-]
-
-
-def literals(path: Path, names: set[str]) -> dict:
-    out = {}
-    for node in ast.parse(path.read_text(encoding="utf-8")).body:
-        if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id in names:
-            try:
-                out[node.targets[0].id] = ast.literal_eval(node.value)
-            except ValueError:
-                pass
-    return out
-
-
-def feature_map_en(path: Path) -> tuple[dict, dict]:
-    """Epic names and {feature id: (name, platforms)} from the English feature map."""
-    epics, names = {}, {}
-    current = None
-    for line in path.read_text(encoding="utf-8").splitlines():
-        m = re.match(r"^## (E\d+) — (.+)$", line)
-        if m:
-            current = m.group(1)
-            epics[current] = m.group(2).strip()
-            continue
-        cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if current and cells and re.fullmatch(r"F\d+\.\d+", cells[0]):
-            names[cells[0]] = (cells[1], cells[4] if len(cells) >= 6 else "—")
-    return epics, names
-
-
-def project() -> dict:
-    return {
-        "schema_version": 1,
-        "name": "AI Minute",
-        "languages": {"repo": "en", "chat": "vi", "workbook": "vi", "ui": "vi"},
-        "docs_root": "docs",
-        "date_format": "%d/%m/%Y",
-        "calendar": {"weekend": ["sat", "sun"],
-                     "holidays": [{"date": h[0], "name": h[1], "kind": h[2]} for h in d.HOLIDAYS]},
-        "roles": [{"id": ROLE_ID[k], "name": v[0], "focus": v[1], "duties": v[2],
-                   "i18n": {"en": {"name": t.ROLE_EN[v[0]]}}} for k, v in d.ROLES.items()],
-        "releases": [{"id": REL_EN[r], "name": r} for r in d.RELEASES],
-        "hard_dates": {"G5": d.MVP_TARGET},
-        "tracker": {
-            "kind": "github", "org": "ivai-dev", "repo": "ai-minute", "project": 1, "assignee": "hienlpv",
-            "milestone": "MVP", "blob_base": "https://github.com/ivai-dev/ai-minute/blob/main",
-            "priority": {"source": "org-field", "map": {"P0": "High", "P1": "Medium", "P2": "Low"}},
-            "issue_fields": {
-                "Priority": {"id": "IFSS_kgDOAr4JFQ", "options": {"High": "IFSSO_kgDOBMzLIA", "Medium": "IFSSO_kgDOBMzLIQ",
-                                                                   "Low": "IFSSO_kgDOBMzLIg", "Urgent": "IFSSO_kgDOBMzLHw"}},
-                "Start": {"id": "IFD_kgDOAr4JFg"},
-                "Target": {"id": "IFD_kgDOAr4JFw"},
-            },
-        },
-        "rules": {"owners_by_role": True, "synthetic_data_only": True,
-                  "forbidden_phrases": ["\\bClaude\\b", "AI[- ]assist", "\\bLLM[- ]assisted estimate"]},
-        "security": SECURITY,
-        "proto": {"dir": "docs/05-design/prototype", "ux_spec": "docs/05-design/ux-spec.md",
-                  "forbidden": ["Tailscale", "\\b100\\.64\\."]},
-    }
-
-
-def schedule_of(code: str, it: tuple):
-    m = d.SCHED.get(code, ("seq",))
-    if m[0] == "fixed":
-        return {"fixed": [it[6], it[7]]}
-    if m[0] == "span":
-        return {"span": [m[1], m[2]]}
-    if m[0] == "warranty":
-        return {"period": {"after": "8.3.3", "months": 12}}
-    if m[0] == "warranty_end":
-        return {"tail": {"of": "9.1.1", "days": 5}}
-    return None
-
-
-def plan() -> dict:
-    phases, groups, packages = [], [], []
-    for ph in d.PHASES:
-        phases.append({"code": ph[1], "name": ph[2], "label": ph[0], "objective": ph[3], "in_scope": ph[4],
-                       "out_scope": ph[5], "deliverables": ph[6], "exit": ph[7], "risks": ph[8],
-                       "i18n": {"en": {"name": PH_EN[ph[1]]}}})
-        group = None
-        for it in d.W[ph[1]]:
-            if it[0] == "L2":
-                group = it[1]
-                g = {"code": it[1], "name": it[2], "desc": it[3]}
-                if it[1] in GRP_EN:
-                    g["i18n"] = {"en": {"name": GRP_EN[it[1]]}}
-                groups.append(g)
-                continue
-            code = it[1]
-            p = {"code": code, "name": it[2], "desc": it[3], "ref": it[4], "role": ROLE_ID[it[9]], "effort": it[8],
-                 "done": it[13], "prio": it[5], "deps": list(it[10]), "coop": it[11], "note": it[14],
-                 "release": PHASE_REL.get(ph[1]), "status": STATUS[it[12]]}
-            if p["release"] is None:
-                del p["release"]
-            sch = schedule_of(code, it)
-            if sch:
-                p["schedule"] = sch
-            if code in d.QL_RATE:
-                p["effort_rate"] = d.QL_RATE[code]
-            if code in t.T:
-                title, typ, epic, areas, desc, ac = t.T[code]
-                p["i18n"] = {"en": {"name": title}}
-                p["ticket"] = {"title": title, "type": typ, "epic": epic, "areas": list(areas), "desc": desc,
-                               "ac": list(ac), "sprint": t.SPRINT_OF.get(group) or t.SPRINT_OF[code.split(".")[0]]}
-            packages.append({k: v for k, v in p.items() if v not in ("", "—") or k in ("code", "name")})
-    gates = [{"id": g[0], "name": g[1], "at": d.GATE_WBS[g[0]], "hard": g[0] == "G5", "phase_label": g[2],
-              "criteria": g[3], "evidence": g[4], "approver": g[5], "i18n": {"en": {"name": GATE_EN[g[0]]}}}
-             for g in d.GATES]
-    risks = [{"id": r[0], "title": r[1], "phase": r[2], "p": r[3], "i": r[4], "mitigation": r[5], "trigger": r[6],
-              "status": "open"} for r in d.RISKS]
-    assumptions = [{"id": a[0], "kind": a[1], "text": a[2], "scope": a[3], "source": a[4], "status": a[5]}
-                   for a in d.ASSUMPTIONS]
-    return {"schema_version": 1, "start": d.PROJECT_START, "phases": phases, "groups": groups, "packages": packages,
-            "order_after": dict(d.CHAIN_AFTER), "gates": gates,
-            "sprints": [{"name": n, "start": s, "days": k} for n, s, k in SPRINTS],
-            "cut_order": CUT_ORDER, "risks": risks, "assumptions": assumptions}
-
-
-def features() -> dict:
-    lit = literals(HERE / "sync_github.py", {"GOALS", "EPIC_RELEASE", "EPIC_AREAS"})
-    epic_en, name_en = feature_map_en(HERE / "feature-map.md")
-    epics = []
-    for eid, name_vi in d.EPICS.items():
-        e = {"id": eid, "name": epic_en.get(eid, name_vi), "i18n": {"vi": {"name": name_vi}}}
-        if eid in lit.get("GOALS", {}):
-            e["goal"] = lit["GOALS"][eid]
-        e["release"] = lit.get("EPIC_RELEASE", {}).get(eid, "MVP")
-        if eid in lit.get("EPIC_AREAS", {}):
-            e["areas"] = lit["EPIC_AREAS"][eid]
-        e["features"] = []
-        for f in d.FEATURES:
-            if f[1] != eid:
-                continue
-            en_name, en_platforms = name_en.get(f[0], (f[2], f[5]))
-            wbs = [w.strip() for w in str(f[6]).split(",") if w.strip() and w.strip() != "—"]
-            e["features"].append({"id": f[0], "name": en_name, "release": REL_EN[f[3]], "prio": f[4],
-                                  "platforms": en_platforms, "wbs": wbs, "i18n": {"vi": {"name": f[2]}}})
-        if eid == "E6":
-            for fid in ("F6.9", "F6.10", "F6.11", "F6.12"):
-                e["features"].append({"id": fid, "name": f"Removed feature {fid}", "release": "R2", "prio": "P2",
-                                      "status": "removed", "removed_by": "D2"})
-        epics.append(e)
-    return {"schema_version": 1, "epics": epics}
-
-
-def main() -> None:
-    write_yaml(OUT / "project.yaml", project())
-    write_yaml(OUT / "plan.yaml", plan())
-    write_yaml(OUT / "features.yaml", features())
-    print("wrote", OUT)
-
-
-if __name__ == "__main__":
-    main()
-```
-
-- [ ] **Step 4: Run the importer and inspect**
-
-Run: `cd /c/Users/hienl/Workspace/ivai/kickoff-plugin && PYTHONIOENCODING=utf-8 uv run --project cli python examples/ai-minute/legacy/import_legacy.py`
-Expected: `wrote …/examples/ai-minute/.kickoff`. Open `plan.yaml` and confirm codes are quoted (`code: "1.2"`), dates are plain (`start: 2026-09-28`), and `order_after` has 17 entries.
-
-If `load_plan` rejects extra keys (`label`, `objective`, `phase_label`, `criteria`, `kind`, `scope`, …), the schemas from Task 2 allow them already on phases/groups/gates/risks/assumptions (no `additionalProperties: false` there). Packages are strict: the importer only emits schema keys.
-
-- [ ] **Step 5: Write `state.yaml` and `tickets.yaml` by hand**
-
-`examples/ai-minute/.kickoff/state.yaml`:
-
-```yaml
-schema_version: 1
-phases:
-  init: done
-  discovery: done
-  research: done
-  feature-map: done
-  ux-design: done
-  prototype: done
-  plan: done
-  tickets: done
-gates:
-  C1:
-    approved_by: Project lead
-    date: 2026-09-25
-    evidence: https://github.com/ivai-dev/ai-minute/pull/27
-  C2:
-    approved_by: Project lead
-    date: 2026-09-26
-    evidence: https://github.com/ivai-dev/ai-minute/pull/82
-stale: []
-prototype:
-  artifact: https://claude.ai/artifact/2agZBSQooQhauYyzqwpNCq
-  version: 6
-```
-
-`examples/ai-minute/.kickoff/tickets.yaml`: build it from `legacy/nums.json` (57 package keys) plus the epics E0–E10 → issues 1–11, E11 → 28, E12 → 29, E13 → 30, with no hashes (the example has never been pushed by this CLI):
-
-Run:
+- [ ] **Step 5: Commit**
 
 ```bash
-cd /c/Users/hienl/Workspace/ivai/kickoff-plugin && uv run --project cli python -c "
-import json; from pathlib import Path; from kickoff.model import write_yaml
-nums = json.load(open('examples/ai-minute/legacy/nums.json'))
-epics = {f'E{i}': i + 1 for i in range(11)} | {'E11': 28, 'E12': 29, 'E13': 30}
-items = {k: {'issue': v, 'type': 'epic'} for k, v in epics.items()} | {k: {'issue': v} for k, v in nums.items()}
-write_yaml(Path('examples/ai-minute/.kickoff/tickets.yaml'), {'schema_version': 1, 'items': items, 'actuals': {}})"
-```
-
-- [ ] **Step 6: Add the legacy README**
-
-`examples/ai-minute/legacy/README.md`:
-
-```markdown
-# AI Minute legacy sources
-
-Snapshot of the planning tools used on AI Minute before this plugin existed (ivai-dev/ai-minute, 2026-09-26).
-`import_legacy.py` converts them into `../.kickoff/`. `sched.json` is the schedule the legacy workbook produced;
-`cli/tests/test_golden_ai_minute.py` requires the kickoff scheduler to reproduce it exactly. The other files are
-the porting sources for the workbook (`build_plan.py`), ticket sync (`sync_github.py`, `tickets_en.py`) and the
-prototype check (`check.sh`, `narrow.html`). Do not edit them.
-```
-
-- [ ] **Step 7: Run the golden test and validate**
-
-Run: `cd cli && uv run pytest -q && uv run kickoff --root ../examples/ai-minute validate && uv run kickoff --root ../examples/ai-minute schedule`
-Expected: all tests pass; validate prints `0 errors, N warnings` (warnings are allowed; list them in the report). If validate reports `cut_order: unknown feature …`, remove that ID from `CUT_ORDER` in the importer, re-run it, and note it in the report; schedule prints G1 `2026-10-14` … G11 `2028-06-02` and exits 0 (G5 2026-11-26 is before the hard date 2026-11-27).
-
-- [ ] **Step 8: Commit**
-
-```bash
-git add -A && git commit -m "test: AI Minute example and golden schedule test"
+git add cli/tests examples && git commit -m "test: golden schedule test on the AI Minute example"
 ```
 
 ---
@@ -2903,37 +2719,788 @@ git add -A && git commit -m "feat(cli): kickoff docs generates feature map, WBS,
 
 ---
 
-### Task 7: `kickoff workbook` — formula-only Excel workbook and LibreOffice verification
+### Task 7: `kickoff workbook` — baseline estimate workbook (WBS, effort, schedule) and LibreOffice verification
 
 **Files:**
 - Create: `cli/src/kickoff/labels.py`, `cli/src/kickoff/workbook.py`, `cli/src/kickoff/lo_verify.py`, `cli/src/kickoff/commands/workbook_cmd.py`
-- Create: `cli/docker/lo-calc/Dockerfile` (copy of `examples/ai-minute/legacy/lo-calc.Dockerfile`)
-- Modify: `cli/src/kickoff/cli.py` (append `workbook_cmd`)
+- Create: `cli/src/kickoff/docker/lo-calc/Dockerfile` (inside the package: after `uv tool install <plugin>/cli` the code runs from site-packages, so anything the CLI needs at run time ships as package data)
+- Modify: `cli/src/kickoff/cli.py` (append `workbook_cmd`), `.gitignore` (add `examples/**/*.xlsx`)
 - Test: `cli/tests/test_workbook.py`
 
 **Interfaces:**
-- Consumes: loaders, `build_schedule`, `schedule_json`, `calendar_for`, `text`.
+- Consumes: `load_project`, `load_plan`, `resolve_root`, `text`, `code_key`, `Project.role_title`, `Package.as_item` (Task 2); `role_queues` and `build_schedule(project, plan, actuals=None, baseline=False)` (Task 3, including its `baseline` parameter); `KickoffError` (Task 1); `helpers.pkg|plan|project|write_kickoff` (tests).
 - Produces:
-  - `kickoff.labels.LABELS: dict[str, dict[str, str]]` keyed `"vi"`, `"en"`; `label(lang, key) -> str`; `STATUS_LABEL[lang][status]` for `todo|wip|done`.
-  - `kickoff.workbook.Layout` dataclass: `wbs_sheet: str`, `rows: dict[str, int]` (WBS code → row), `start_col: str`, `end_col: str`, `gate_sheet: str`, `gate_rows: dict[str, int]`, `gate_date_col: str`.
-  - `build_workbook(project, plan, features, sched, path: Path) -> Layout`.
-  - `kickoff.lo_verify.docker_available() -> bool`; `recalc(path: Path, image: str = "kickoff-lo-calc") -> Path` (returns the recalculated copy); `verify(path: Path, layout: Layout, sched: Schedule, plan: Plan) -> list[str]` (problems; empty when the workbook matches).
-  - CLI `kickoff workbook [--out PATH] [--verify]`; default output `<docs_root>/06-planning/<slug>-plan.xlsx` where `slug` is the project name lower-cased with non-alphanumerics replaced by `-`. Exit 1 when `--verify` finds problems.
+  - `kickoff.labels.LABELS: dict[str, dict[str, str]]` keyed `"en"`, `"vi"` (same keys in both); `label(lang, key, **fmt) -> str`.
+  - `kickoff.workbook.WBS_COLUMNS: tuple[str, ...]`, `COL: dict[str, str]` (key → column letter), `excel_date_format(fmt: str) -> str`, `Layout` dataclass (`wbs_sheet`, `cols`, `rows`, `estimate_sheet`, `cells`, `gate_rows`, `gate_date_col`, `resources_sheet`, `focus_col`, `focus_rows`), `build_workbook(project, plan, path: Path) -> Layout`.
+  - `kickoff.lo_verify.DOCKERFILE_DIR`, `docker_available() -> bool`, `ensure_image(image) -> None`, `recalc(path: Path, image: str = "kickoff-lo-calc") -> Path` (a recalculated copy), `verify(path: Path, layout: Layout, sched: Schedule, plan: Plan) -> list[str]` (problems; empty when the workbook matches).
+  - CLI `kickoff workbook [--out PATH] [--verify]`; default output `<docs_root>/06-planning/<slug>-estimate.xlsx` (`slug` = project name lower-cased, runs of non-alphanumerics replaced by `-`). Exit 1 when `--verify` finds problems.
 
-This task is a port. The source is `examples/ai-minute/legacy/build_plan.py` (978 lines), which already produces the thirteen sheets from `plan_data.py`. Port it into `workbook.py` with these rules:
+**What the workbook is.** The baseline effort and schedule estimate of the project, for a customer or a manager: they open it, change an effort, a role's focus, the plan start or a holiday, and see durations, dates, milestone dates and totals move. It tracks nothing. There are no actual dates, statuses, % done, Gantt or roadmap grids, gate actuals or variance, `TODAY()`-based highlighting, ticket data or features sheet; progress lives in the tracker (spec §13). Risks stay in `risk-register.md` (`kickoff docs`); the assumptions are in the workbook because an estimate only holds under them.
 
-1. **Inputs:** replace every `d.<NAME>` access with the kickoff objects: `d.ROLES` → `project.roles` (`name`, `focus`, `duties`); `d.PHASES`/`d.W` → `plan.phases`, `plan.groups`, `plan.packages` (the importer mapped the legacy tuple indices: phase keys `label, name, objective, in_scope, out_scope, deliverables, exit, risks`; package keys as in the schema); `d.SCHED` → `Package.schedule`; `d.QL_RATE` → `Package.effort_rate`; `d.CHAIN_AFTER` → `plan.order_after` via `kickoff.schedule.role_queues`; `d.GATES`/`d.GATE_WBS` → `plan.gates` (`id, name, at, phase_label, criteria, evidence, approver`); `d.FEATURES`/`d.EPICS`/`d.RELEASES` → `features` and `project.releases` (use `text(item, "name", languages.workbook)` for display names); `d.RISKS` → `plan.risks`; `d.ASSUMPTIONS` → `plan.assumptions`; `d.HOLIDAYS` → `project.holidays`; `d.PROJECT_START` → `plan.start`; `d.MVP_TARGET` → the smallest `project.hard_dates` value (omit the target cells when there is none).
-2. **Delete the legacy Python mirror** (`simulate()`, `SIM_S`, `SIM_E`): use `sched.slots` from `build_schedule` wherever the legacy code used simulated dates (for example to size the Gantt and roadmap ranges).
-3. **Keep every formula shape** — the schedule is live in Excel: start `=WORKDAY(MAX(<plan start>-1, <prev role end>, <dep ends…>),1,NgayNghi)`, duration `=MAX(1,ROUND(K*(1-Q)/<focus cell>,0))`, end `=WORKDAY(start, duration-1, NgayNghi)`, span/period/tail formulas, effort-rate `=ROUND(J/5*rate,1)`, group rows `MIN/MAX/SUM` over their leaves, gate dates referencing the gate's WBS row end cell. The holidays named range keeps the legacy name `NgayNghi`.
-4. **Labels:** move every Vietnamese literal (sheet names, headers, legends, status texts `Hoàn thành / Đang thực hiện / Chưa bắt đầu`, the team label `Cả đội`) into `labels.py` under `"vi"`, with English equivalents under `"en"` (sheet names: `Overview, Lists, Holidays, Resources, WBS, Gates, Phases and scope, Weekly Gantt, Monthly roadmap, Features, Resource analysis, Risks, Assumptions`). Choose by `project.languages["workbook"]`. Sheet names must be ≤ 31 characters and must not contain `[]:*?/\`.
-5. **No project-specific literals** remain in `workbook.py` (grep for `AI Minute`, `ASR`, `GĐ`, `TDA`, `LTV`, `KTV` — zero matches). Role columns are generated from `project.roles` in order; the number of roles is not fixed at three.
-6. **Return a `Layout`** recording the WBS row of every code and the gate rows, for `verify`.
-7. `numpy` is imported by the legacy file but is not an allowed dependency: remove it (replace any use with plain Python).
+**How its schedule is built.** The workbook is the plan as estimated: `done` fractions, `status` and pulled actuals are ignored. Its formulas implement `build_schedule(project, plan, baseline=True)` (Task 3: `done` treated as 0, `actuals` ignored), and that call is the oracle every test and `--verify` compare against. `build_workbook` itself takes no schedule: every number in the file is either a YAML input or a formula. For the AI Minute example the baseline equals the golden schedule (only `fixed` and `span` packages carry `done`, and neither mode uses it); `test_example_baseline_equals_golden_schedule` pins that.
 
-`lo_verify.py`:
+**LibreOffice check: kept.** It is the only check that the formulas compute in a real spreadsheet engine (function names, the `_xlfn.` prefix of the `.INTL` forms, named ranges with blank rows, `WORKDAY` from a weekend date), which string tests cannot see. Its cost is one small Dockerfile and two `@pytest.mark.docker` tests that skip without Docker and run in the existing CI `examples` job.
+
+#### Workbook specification
+
+Five sheets, in this tab order. Every sheet: row 1 title (bold, 14 pt), row 2 a one-line note (italic, grey); table sheets have the header on row 4 (bold, fill `D9E1F2`) and data from row 5. Inputs are blue (`0000FF`); every other number or date is a formula in black, or a plain text cell. `wb.calculation.fullCalcOnLoad = True`, so Excel and LibreOffice compute everything on open.
+
+| # | Sheet (`en` / `vi`) | Content |
+| --- | --- | --- |
+| 1 | Estimate / Ước tính | A4:B7 key figures: plan start (input, named `PlanStart`), planned end, working days, total effort. Milestones block (title row 9, header row 10, one row per `plan.gates` entry): gate, name, WBS (`at`), planned date, hard date (input), spare working days, verdict, exit criteria (`criteria`). Then the block *Effort by phase and role*: one row per phase that has packages (code, name, one column per role in `project.roles` order, total, start, end, working days) and a total row. Then *Effort by release and role*: one row per `project.releases` entry (id, name, one column per role, total), a `(none)` row when any package has no `release`, and a total row. |
+| 2 | WBS / WBS | One row per phase, group and package that has packages, sorted by `code_key`, columns below. Phase rows bold with fill `F2F2F2`; group rows bold; outline levels 0 / 1 / 2 (collapsible, summary above). Frozen panes at the name column, row 5. |
+| 3 | Resources / Nguồn lực | Role ID, role name, focus (input, `0%`), effort (`=SUMIF` over WBS role and effort), duties; a total row. One row per role in `project.roles` order. |
+| 4 | Assumptions / Giả định | ID, kind, assumption (`text`), scope, source; plain text from `plan.assumptions` (their `status` is not shown). |
+| 5 | Holidays / Ngày nghỉ | Date (input), name, kind, one row per `project.calendar.holidays` date in date order, then 50 empty input rows. |
+
+WBS columns (`WBS_COLUMNS` order; the letter is the position, A to S):
+
+| Key | Header (`en`) | Phase / group row | Package row |
+| --- | --- | --- | --- |
+| `code` | Code | code | code |
+| `level` | Level | 1 / 2 | 3 |
+| `name` | Name | `text(node, "name", lang)` | `text(p.as_item(), "name", lang)` |
+| `desc` | Description | phase `objective`, group `desc` | `desc` |
+| `phase` | Phase | first part of the code | first part of the code |
+| `release` | Release | — | release name from `project.releases`, or `(none)` |
+| `prio` | Priority | — | `prio` |
+| `role` | Role | — | `project.role_title(role, lang)` |
+| `mode` | Schedule | — | `Sequential`, `Fixed dates`, `Span 1.1.1 to 1.4.1`, `12 months after 8.3.3`, `Last 5 days of 9.1.1` |
+| `deps` | Depends on | — | `deps`, comma-separated |
+| `follows` | After (same role) | — | previous code in the role queue (`role_queues`) |
+| `effort` | Effort (person-days) | `=SUM(<leaf effort cells>)` | input, or `=ROUND(days/5*rate,1)` when `effort_rate` is set |
+| `rate` | Effort rate | — | input when `effort_rate` is set |
+| `days` | Working days | `NETWORKDAYS(start,end)` | `seq`: duration; other modes: `NETWORKDAYS(start,end)` |
+| `start`, `end` | Start, End | `=MIN(...)`, `=MAX(...)` over leaf rows | by schedule mode, below |
+| `ref`, `coop`, `note` | Reference, Cooperation, Note | — | `ref`, `coop`, `note` |
+
+Role, schedule mode, dependencies and queue order are structure: they are baked into the formulas and shown as text; the WBS note tells the reader to change them in `plan.yaml` and regenerate.
+
+Formula shapes (`r` = the row, `X{code}` = column X on that code's row; `WD`/`ND` = `WORKDAY`/`NETWORKDAYS` with `HolidayDates` as the last argument, or `_xlfn.WORKDAY.INTL`/`_xlfn.NETWORKDAYS.INTL` with the weekend mask from `project.calendar.weekend`, e.g. `"0000110"` for Friday + Saturday, when the weekend is not Saturday + Sunday):
+
+| Row | Days (`N`) | Start (`O`) | End (`P`) |
+| --- | --- | --- | --- |
+| `seq` | `=MAX(1,ROUND(L{r}/'Resources'!$C${role row},0))` | `=WD(MAX(PlanStart-1,P{previous of role},P{dep}...),1)` | `=WD(O{r},N{r}-1)` |
+| `fixed` | `=ND(O{r},P{r})` | input date | input date |
+| `span a b` | `=ND(O{r},P{r})` | `=O{a}` | `=P{b}` |
+| `period after n` | `=ND(O{r},P{r})` | `=WD(P{after},1)` | `=EDATE(O{r},n)-1` |
+| `tail of n` | `=ND(O{r},P{r})` | `=WD(P{r},-(n-1))` | `=P{of}` |
+| phase / group | `=ND(O{r},P{r})` | `=MIN(O..:O..,...)` | `=MAX(P..:P..,...)` |
+
+Leaf ranges of a roll-up collapse consecutive rows (`O7:O10,O12:O20`). The Estimate formulas: planned end `=MAX('WBS'!$P$5:$P$<last>)`; working days `=ND(MIN('WBS'!$O$5:$O$<last>),B5)`; total effort `=SUMIF('WBS'!$B…,3,'WBS'!$L…)` (validate guarantees three-level package codes); gate planned date `='WBS'!$P$<row of at>`; spare working days `=IF(OR(D="",E=""),"",IF(D<=E,ND(D+1,E),-ND(E+1,D)))` (the same count as `slip_report`); verdict `=IF(F="","",IF(F<0,"<late>","<on time>"))` with a red-font conditional format when F < 0; role cells `=SUMIFS(WBS effort, WBS role, <role header cell>, WBS phase|release, <row key>)`; totals `=SUM`, start `=MIN`, end `=MAX`, working days `=ND`. Resources effort `=SUMIF(WBS role, B{r}, WBS effort)`.
+
+Named ranges: `HolidayDates` (Holidays!A5 to the last spare row) and `PlanStart` (Estimate!B4). No list sheet: no input needs a drop-down.
+
+Validation: effort ≥ 0; effort rate ≥ 0.001; focus between 0.01 and 1; plan start, fixed dates, hard dates and holiday dates must be dates. Number formats: dates from `project.date_format` (`excel_date_format`: `%d %m %Y %y %b %B %a %A` → `dd mm yyyy yy mmm mmmm ddd dddd`), effort `0.0#`, rate `0.00`, days `0`, focus `0%`. Landscape, fit to one page wide (Estimate, WBS, Assumptions).
+
+Labels: every visible string lives in `labels.py` (`en` and `vi`, identical key sets); sheet names ≤ 31 characters, none containing `[]:*?/\`; the language is `project.languages["workbook"]`. No project-specific literal in `workbook.py` or `labels.py`.
+
+Column letters: `WBS_COLUMNS` is the only place WBS column positions are defined; `COL` derives the letters, `Layout.cols` hands them out, and tests and `verify` read every cell through `Layout` (never a literal letter). Estimate-sheet cells are reported in `Layout.cells` and `Layout.gate_rows`; focus cells in `Layout.focus_col` and `Layout.focus_rows`.
+
+Size: about four formulas per WBS row plus a few per phase, release and gate; for AI Minute (205 WBS rows, 11 phases, 7 releases, 11 gates) about 820 formulas.
+
+Known limit: role and release names are SUMIFS criteria, so a name containing `*`, `?` or `~` would match as a wildcard.
+
+- [ ] **Step 1: Write the failing tests**
+
+`cli/tests/test_workbook.py`:
 
 ```python
-"""Recalculate a workbook with LibreOffice in Docker and compare it with the Python schedule."""
+import json
+from dataclasses import replace
+from pathlib import Path
+
+import pytest
+from helpers import pkg, plan, project, write_kickoff
+from openpyxl import load_workbook
+
+from kickoff import lo_verify
+from kickoff.cli import main
+from kickoff.labels import LABELS
+from kickoff.model import load_plan, load_project
+from kickoff.schedule import build_schedule
+from kickoff.workbook import WBS_COLUMNS, build_workbook
+
+EXAMPLES = Path(__file__).resolve().parents[2] / "examples"
+SRC = Path(__file__).resolve().parents[1] / "src" / "kickoff"
+MODES = [
+    pkg("1.1.1", effort=2),
+    pkg("1.1.2", role="qa", deps=["1.1.1"]),
+    pkg("1.1.3", role="lead", schedule={"fixed": ["2026-09-24", "2026-09-25"]}),
+    pkg("1.1.4", role="lead", effort=0, schedule={"span": ["1.1.1", "1.1.2"]}, effort_rate=0.2),
+    pkg("1.1.5", role="lead", schedule={"period": {"after": "1.1.2", "months": 12}}),
+    pkg("1.1.6", role="lead", schedule={"tail": {"of": "1.1.5", "days": 5}}),
+    pkg("1.1.7", effort=1),
+]
+
+
+def formulas(path):
+    wb = load_workbook(path)
+    return {(ws.title, c.coordinate): c.value for ws in wb.worksheets for row in ws.iter_rows() for c in row
+            if isinstance(c.value, str) and c.value.startswith("=")}
+
+
+def values(path):
+    wb = load_workbook(path)
+    return {(ws.title, c.coordinate): c.value for ws in wb.worksheets for row in ws.iter_rows() for c in row}
+
+
+def build_example(tmp_path, lang=None):
+    root = EXAMPLES / "ai-minute"
+    pr, pl = load_project(root), load_plan(root)
+    if lang:
+        pr.languages = {**pr.languages, "workbook": lang}
+    out = tmp_path / "ai-minute.xlsx"
+    return pr, pl, out, build_workbook(pr, pl, out)
+
+
+def test_formula_shapes_for_every_mode(tmp_path):
+    out = tmp_path / "modes.xlsx"
+    lay = build_workbook(project(), plan(MODES), out)
+    ws = load_workbook(out)[lay.wbs_sheet]
+    r, c = lay.rows, lay.cols
+
+    def cell(key, code):
+        return ws[f"{c[key]}{r[code]}"].value
+
+    focus_dev = f"'{lay.resources_sheet}'!$C${lay.focus_rows['dev']}"
+    assert cell("start", "1.1.1") == "=WORKDAY(MAX(PlanStart-1),1,HolidayDates)"
+    assert cell("days", "1.1.1") == f"=MAX(1,ROUND({c['effort']}{r['1.1.1']}/{focus_dev},0))"
+    assert cell("end", "1.1.1") == f"=WORKDAY({c['start']}{r['1.1.1']},{c['days']}{r['1.1.1']}-1,HolidayDates)"
+    assert cell("start", "1.1.2") == f"=WORKDAY(MAX(PlanStart-1,{c['end']}{r['1.1.1']}),1,HolidayDates)"
+    assert cell("start", "1.1.7") == f"=WORKDAY(MAX(PlanStart-1,{c['end']}{r['1.1.1']}),1,HolidayDates)"
+    assert cell("follows", "1.1.7") == "1.1.1"
+    assert not isinstance(cell("start", "1.1.3"), str)  # fixed dates are inputs
+    assert cell("start", "1.1.4") == f"={c['start']}{r['1.1.1']}"
+    assert cell("end", "1.1.4") == f"={c['end']}{r['1.1.2']}"
+    assert cell("effort", "1.1.4") == f"=ROUND({c['days']}{r['1.1.4']}/5*{c['rate']}{r['1.1.4']},1)"
+    assert cell("start", "1.1.5") == f"=WORKDAY({c['end']}{r['1.1.2']},1,HolidayDates)"
+    assert cell("end", "1.1.5") == f"=EDATE({c['start']}{r['1.1.5']},12)-1"
+    assert cell("end", "1.1.6") == f"={c['end']}{r['1.1.5']}"
+    assert cell("start", "1.1.6") == f"=WORKDAY({c['end']}{r['1.1.6']},-4,HolidayDates)"
+    leaves = f"{c['start']}{r['1.1.1']}:{c['start']}{r['1.1.7']}"
+    assert cell("start", "1.1") == f"=MIN({leaves})"
+    assert cell("start", "1") == f"=MIN({leaves})"
+    assert cell("days", "1.1.3") == f"=NETWORKDAYS({c['start']}{r['1.1.3']},{c['end']}{r['1.1.3']},HolidayDates)"
+
+
+def test_other_weekend_uses_intl_functions(tmp_path):
+    out = tmp_path / "fri-sat.xlsx"
+    pr = project(calendar={"weekend": ["fri", "sat"], "holidays": []})
+    lay = build_workbook(pr, plan([pkg("1.1.1")]), out)
+    start = load_workbook(out)[lay.wbs_sheet][f"{lay.cols['start']}{lay.rows['1.1.1']}"].value
+    assert start == '=_xlfn.WORKDAY.INTL(MAX(PlanStart-1),1,"0000110",HolidayDates)'
+
+
+def test_example_sheets_names_and_size(tmp_path):
+    pr, pl, out, lay = build_example(tmp_path)
+    wb = load_workbook(out)
+    vi = LABELS["vi"]
+    assert wb.sheetnames == [vi[f"sheet_{k}"] for k in ("estimate", "wbs", "resources", "assumptions", "holidays")]
+    assert {"HolidayDates", "PlanStart"} <= set(wb.defined_names)
+    assert set(lay.rows) == set(build_schedule(pr, pl, baseline=True).slots)
+    assert set(lay.gate_rows) == {g["id"] for g in pl.gates}
+    header = [c.value for c in wb[lay.wbs_sheet][4]][: len(WBS_COLUMNS)]
+    assert header == [vi[k] for k in WBS_COLUMNS]
+    assert 400 < len(formulas(out)) < 1000  # about 4 per WBS row plus the summaries; the old design had ~11,000
+
+
+def test_english_labels_and_sheet_name_rules(tmp_path):
+    _, _, out, _ = build_example(tmp_path, lang="en")
+    assert load_workbook(out).sheetnames == ["Estimate", "WBS", "Resources", "Assumptions", "Holidays"]
+    for lang in LABELS:
+        for key in LABELS[lang]:
+            if key.startswith("sheet_"):
+                name = LABELS[lang][key]
+                assert len(name) <= 31 and not set(name) & set("[]:*?/\\"), name
+        assert set(LABELS[lang]) == set(LABELS["en"]), lang
+
+
+def test_tracking_fields_do_not_change_the_workbook(tmp_path):
+    tracked = [dict(p, done=0.5, status="done") if p["code"] == "1.1.1" else p for p in MODES]
+    a, b = tmp_path / "a.xlsx", tmp_path / "b.xlsx"
+    build_workbook(project(), plan(MODES), a)
+    build_workbook(project(), plan(tracked), b)
+    assert values(a) == values(b)
+
+
+def test_example_baseline_equals_golden_schedule():
+    root = EXAMPLES / "ai-minute"
+    expected = json.loads((root / "expected" / "schedule.json").read_text(encoding="utf-8"))
+    sched = build_schedule(load_project(root), load_plan(root), baseline=True)
+    for code, (start, end, workdays, *_rest) in expected.items():
+        s = sched.slots[code]
+        assert (s.start.isoformat(), s.end.isoformat(), s.workdays) == (start, end, workdays), code
+
+
+def test_workbook_has_no_project_literals():
+    for name in ("workbook.py", "labels.py"):
+        src = (SRC / name).read_text(encoding="utf-8")
+        for word in ("AI Minute", "ASR", "GĐ", "TDA", "LTV", "KTV"):
+            assert word not in src, f"{name}: {word}"
+
+
+def test_command_writes_default_path(tmp_path, capsys):
+    write_kickoff(tmp_path)
+    assert main(["--root", str(tmp_path), "workbook"]) == 0
+    assert (tmp_path / "docs" / "06-planning" / "demo-estimate.xlsx").exists()
+    assert "wrote" in capsys.readouterr().out
+
+
+def test_dockerfile_ships_inside_the_package():
+    assert (lo_verify.DOCKERFILE_DIR / "Dockerfile").is_file()
+    assert lo_verify.DOCKERFILE_DIR.is_relative_to(SRC)
+
+
+@pytest.mark.docker
+@pytest.mark.skipif(not lo_verify.docker_available(), reason="Docker not available")
+def test_libreoffice_recalculation_matches_schedule(tmp_path):
+    pr, pl, out, lay = build_example(tmp_path)
+    assert lo_verify.verify(lo_verify.recalc(out), lay, build_schedule(pr, pl, baseline=True), pl) == []
+
+
+@pytest.mark.docker
+@pytest.mark.skipif(not lo_verify.docker_available(), reason="Docker not available")
+def test_editing_focus_and_effort_moves_the_dates(tmp_path):
+    pr, pl = project(), plan(MODES)
+    out = tmp_path / "edit.xlsx"
+    lay = build_workbook(pr, pl, out)
+    wb = load_workbook(out)
+    wb[lay.resources_sheet][f"{lay.focus_col}{lay.focus_rows['dev']}"] = 0.5
+    wb[lay.wbs_sheet][f"{lay.cols['effort']}{lay.rows['1.1.7']}"] = 3
+    wb.save(out)
+    edited = plan([dict(p, effort=3) if p["code"] == "1.1.7" else p for p in MODES])
+    pr.roles["dev"] = replace(pr.roles["dev"], focus=0.5)
+    assert lo_verify.verify(lo_verify.recalc(out), lay, build_schedule(pr, edited, baseline=True), edited) == []
+```
+
+- [ ] **Step 2: Run to verify they fail**
+
+Run: `cd cli && uv run pytest tests/test_workbook.py -q`
+Expected: FAIL — `ImportError: cannot import name 'lo_verify' from 'kickoff'`.
+
+- [ ] **Step 3: Write `labels.py`**
+
+`cli/src/kickoff/labels.py`:
+
+```python
+"""Visible strings of the estimate workbook, keyed by languages.workbook."""
+
+from __future__ import annotations
+
+LABELS: dict[str, dict[str, str]] = {
+    "en": {
+        # sheets
+        "sheet_estimate": "Estimate", "sheet_wbs": "WBS", "sheet_resources": "Resources",
+        "sheet_assumptions": "Assumptions", "sheet_holidays": "Holidays",
+        # titles and notes
+        "title_estimate": "{name}: effort and schedule estimate",
+        "note_estimate": "Baseline estimate generated from .kickoff/plan.yaml; it does not track progress. "
+                         "Blue cells are inputs; every date, duration and total is a formula.",
+        "title_wbs": "Work breakdown structure and schedule",
+        "note_wbs": "Change an effort (blue) here or a focus on {resources} and the dates move. Role, schedule mode, "
+                    "dependencies and order come from plan.yaml: change them there and run kickoff workbook again.",
+        "title_resources": "Team and focus",
+        "note_resources": "One person per role. Focus is the share of each working day spent on this project; "
+                          "duration = effort / focus.",
+        "title_assumptions": "Assumptions",
+        "note_assumptions": "The estimate holds only while these assumptions hold.",
+        "title_holidays": "Holidays",
+        "note_holidays": "Non-working days used by every date formula. Add dates in the empty rows below the list.",
+        # key figures
+        "plan_start": "Plan start", "planned_end": "Planned end", "working_days": "Working days",
+        "total_effort": "Total effort (person-days)",
+        # milestones
+        "milestones": "Milestones", "gate": "Gate", "name": "Name", "wbs": "WBS", "planned_date": "Planned date",
+        "hard_date": "Hard date", "spare_days": "Spare working days", "verdict": "Verdict", "on_time": "On time",
+        "late": "Late", "criteria": "Exit criteria",
+        # summaries
+        "by_phase": "Effort by phase and role (person-days)", "phase": "Phase", "total": "Total",
+        "start": "Start", "end": "End",
+        "by_release": "Effort by release and role (person-days)", "release": "Release", "no_release": "(none)",
+        # WBS columns
+        "code": "Code", "level": "Level", "desc": "Description", "prio": "Priority", "role": "Role",
+        "mode": "Schedule", "deps": "Depends on", "follows": "After (same role)", "effort": "Effort (person-days)",
+        "rate": "Effort rate", "days": "Working days", "ref": "Reference", "coop": "Cooperation", "note": "Note",
+        # schedule modes
+        "mode_seq": "Sequential", "mode_fixed": "Fixed dates", "mode_span": "Span {a} to {b}",
+        "mode_period": "{months} months after {after}", "mode_tail": "Last {days} days of {of}",
+        # resources, assumptions, holidays
+        "role_id": "Role ID", "focus": "Focus", "duties": "Duties",
+        "id": "ID", "kind": "Kind", "assumption": "Assumption", "scope": "Scope", "source": "Source",
+        "date": "Date",
+    },
+    "vi": {
+        "sheet_estimate": "Ước tính", "sheet_wbs": "WBS", "sheet_resources": "Nguồn lực",
+        "sheet_assumptions": "Giả định", "sheet_holidays": "Ngày nghỉ",
+        "title_estimate": "{name}: ước tính công và tiến độ",
+        "note_estimate": "Ước tính cơ sở lập từ .kickoff/plan.yaml, không dùng để theo dõi tiến độ thực hiện. "
+                         "Ô chữ xanh là dữ liệu nhập; mọi ngày, thời lượng và tổng đều là công thức.",
+        "title_wbs": "Cấu trúc phân chia công việc và tiến độ",
+        "note_wbs": "Sửa công (ô xanh) ở đây hoặc tỷ lệ tập trung ở trang {resources}, các ngày sẽ tự tính lại. "
+                    "Vai trò, cách lập lịch, phụ thuộc và thứ tự lấy từ plan.yaml: sửa ở đó rồi chạy lại "
+                    "kickoff workbook.",
+        "title_resources": "Nhân sự và tỷ lệ tập trung",
+        "note_resources": "Mỗi vai trò một người. Tỷ lệ tập trung là phần thời gian mỗi ngày làm việc dành cho dự án; "
+                          "thời lượng = công / tỷ lệ tập trung.",
+        "title_assumptions": "Giả định",
+        "note_assumptions": "Ước tính chỉ đúng khi các giả định này còn đúng.",
+        "title_holidays": "Ngày nghỉ",
+        "note_holidays": "Các ngày không làm việc, dùng trong mọi công thức tính ngày. Thêm ngày vào các dòng trống "
+                         "bên dưới danh sách.",
+        "plan_start": "Ngày bắt đầu", "planned_end": "Ngày kết thúc dự kiến", "working_days": "Số ngày làm việc",
+        "total_effort": "Tổng công (ngày công)",
+        "milestones": "Các mốc", "gate": "Mốc", "name": "Tên", "wbs": "WBS", "planned_date": "Ngày dự kiến",
+        "hard_date": "Hạn cứng", "spare_days": "Dự phòng (ngày làm việc)", "verdict": "Đánh giá",
+        "on_time": "Kịp hạn", "late": "Trễ hạn", "criteria": "Tiêu chí hoàn thành",
+        "by_phase": "Công theo giai đoạn và vai trò (ngày công)", "phase": "Giai đoạn", "total": "Tổng",
+        "start": "Bắt đầu", "end": "Kết thúc",
+        "by_release": "Công theo đợt phát hành và vai trò (ngày công)", "release": "Phát hành",
+        "no_release": "(chưa gán)",
+        "code": "Mã", "level": "Cấp", "desc": "Mô tả", "prio": "Ưu tiên", "role": "Vai trò",
+        "mode": "Cách lập lịch", "deps": "Phụ thuộc", "follows": "Làm sau (cùng vai trò)",
+        "effort": "Công (ngày công)", "rate": "Tỷ lệ công", "days": "Số ngày làm việc", "ref": "Tham chiếu",
+        "coop": "Phối hợp", "note": "Ghi chú",
+        "mode_seq": "Tuần tự", "mode_fixed": "Ngày cố định", "mode_span": "Kéo dài từ {a} đến {b}",
+        "mode_period": "{months} tháng sau {after}", "mode_tail": "{days} ngày cuối của {of}",
+        "role_id": "Mã vai trò", "focus": "Tỷ lệ tập trung", "duties": "Nhiệm vụ",
+        "id": "Mã", "kind": "Loại", "assumption": "Giả định", "scope": "Phạm vi", "source": "Nguồn",
+        "date": "Ngày",
+    },
+}
+
+
+def label(lang: str, key: str, **fmt: object) -> str:
+    """LABELS[lang][key] with {placeholders} filled from fmt."""
+    s = LABELS[lang][key]
+    return s.format(**fmt) if fmt else s
+```
+
+- [ ] **Step 4: Write `workbook.py`**
+
+`cli/src/kickoff/workbook.py`:
+
+```python
+"""Baseline estimate workbook: WBS, effort and schedule as live Excel formulas. It tracks nothing.
+
+Inputs (blue): plan start, each package's effort (or effort rate), fixed dates, role focus, hard dates, holidays.
+Everything else is a formula with the same rules as kickoff.schedule.build_schedule(..., baseline=True).
+"""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass
+from pathlib import Path
+
+from openpyxl import Workbook
+from openpyxl.formatting.rule import FormulaRule
+from openpyxl.styles import Font, PatternFill
+from openpyxl.utils import get_column_letter
+from openpyxl.workbook.defined_name import DefinedName
+from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.worksheet.worksheet import Worksheet
+
+from .labels import label
+from .model import Plan, Project, code_key, text
+from .schedule import role_queues
+
+HEADER = 4  # header row of every table sheet; rows 1-2 hold the title and the note
+FIRST = 5  # first data row
+SPARE_HOLIDAYS = 50  # empty rows inside HolidayDates for dates added by hand
+WBS_COLUMNS = ("code", "level", "name", "desc", "phase", "release", "prio", "role", "mode", "deps", "follows",
+               "effort", "rate", "days", "start", "end", "ref", "coop", "note")
+COL = {key: get_column_letter(i + 1) for i, key in enumerate(WBS_COLUMNS)}
+WIDTH = {"code": 9, "level": 6, "name": 48, "desc": 40, "phase": 8, "release": 12, "prio": 8, "role": 18,
+         "mode": 22, "deps": 16, "follows": 12, "effort": 11, "rate": 9, "days": 10, "start": 12, "end": 12,
+         "ref": 12, "coop": 16, "note": 30}
+INPUT = Font(color="0000FF")
+BOLD = Font(bold=True)
+TITLE = Font(bold=True, size=14)
+NOTE = Font(italic=True, color="595959")
+HEAD_FILL = PatternFill("solid", fgColor="D9E1F2")
+PHASE_FILL = PatternFill("solid", fgColor="F2F2F2")
+EFFORT_FMT, RATE_FMT, DAYS_FMT, FOCUS_FMT = "0.0#", "0.00", "0", "0%"
+_STRFTIME = {"%d": "dd", "%m": "mm", "%Y": "yyyy", "%y": "yy", "%b": "mmm", "%B": "mmmm", "%a": "ddd", "%A": "dddd"}
+
+
+@dataclass
+class Layout:
+    """Where verify() and the tests find things. Letters come from WBS_COLUMNS; nothing else hard-codes them."""
+
+    wbs_sheet: str
+    cols: dict[str, str]  # WBS column key -> letter
+    rows: dict[str, int]  # WBS code (phase, group, package) -> row on the WBS sheet
+    estimate_sheet: str
+    cells: dict[str, str]  # plan_start, planned_end, working_days, total_effort -> cell on the estimate sheet
+    gate_rows: dict[str, int]  # gate id -> row on the estimate sheet
+    gate_date_col: str
+    resources_sheet: str
+    focus_col: str
+    focus_rows: dict[str, int]  # role id -> row on the resources sheet
+
+
+def excel_date_format(fmt: str) -> str:
+    """strftime pattern of project.date_format -> Excel number format ("%d/%m/%Y" -> "dd/mm/yyyy")."""
+    return re.sub(r"%[a-zA-Z]", lambda m: _STRFTIME.get(m.group(0), ""), fmt)
+
+
+class _Formulas:
+    """WORKDAY/NETWORKDAYS, or their .INTL forms when the weekend is not Saturday + Sunday."""
+
+    def __init__(self, weekend: tuple[int, ...]):
+        self.mask = None if set(weekend) == {5, 6} else "".join("1" if d in weekend else "0" for d in range(7))
+
+    def workday(self, start: str, days: str) -> str:
+        if self.mask is None:
+            return f"WORKDAY({start},{days},HolidayDates)"
+        return f'_xlfn.WORKDAY.INTL({start},{days},"{self.mask}",HolidayDates)'
+
+    def networkdays(self, a: str, b: str) -> str:
+        if self.mask is None:
+            return f"NETWORKDAYS({a},{b},HolidayDates)"
+        return f'_xlfn.NETWORKDAYS.INTL({a},{b},"{self.mask}",HolidayDates)'
+
+
+def _ref(sheet: str, cell: str) -> str:
+    return "'" + sheet.replace("'", "''") + "'!" + cell
+
+
+def _abs(col: str, first: int, last: int) -> str:
+    return f"${col}${first}:${col}${last}"
+
+
+def _ranges(col: str, rows: list[int]) -> str:
+    """Rows [7, 8, 9, 11] -> "O7:O9,O11" (consecutive rows collapse into one range)."""
+    out: list[str] = []
+    rows = sorted(rows)
+    i = 0
+    while i < len(rows):
+        j = i
+        while j + 1 < len(rows) and rows[j + 1] == rows[j] + 1:
+            j += 1
+        out.append(f"{col}{rows[i]}" if i == j else f"{col}{rows[i]}:{col}{rows[j]}")
+        i = j + 1
+    return ",".join(out)
+
+
+def _sheet(wb: Workbook, title: str, heading: str, note: str, landscape: bool = True) -> Worksheet:
+    ws = wb.create_sheet(title)
+    ws["A1"], ws["A2"] = heading, note
+    ws["A1"].font, ws["A2"].font = TITLE, NOTE
+    if landscape:
+        ws.page_setup.orientation = "landscape"
+        ws.page_setup.fitToWidth, ws.page_setup.fitToHeight = 1, 0
+        ws.sheet_properties.pageSetUpPr.fitToPage = True
+    return ws
+
+
+def _header(ws: Worksheet, row: int, col: int, titles: list[str]) -> None:
+    for i, t in enumerate(titles):
+        c = ws.cell(row, col + i, t)
+        c.font, c.fill = BOLD, HEAD_FILL
+
+
+def _put(ws: Worksheet, ref: str, value, fmt: str | None = None, font: Font | None = None) -> None:
+    c = ws[ref]
+    c.value = value
+    if fmt:
+        c.number_format = fmt
+    if font:
+        c.font = font
+
+
+def _validate(ws: Worksheet, kind: str, refs: str, low: str, high: str | None = None) -> None:
+    """Data validation on comma-separated cells or ranges: kind >= low, or between low and high."""
+    if not refs:
+        return
+    dv = (DataValidation(type=kind, operator="between", formula1=low, formula2=high) if high
+          else DataValidation(type=kind, operator="greaterThanOrEqual", formula1=low))
+    for ref in refs.split(","):
+        dv.add(ref)
+    ws.add_data_validation(dv)
+
+
+def build_workbook(project: Project, plan: Plan, path: Path) -> Layout:
+    lang = project.languages["workbook"]
+
+    def t(key: str, **fmt) -> str:
+        return label(lang, key, **fmt)
+
+    date_fmt = excel_date_format(project.date_format)
+    f = _Formulas(project.weekend)
+    names = {key: t(f"sheet_{key}") for key in ("estimate", "wbs", "resources", "assumptions", "holidays")}
+    wb = Workbook()
+    wb.remove(wb.active)
+    est = _sheet(wb, names["estimate"], t("title_estimate", name=project.name), t("note_estimate"))
+    wbs = _sheet(wb, names["wbs"], t("title_wbs"), t("note_wbs", resources=names["resources"]))
+    res = _sheet(wb, names["resources"], t("title_resources"), t("note_resources"), landscape=False)
+    asm = _sheet(wb, names["assumptions"], t("title_assumptions"), t("note_assumptions"))
+    hol = _sheet(wb, names["holidays"], t("title_holidays"), t("note_holidays"), landscape=False)
+    wb.calculation.fullCalcOnLoad = True
+
+    # ---------------------------------------------------------------- Holidays (HolidayDates)
+    _header(hol, HEADER, 1, [t("date"), t("name"), t("kind")])
+    days = sorted(project.holidays.items())
+    for i, (d, info) in enumerate(days):
+        r = FIRST + i
+        _put(hol, f"A{r}", d, date_fmt, INPUT)
+        hol[f"B{r}"], hol[f"C{r}"] = info.get("name", ""), info.get("kind", "")
+    last_holiday = FIRST + len(days) + SPARE_HOLIDAYS - 1
+    for r in range(FIRST + len(days), last_holiday + 1):
+        _put(hol, f"A{r}", None, date_fmt, INPUT)
+    holidays_ref = _ref(hol.title, _abs("A", FIRST, last_holiday))
+    wb.defined_names["HolidayDates"] = DefinedName("HolidayDates", attr_text=holidays_ref)
+    _validate(hol, "date", f"A{FIRST}:A{last_holiday}", "1")
+    hol.column_dimensions["A"].width, hol.column_dimensions["B"].width, hol.column_dimensions["C"].width = 14, 40, 16
+    hol.freeze_panes = f"A{FIRST}"
+
+    # ---------------------------------------------------------------- Resources (focus inputs)
+    _header(res, HEADER, 1, [t("role_id"), t("role"), t("focus"), t("effort"), t("duties")])
+    focus_rows: dict[str, int] = {}
+    for i, role in enumerate(project.roles.values()):
+        r = FIRST + i
+        focus_rows[role.id] = r
+        res[f"A{r}"], res[f"B{r}"] = role.id, project.role_title(role.id, lang)
+        _put(res, f"C{r}", role.focus, FOCUS_FMT, INPUT)
+        res[f"E{r}"] = text({"duties": role.duties, "i18n": role.i18n}, "duties", lang)
+    res_total = FIRST + len(project.roles)
+    _validate(res, "decimal", f"C{FIRST}:C{res_total - 1}", "0.01", "1")
+    for w, col in zip((12, 26, 10, 14, 70), "ABCDE", strict=True):
+        res.column_dimensions[col].width = w
+
+    # ---------------------------------------------------------------- WBS
+    by = plan.by_code()
+    nodes = {n["code"]: n for n in [*plan.phases, *plan.groups]}
+    members = {c: [p.code for p in plan.packages if p.code.startswith(c + ".")] for c in nodes}
+    codes = sorted([*by, *(c for c in nodes if members[c])], key=code_key)
+    rows = {code: FIRST + i for i, code in enumerate(codes)}
+    last = max(FIRST, FIRST + len(codes) - 1)  # keeps column ranges valid for an empty plan
+    prev = {code: (q[i - 1] if i else None) for q in role_queues(plan).values() for i, code in enumerate(q)}
+    releases = {r.id: r.name for r in project.releases}
+    C = COL
+    _header(wbs, HEADER, 1, [t(k) for k in WBS_COLUMNS])
+    inputs: dict[str, list[int]] = {"effort": [], "rate": [], "fixed": []}
+    for code in codes:
+        r = rows[code]
+        level = len(code.split("."))
+        p = by.get(code)
+        item = p.as_item() if p else nodes[code]
+        desc_key = "objective" if level == 1 else "desc"
+        values = {"code": code, "level": level, "name": text(item, "name", lang), "desc": text(item, desc_key, lang),
+                  "phase": code.split(".")[0]}
+        for key, v in values.items():
+            wbs[f"{C[key]}{r}"] = v
+        cell = {key: f"{C[key]}{r}" for key in WBS_COLUMNS}
+        if p is None:  # phase or group roll-up over its packages
+            leaves = [rows[m] for m in members[code]]
+            wbs[cell["start"]] = f"=MIN({_ranges(C['start'], leaves)})"
+            wbs[cell["end"]] = f"=MAX({_ranges(C['end'], leaves)})"
+            wbs[cell["effort"]] = f"=SUM({_ranges(C['effort'], leaves)})"
+            wbs[cell["days"]] = "=" + f.networkdays(cell["start"], cell["end"])
+            for key in WBS_COLUMNS:
+                wbs[cell[key]].font = BOLD
+                if level == 1:
+                    wbs[cell[key]].fill = PHASE_FILL
+            wbs.row_dimensions[r].outlineLevel = level - 1
+        else:
+            wbs.row_dimensions[r].outlineLevel = 2
+            wbs[cell["release"]] = releases.get(p.release, p.release) if p.release else t("no_release")
+            wbs[cell["prio"]] = p.prio
+            wbs[cell["role"]] = project.role_title(p.role, lang)
+            wbs[cell["deps"]] = ", ".join(p.deps)
+            wbs[cell["follows"]] = prev.get(code) or ""
+            wbs[cell["ref"]], wbs[cell["coop"]], wbs[cell["note"]] = p.ref, p.coop, p.note
+            mode = p.mode
+            if mode == "seq":
+                focus = _ref(res.title, f"$C${focus_rows[p.role]}")
+                after = ["PlanStart-1"]
+                if prev.get(code):
+                    after.append(f"{C['end']}{rows[prev[code]]}")
+                after += [f"{C['end']}{rows[d]}" for d in p.deps]
+                wbs[cell["mode"]] = t("mode_seq")
+                wbs[cell["days"]] = f"=MAX(1,ROUND({cell['effort']}/{focus},0))"
+                wbs[cell["start"]] = "=" + f.workday(f"MAX({','.join(after)})", "1")
+                wbs[cell["end"]] = "=" + f.workday(cell["start"], f"{cell['days']}-1")
+            else:
+                wbs[cell["days"]] = "=" + f.networkdays(cell["start"], cell["end"])
+                if mode == "fixed":
+                    wbs[cell["mode"]] = t("mode_fixed")
+                    _put(wbs, cell["start"], p.schedule[1], font=INPUT)
+                    _put(wbs, cell["end"], p.schedule[2], font=INPUT)
+                    inputs["fixed"].append(r)
+                elif mode == "span":
+                    a, b = p.schedule[1], p.schedule[2]
+                    wbs[cell["mode"]] = t("mode_span", a=a, b=b)
+                    wbs[cell["start"]] = f"={C['start']}{rows[a]}"
+                    wbs[cell["end"]] = f"={C['end']}{rows[b]}"
+                elif mode == "period":
+                    after, months = p.schedule[1], p.schedule[2]
+                    wbs[cell["mode"]] = t("mode_period", months=months, after=after)
+                    wbs[cell["start"]] = "=" + f.workday(f"{C['end']}{rows[after]}", "1")
+                    wbs[cell["end"]] = f"=EDATE({cell['start']},{months})-1"
+                else:  # tail
+                    of, n = p.schedule[1], p.schedule[2]
+                    wbs[cell["mode"]] = t("mode_tail", days=n, of=of)
+                    wbs[cell["end"]] = f"={C['end']}{rows[of]}"
+                    wbs[cell["start"]] = "=" + f.workday(cell["end"], str(-(n - 1)))
+            if p.effort_rate is not None:
+                _put(wbs, cell["rate"], p.effort_rate, RATE_FMT, INPUT)
+                wbs[cell["effort"]] = f"=ROUND({cell['days']}/5*{cell['rate']},1)"
+                inputs["rate"].append(r)
+            else:
+                _put(wbs, cell["effort"], p.effort, font=INPUT)
+                inputs["effort"].append(r)
+        for key, fmt in (("start", date_fmt), ("end", date_fmt), ("effort", EFFORT_FMT), ("days", DAYS_FMT)):
+            wbs[cell[key]].number_format = fmt
+    _validate(wbs, "decimal", _ranges(C["effort"], inputs["effort"]), "0")
+    _validate(wbs, "decimal", _ranges(C["rate"], inputs["rate"]), "0.001")
+    fixed = [_ranges(C[k], inputs["fixed"]) for k in ("start", "end") if inputs["fixed"]]
+    _validate(wbs, "date", ",".join(fixed), "1")
+    wbs.sheet_properties.outlinePr.summaryBelow = False
+    wbs.freeze_panes = f"{C['name']}{FIRST}"
+    for key in WBS_COLUMNS:
+        wbs.column_dimensions[C[key]].width = WIDTH[key]
+
+    def W(key: str) -> str:  # absolute WBS column range for SUMIF(S)
+        return _ref(wbs.title, _abs(C[key], FIRST, last))
+
+    for r in focus_rows.values():
+        _put(res, f"D{r}", f"=SUMIF({W('role')},B{r},{W('effort')})", EFFORT_FMT)
+    res[f"A{res_total}"] = t("total")
+    _put(res, f"D{res_total}", f"=SUM(D{FIRST}:D{res_total - 1})", EFFORT_FMT, BOLD)
+    res[f"A{res_total}"].font = BOLD
+
+    # ---------------------------------------------------------------- Assumptions
+    _header(asm, HEADER, 1, [t("id"), t("kind"), t("assumption"), t("scope"), t("source")])
+    for i, a in enumerate(plan.assumptions):
+        r = FIRST + i
+        for col, key in zip("ABCDE", ("id", "kind", "text", "scope", "source"), strict=True):
+            asm[f"{col}{r}"] = text(a, key, lang) if key != "id" else a["id"]
+    for w, col in zip((8, 16, 70, 16, 24), "ABCDE", strict=True):
+        asm.column_dimensions[col].width = w
+
+    # ---------------------------------------------------------------- Estimate
+    cells = {"plan_start": "B4", "planned_end": "B5", "working_days": "B6", "total_effort": "B7"}
+    est["A4"], est["A5"], est["A6"], est["A7"] = t("plan_start"), t("planned_end"), t("working_days"), t("total_effort")
+    _put(est, "B4", plan.start, date_fmt, INPUT)
+    _validate(est, "date", "B4", "1")
+    wb.defined_names["PlanStart"] = DefinedName("PlanStart", attr_text=_ref(est.title, "$B$4"))
+    _put(est, "B5", f"=MAX({W('end')})", date_fmt)
+    _put(est, "B6", "=" + f.networkdays(f"MIN({W('start')})", "B5"), DAYS_FMT)
+    _put(est, "B7", f"=SUMIF({W('level')},3,{W('effort')})", EFFORT_FMT)
+    for r in range(4, 8):
+        est[f"A{r}"].font = BOLD
+
+    # milestones
+    r = 9
+    est[f"A{r}"], est[f"A{r}"].font = t("milestones"), BOLD
+    r += 1
+    _header(est, r, 1, [t("gate"), t("name"), t("wbs"), t("planned_date"), t("hard_date"), t("spare_days"),
+                        t("verdict"), t("criteria")])
+    gate_rows: dict[str, int] = {}
+    for g in plan.gates:
+        r += 1
+        gate_rows[g["id"]] = r
+        est[f"A{r}"], est[f"B{r}"], est[f"C{r}"] = g["id"], text(g, "name", lang), g["at"]
+        est[f"H{r}"] = text(g, "criteria", lang)
+        if g["at"] in rows:
+            _put(est, f"D{r}", "=" + _ref(wbs.title, f"${C['end']}${rows[g['at']]}"), date_fmt)
+        _put(est, f"E{r}", project.hard_dates.get(g["id"]), date_fmt, INPUT)
+        spare = (f'=IF(OR(D{r}="",E{r}=""),"",IF(D{r}<=E{r},{f.networkdays(f"D{r}+1", f"E{r}")},'
+                 f'-{f.networkdays(f"E{r}+1", f"D{r}")}))')
+        _put(est, f"F{r}", spare, DAYS_FMT)
+        est[f"G{r}"] = f'=IF(F{r}="","",IF(F{r}<0,"{t("late")}","{t("on_time")}"))'
+    if gate_rows:
+        first_gate, last_gate = min(gate_rows.values()), max(gate_rows.values())
+        _validate(est, "date", f"E{first_gate}:E{last_gate}", "1")
+        est.conditional_formatting.add(f"F{first_gate}:G{last_gate}",
+                                       FormulaRule(formula=[f"$F{first_gate}<0"], font=Font(color="C00000")))
+
+    # effort by phase and role
+    roles = list(project.roles)
+    rc = {rid: get_column_letter(3 + i) for i, rid in enumerate(roles)}
+    total_col, start_col, end_col, days_col = (get_column_letter(3 + len(roles) + i) for i in range(4))
+    r += 2
+    est[f"A{r}"], est[f"A{r}"].font = t("by_phase"), BOLD
+    r += 1
+    head = r
+    _header(est, head, 1, [t("phase"), t("name"), *(project.role_title(x, lang) for x in roles), t("total"),
+                           t("start"), t("end"), t("working_days")])
+    phase_rows = []
+    for ph in plan.phases:
+        if ph["code"] not in rows:
+            continue
+        r += 1
+        phase_rows.append(r)
+        w = rows[ph["code"]]
+        est[f"A{r}"], est[f"B{r}"] = ph["code"], text(ph, "name", lang)
+        for rid in roles:
+            col = rc[rid]
+            _put(est, f"{col}{r}", f"=SUMIFS({W('effort')},{W('role')},{col}${head},{W('phase')},$A{r})",
+                 EFFORT_FMT)
+        _put(est, f"{total_col}{r}", f"=SUM({rc[roles[0]]}{r}:{rc[roles[-1]]}{r})", EFFORT_FMT)
+        _put(est, f"{start_col}{r}", "=" + _ref(wbs.title, f"${C['start']}${w}"), date_fmt)
+        _put(est, f"{end_col}{r}", "=" + _ref(wbs.title, f"${C['end']}${w}"), date_fmt)
+        _put(est, f"{days_col}{r}", "=" + _ref(wbs.title, f"${C['days']}${w}"), DAYS_FMT)
+    r += 1
+    est[f"A{r}"], est[f"A{r}"].font = t("total"), BOLD
+    if phase_rows:
+        a, b = phase_rows[0], phase_rows[-1]
+        for col in [*rc.values(), total_col]:
+            _put(est, f"{col}{r}", f"=SUM({col}{a}:{col}{b})", EFFORT_FMT, BOLD)
+        _put(est, f"{start_col}{r}", f"=MIN({start_col}{a}:{start_col}{b})", date_fmt, BOLD)
+        _put(est, f"{end_col}{r}", f"=MAX({end_col}{a}:{end_col}{b})", date_fmt, BOLD)
+        _put(est, f"{days_col}{r}", "=" + f.networkdays(f"{start_col}{r}", f"{end_col}{r}"), DAYS_FMT, BOLD)
+
+    # effort by release and role
+    r += 2
+    est[f"A{r}"], est[f"A{r}"].font = t("by_release"), BOLD
+    r += 1
+    head = r
+    _header(est, head, 1, [t("release"), t("name"), *(project.role_title(x, lang) for x in roles), t("total")])
+    release_rows = [(rel.id, rel.name) for rel in project.releases]
+    if any(not p.release for p in plan.packages):
+        release_rows.append(("", t("no_release")))
+    first_rel = r + 1
+    for rid_, name in release_rows:
+        r += 1
+        est[f"A{r}"], est[f"B{r}"] = rid_, name
+        for rid in roles:
+            col = rc[rid]
+            _put(est, f"{col}{r}", f"=SUMIFS({W('effort')},{W('role')},{col}${head},{W('release')},$B{r})",
+                 EFFORT_FMT)
+        _put(est, f"{total_col}{r}", f"=SUM({rc[roles[0]]}{r}:{rc[roles[-1]]}{r})", EFFORT_FMT)
+    r += 1
+    est[f"A{r}"], est[f"A{r}"].font = t("total"), BOLD
+    for col in [*rc.values(), total_col]:
+        _put(est, f"{col}{r}", f"=SUM({col}{first_rel}:{col}{r - 1})", EFFORT_FMT, BOLD)
+    est.column_dimensions["A"].width, est.column_dimensions["B"].width = 26, 44
+    for i in range(3, 9 + len(roles)):
+        est.column_dimensions[get_column_letter(i)].width = 14
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    wb.save(path)
+    return Layout(wbs_sheet=wbs.title, cols=dict(COL), rows=rows, estimate_sheet=est.title, cells=cells,
+                  gate_rows=gate_rows, gate_date_col="D", resources_sheet=res.title, focus_col="C",
+                  focus_rows=focus_rows)
+```
+
+- [ ] **Step 5: Write the Dockerfile and `lo_verify.py`**
+
+`cli/src/kickoff/docker/lo-calc/Dockerfile`:
+
+```dockerfile
+FROM debian:bookworm-slim
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libreoffice-calc-nogui fonts-dejavu-core \
+ && rm -rf /var/lib/apt/lists/*
+```
+
+`cli/src/kickoff/lo_verify.py`:
+
+```python
+"""Recalculate the estimate workbook with LibreOffice in Docker and compare it with the baseline schedule."""
 
 from __future__ import annotations
 
@@ -2949,8 +3516,10 @@ from .errors import KickoffError
 from .model import Plan
 from .schedule import Schedule
 
-DOCKERFILE_DIR = Path(__file__).resolve().parents[2] / "docker" / "lo-calc"
-ERRORS = ("#REF!", "#VALUE!", "#NAME?", "#DIV/0!", "#N/A", "#NUM!", "#NULL!")
+# Shipped inside the package so it is found after `uv tool install <plugin>/cli` (code runs from site-packages).
+DOCKERFILE_DIR = Path(__file__).resolve().parent / "docker" / "lo-calc"
+IMAGE = "kickoff-lo-calc"
+ERRORS = ("#REF!", "#VALUE!", "#NAME?", "#DIV/0!", "#N/A", "#NUM!", "#NULL!", "Err:")
 
 
 def docker_available() -> bool:
@@ -2959,7 +3528,7 @@ def docker_available() -> bool:
     return subprocess.run(["docker", "info"], capture_output=True).returncode == 0
 
 
-def ensure_image(image: str) -> None:
+def ensure_image(image: str = IMAGE) -> None:
     if subprocess.run(["docker", "image", "inspect", image], capture_output=True).returncode == 0:
         return
     r = subprocess.run(["docker", "build", "-t", image, str(DOCKERFILE_DIR)], capture_output=True, text=True,
@@ -2968,7 +3537,8 @@ def ensure_image(image: str) -> None:
         raise KickoffError(f"docker build failed: {r.stderr[-500:]}")
 
 
-def recalc(path: Path, image: str = "kickoff-lo-calc") -> Path:
+def recalc(path: Path, image: str = IMAGE) -> Path:
+    """A recalculated copy of `path` (LibreOffice headless --convert-to xlsx); the input is not changed."""
     ensure_image(image)
     work = Path(tempfile.mkdtemp(prefix="kickoff-lo-"))
     shutil.copy(path, work / "in.xlsx")
@@ -2990,6 +3560,7 @@ def _as_date(v) -> date | None:
 
 
 def verify(path: Path, layout, sched: Schedule, plan: Plan) -> list[str]:
+    """Problems in a recalculated workbook: error cells, and every WBS row or gate that differs from `sched`."""
     wb = load_workbook(path, data_only=True)
     problems = []
     for ws in wb.worksheets:
@@ -2997,92 +3568,35 @@ def verify(path: Path, layout, sched: Schedule, plan: Plan) -> list[str]:
             for c in row:
                 if isinstance(c.value, str) and c.value.startswith(ERRORS):
                     problems.append(f"{ws.title}!{c.coordinate}: {c.value}")
-    ws = wb[layout.wbs_sheet]
-    for code, row in layout.rows.items():
+    ws, col = wb[layout.wbs_sheet], layout.cols
+    for code, r in layout.rows.items():
         slot = sched.slots.get(code)
         if not slot:
+            problems.append(f"{code}: in the workbook but not in the schedule")
             continue
-        s, e = _as_date(ws[f"{layout.start_col}{row}"].value), _as_date(ws[f"{layout.end_col}{row}"].value)
-        if (s, e) != (slot.start, slot.end):
-            problems.append(f"{code}: workbook {s} – {e}, schedule {slot.start} – {slot.end}")
+        s, e = _as_date(ws[f"{col['start']}{r}"].value), _as_date(ws[f"{col['end']}{r}"].value)
+        days, effort = ws[f"{col['days']}{r}"].value, ws[f"{col['effort']}{r}"].value
+        if (s, e, days) != (slot.start, slot.end, slot.workdays):
+            problems.append(f"{code}: workbook {s} – {e} ({days} d), schedule {slot.start} – {slot.end} "
+                            f"({slot.workdays} d)")
+        if not isinstance(effort, int | float) or abs(effort - slot.effort) > 0.005:
+            problems.append(f"{code}: workbook effort {effort}, schedule {slot.effort}")
     gates = sched.gate_dates(plan)
-    gs = wb[layout.gate_sheet]
-    for gid, row in layout.gate_rows.items():
-        v = _as_date(gs[f"{layout.gate_date_col}{row}"].value)
+    es = wb[layout.estimate_sheet]
+    for gid, r in layout.gate_rows.items():
+        v = _as_date(es[f"{layout.gate_date_col}{r}"].value)
         if gid in gates and v != gates[gid]:
             problems.append(f"{gid}: workbook {v}, schedule {gates[gid]}")
+    total = sum(sched.slots[p.code].effort for p in plan.packages)
+    got = es[layout.cells["total_effort"]].value
+    if not isinstance(got, int | float) or abs(got - total) > 0.005:
+        problems.append(f"total effort: workbook {got}, schedule {total:g}")
     return problems
 ```
 
-- [ ] **Step 1: Write the failing tests**
+A formula that LibreOffice did not calculate reads back as `None`, so it shows up as a mismatch; a run that recalculates nothing cannot pass.
 
-`cli/tests/test_workbook.py`:
-
-```python
-from pathlib import Path
-
-import pytest
-from openpyxl import load_workbook
-
-from kickoff import lo_verify
-from kickoff.model import load_features, load_plan, load_project
-from kickoff.schedule import build_schedule
-from kickoff.workbook import build_workbook
-
-EXAMPLES = Path(__file__).resolve().parents[2] / "examples"
-
-
-def build(name, tmp_path):
-    root = EXAMPLES / name
-    project, plan, features = load_project(root), load_plan(root), load_features(root)
-    sched = build_schedule(project, plan)
-    out = tmp_path / f"{name}.xlsx"
-    return project, plan, sched, out, build_workbook(project, plan, features, sched, out)
-
-
-def test_ai_minute_sheets_and_formulas(tmp_path):
-    _, plan, _, out, layout = build("ai-minute", tmp_path)
-    wb = load_workbook(out)
-    assert len(wb.sheetnames) == 13
-    assert "NgayNghi" in wb.defined_names
-    ws = wb[layout.wbs_sheet]
-    row = layout.rows["1.2.7"]
-    assert str(ws[f"{layout.start_col}{row}"].value).startswith("=WORKDAY(MAX(")
-    assert set(layout.rows) >= {p.code for p in plan.packages}
-    assert set(layout.gate_rows) == {g["id"] for g in plan.gates}
-
-
-def test_workbook_has_no_project_literals():
-    src = (Path(__file__).resolve().parents[1] / "src" / "kickoff" / "workbook.py").read_text(encoding="utf-8")
-    for word in ("AI Minute", "ASR", "GĐ", "TDA", "LTV", "KTV", "numpy"):
-        assert word not in src, word
-
-
-def test_english_labels(tmp_path):
-    root = EXAMPLES / "ai-minute"
-    project = load_project(root)
-    project.languages = {**project.languages, "workbook": "en"}
-    plan, features = load_plan(root), load_features(root)
-    out = tmp_path / "en.xlsx"
-    build_workbook(project, plan, features, build_schedule(project, plan), out)
-    assert "Overview" in load_workbook(out).sheetnames
-
-
-@pytest.mark.docker
-@pytest.mark.skipif(not lo_verify.docker_available(), reason="Docker not available")
-def test_libreoffice_recalculation_matches_schedule(tmp_path):
-    _, plan, sched, out, layout = build("ai-minute", tmp_path)
-    assert lo_verify.verify(lo_verify.recalc(out), layout, sched, plan) == []
-```
-
-- [ ] **Step 2: Run to verify they fail**
-
-Run: `cd cli && uv run pytest tests/test_workbook.py -q`
-Expected: FAIL — `No module named 'kickoff.workbook'`.
-
-- [ ] **Step 3: Port `build_plan.py` into `labels.py` and `workbook.py`** following rules 1–7 above. Copy `examples/ai-minute/legacy/lo-calc.Dockerfile` to `cli/docker/lo-calc/Dockerfile`; write `lo_verify.py` as given.
-
-- [ ] **Step 4: Write the command**
+- [ ] **Step 6: Write the command**
 
 `cli/src/kickoff/commands/workbook_cmd.py`:
 
@@ -3095,56 +3609,58 @@ import re
 from pathlib import Path
 
 from .. import lo_verify
-from ..model import load_features, load_plan, load_project, load_tickets, resolve_root
-from ..schedule import actuals_of, build_schedule
+from ..model import load_plan, load_project, resolve_root
+from ..schedule import build_schedule
 from ..workbook import build_workbook
 
 
 def register(sub) -> None:
-    p = sub.add_parser("workbook", help="write the formula-only plan workbook")
+    p = sub.add_parser("workbook", help="write the estimate workbook: WBS, effort and schedule as formulas")
     p.add_argument("--out", type=Path, default=None)
-    p.add_argument("--verify", action="store_true", help="recalculate with LibreOffice (Docker) and compare dates")
+    p.add_argument("--verify", action="store_true", help="recalculate with LibreOffice (Docker) and compare")
     p.set_defaults(func=run)
 
 
 def run(args) -> int:
     root = resolve_root(args.root)
-    project, plan, features = load_project(root), load_plan(root), load_features(root)
-    sched = build_schedule(project, plan, actuals_of(load_tickets(root)))
+    project, plan = load_project(root), load_plan(root)
     slug = re.sub(r"[^a-z0-9]+", "-", project.name.lower()).strip("-")
-    out = args.out or root / project.docs_root / "06-planning" / f"{slug}-plan.xlsx"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    layout = build_workbook(project, plan, features, sched, out)
+    out = args.out or root / project.docs_root / "06-planning" / f"{slug}-estimate.xlsx"
+    layout = build_workbook(project, plan, out)
     print(f"wrote {out}")
     if not args.verify:
         return 0
     if not lo_verify.docker_available():
-        print("verify: Docker is not available; LibreOffice recalculation skipped. Dates come from the tested "
-              "Python schedule only.")
+        print("verify: Docker is not available; LibreOffice recalculation skipped.")
         return 0
+    sched = build_schedule(project, plan, baseline=True)
     problems = lo_verify.verify(lo_verify.recalc(out), layout, sched, plan)
     for p in problems:
         print("verify:", p)
-    print("verify: OK — zero error cells, dates match the schedule" if not problems else f"verify: {len(problems)} problems")
+    print("verify: OK, zero error cells and every row matches the baseline schedule" if not problems
+          else f"verify: {len(problems)} problems")
     return 1 if problems else 0
 ```
 
-Append `workbook_cmd` to `COMMANDS`.
+Append `workbook_cmd` to `COMMANDS` in `cli.py`. Add the line `examples/**/*.xlsx` to `.gitignore` (generated workbooks are not committed).
 
-- [ ] **Step 5: Run the tests, including the Docker test**
+- [ ] **Step 7: Run the tests**
 
-Run: `cd cli && uv run pytest -q -m "not browser"`
-Expected: all pass, including `test_libreoffice_recalculation_matches_schedule` (Docker is installed on this machine; the first run builds the image, a few minutes).
+Run: `cd cli && uv run pytest tests/test_workbook.py -q`
+Expected: `11 passed` with Docker running (the first run builds the image, a few minutes); `9 passed, 2 skipped` without Docker.
+Then: `cd cli && uv run pytest -q && uv run ruff check .`
+Expected: all pass, ruff clean.
 
-- [ ] **Step 6: Compare with the legacy workbook visually**
+- [ ] **Step 8: Generate and review the example workbook**
 
 Run: `cd cli && uv run kickoff --root ../examples/ai-minute workbook --verify`
-Expected: `verify: OK — zero error cells, dates match the schedule`. Open the file and the legacy `C:\Users\hienl\Workspace\ivai\ai-minute\docs\06-planning\ke-hoach-tong-the-ai-minute.xlsx` side by side; report any sheet whose layout differs materially (missing columns, charts or conditional formats) in the task report.
+Expected: `wrote …/examples/ai-minute/docs/06-planning/ai-minute-estimate.xlsx`, then `verify: OK, zero error cells and every row matches the baseline schedule` (or the Docker-skipped line).
+Open the file in Excel or LibreOffice and check: five sheets (Ước tính, WBS, Nguồn lực, Giả định, Ngày nghỉ); Estimate shows plan start 28/09/2026, planned end 02/06/2028, total effort 336.75, G1 14/10/2026, G5 26/11/2026 against the hard date 27/11/2026 with 1 spare working day and verdict *Kịp hạn*; the phase and release totals both equal 336.75. Change the developer's focus on Nguồn lực from 90% to 50%: WBS dates and G5 move later and G5 turns *Trễ hạn*; undo without saving. List the Vietnamese labels in the task report for the lead's review.
 
-- [ ] **Step 7: Commit** (do not commit the generated xlsx under `examples/ai-minute/docs/06-planning/`; add `examples/**/*.xlsx` to `.gitignore`)
+- [ ] **Step 9: Commit**
 
 ```bash
-git add -A && git commit -m "feat(cli): formula-only plan workbook with LibreOffice verification"
+git add -A && git commit -m "feat(cli): baseline estimate workbook with LibreOffice verification"
 ```
 
 ---
@@ -3154,16 +3670,16 @@ git add -A && git commit -m "feat(cli): formula-only plan workbook with LibreOff
 **Files:**
 - Create: `cli/src/kickoff/tracker.py`, `cli/src/kickoff/tickets.py`, `cli/src/kickoff/commands/tickets_cmd.py`
 - Modify: `cli/src/kickoff/cli.py` (append `tickets_cmd`)
-- Test: `cli/tests/fake_gh.py`, `cli/tests/test_tickets.py`
+- Test: `cli/tests/fake_gh.py`, `cli/tests/test_tickets.py`, `cli/tests/test_tickets_example.py`, `cli/tests/test_github_sandbox.py`
 
 **Interfaces:**
 - Consumes: loaders, `write_yaml`, `build_schedule`, `actuals_of`, `text`, `Project.role_title`, `KICKOFF_DIR`.
 - Produces:
-  - `kickoff.tracker`: `TrackerError(KickoffError)`, `IssueSpec`, `Issue` (property `key`), `IssueState`, `Tracker` protocol, `GitHubTracker(cfg, cache, runner=run_gh, dry=False)`, `with_key(body, key)`, `strip_key(body)`, `body_hash(body)`, `run_gh(args, stdin) -> str`.
-  - `kickoff.tickets`: `plan_issues(project, plan, features, sched) -> list[IssueSpec]`; `PushReport` (lists `created, updated, unchanged, drift, links`, plus `mutations`); `push(root, tracker, dry: bool) -> PushReport`; `pull(root, tracker, today: date | None = None) -> list[str]`; `link(root, key, number) -> None`; `make_tracker(project, tickets, dry) -> Tracker`.
-  - CLI: `kickoff tickets plan`, `kickoff tickets push [--dry]`, `kickoff tickets pull`, `kickoff tickets link <key> <number>`.
+  - `kickoff.tracker`: `TrackerError(KickoffError)`, `IssueSpec`, `Issue` (property `key`), `IssueState`, `Tracker` protocol, `GitHubTracker(cfg, cache, runner=run_gh, dry=False)` (including `prepare(specs)`, which creates missing labels and milestones, and `set_fields(...) -> bool`, which turns a Project or org-field failure into a warning), `with_key(body, key)`, `strip_key(body)`, `body_hash(body)`, `run_gh(args, stdin) -> str`.
+  - `kickoff.tickets`: `plan_issues(project, plan, features, sched) -> list[IssueSpec]`; `PushReport` (lists `created, updated, unchanged, drift, links`, plus `mutations`); `push(root, tracker, dry: bool, adopt: bool = False) -> PushReport`; `pull(root, tracker, today: date | None = None) -> list[str]`; `link(root, key, number) -> None`; `make_tracker(project, tickets, dry) -> Tracker`.
+  - CLI: `kickoff tickets plan`, `kickoff tickets push [--dry] [--adopt]`, `kickoff tickets pull`, `kickoff tickets link <key> <number>`.
 
-Rules (from the spec): epics are feature-map epics that have at least one ticketed package; one Story/Task per package with a `ticket` block; the hidden key `<!-- kickoff:<key> -->` ends every body; Status is only set on create (the tracker owns it afterwards); drift (body edited in the tracker since the last push) is reported and not overwritten; links and fields are only sent when they changed since the last push, so a second push makes zero mutations.
+Rules (from the spec): one Epic per feature-map epic (`[E6] Minutes`) and one Story/Task per package with a `ticket` block; the hidden key `<!-- kickoff:<key> -->` ends every body; Status is only set on create (the tracker owns it afterwards); missing `type:*`/`area:*` labels and milestones are created before the first issue; drift (title or body edited in the tracker since the last push) is reported and not overwritten; an issue mapped by `tickets link`, or found without sync state and without the hidden key, is only taken over with `push --adopt`; parent and blocked-by links are read from the tracker (`gh issue list --json parent,blockedBy`) and only missing ones are sent, so a second push makes zero mutations even after manual edits; Project and org-field failures are warnings, never aborts.
 
 - [ ] **Step 1: Write the fake `gh`**
 
@@ -3181,17 +3697,38 @@ class FakeGh:
     def __init__(self):
         self.issues: dict[int, dict] = {}
         self.status: dict[int, str] = {}
+        self.labels: set[str] = set()
+        self.milestones: set[str] = set()
         self.calls: list[list[str]] = []
         self.mutations: list[str] = []
 
     def add(self, number, title, body="", state="OPEN", labels=(), closed_at=None, reason=None, milestone=None):
+        self.labels.update(labels)
+        if milestone:
+            self.milestones.add(milestone)
         self.issues[number] = {"number": number, "id": f"I_{number}", "title": title, "body": body, "state": state,
                                "labels": [{"name": n} for n in labels],
                                "milestone": {"title": milestone} if milestone else None, "closedAt": closed_at,
-                               "stateReason": reason}
+                               "stateReason": reason, "parent": None, "blockedBy": {"nodes": [], "totalCount": 0}}
 
     def _opt(self, args, flag):
         return [args[i + 1] for i, a in enumerate(args) if a == flag]
+
+    def _vars(self, args):
+        out = {}
+        for i, a in enumerate(args[:-1]):
+            if a in ("-f", "-F") and "=" in args[i + 1] and not args[i + 1].startswith("query="):
+                k, v = args[i + 1].split("=", 1)
+                out[k] = v
+        return out
+
+    @staticmethod
+    def _number(node_id):
+        return int(node_id.split("_")[1])
+
+    def _check_exists(self, labels, milestones):
+        missing = [x for x in labels if x not in self.labels] + [m for m in milestones if m not in self.milestones]
+        assert not missing, f"gh would fail: unknown label or milestone {missing}"
 
     def __call__(self, args, stdin=None):
         self.calls.append(args)
@@ -3199,15 +3736,30 @@ class FakeGh:
             return json.dumps(list(self.issues.values()))
         if args[:2] == ["issue", "view"]:
             return json.dumps({"id": f"I_{args[2]}"})
+        if args[:2] == ["label", "list"]:
+            return json.dumps([{"name": n} for n in sorted(self.labels)])
+        if args[:2] == ["label", "create"]:
+            self.labels.add(args[2])
+            self.mutations.append(f"label {args[2]}")
+            return ""
+        if args[:3] == ["api", "--method", "GET"]:
+            return json.dumps([{"title": t} for t in sorted(self.milestones)])
+        if args[0] == "api" and args[1].startswith("repos/") and args[1].endswith("/milestones"):
+            title = next(a[len("title="):] for a in args if a.startswith("title="))
+            self.milestones.add(title)
+            self.mutations.append(f"milestone {title}")
+            return "{}"
         if args[:2] == ["issue", "create"]:
             n = max(self.issues, default=0) + 1
             ms = self._opt(args, "--milestone")
-            self.add(n, self._opt(args, "--title")[0], stdin or "", labels=self._opt(args, "--label"),
-                     milestone=ms[0] if ms else None)
+            labels = self._opt(args, "--label")
+            self._check_exists(labels, ms)
+            self.add(n, self._opt(args, "--title")[0], stdin or "", labels=labels, milestone=ms[0] if ms else None)
             self.mutations.append(f"create {n}")
             return f"https://github.com/o/r/issues/{n}\n"
         if args[:2] == ["issue", "edit"]:
             it = self.issues[int(args[2])]
+            self._check_exists(self._opt(args, "--add-label"), self._opt(args, "--milestone"))
             if self._opt(args, "--title"):
                 it["title"] = self._opt(args, "--title")[0]
             if "--body-file" in args:
@@ -3225,6 +3777,13 @@ class FakeGh:
             q = next(a[len("query="):] for a in args if a.startswith("query="))
             if q.lstrip().startswith("mutation"):
                 self.mutations.append(q.split("(input", 1)[0].split("{", 1)[1])
+                v = self._vars(args)
+                if "addSubIssue" in q:
+                    self.issues[self._number(v["c"])]["parent"] = {"number": self._number(v["p"])}
+                if "addBlockedBy" in q:
+                    node = self.issues[self._number(v["i"])]["blockedBy"]
+                    node["nodes"].append({"number": self._number(v["b"])})
+                    node["totalCount"] += 1
             if "projectV2(number" in q:
                 return json.dumps({"data": {"organization": {"projectV2": {"id": "PVT_1", "fields": {"nodes": [
                     {"id": "F_S", "name": "Status", "options": [{"id": "o_b", "name": "Backlog"}, {"id": "o_r", "name": "Ready"}]},
@@ -3310,6 +3869,7 @@ def test_first_push_creates_and_links(tmp_path):
     assert any("addSubIssue" in m for m in gh.mutations)
     assert any("addBlockedBy" in m for m in gh.mutations)
     assert any("setIssueFieldValue" in m for m in gh.mutations)
+    assert {"type:epic", "type:task", "area:web"} <= gh.labels and "MVP" in gh.milestones
 
 
 def test_second_push_makes_no_mutations(tmp_path):
@@ -3363,13 +3923,69 @@ def test_existing_issue_found_by_key(tmp_path):
     assert gh.issues[7]["title"] == "[1.1.1] Build export"
 
 
-def test_link_then_push_adopts_issue(tmp_path):
+def test_link_then_push_reports_an_unadopted_issue(tmp_path):
     setup(tmp_path)
     gh = FakeGh()
-    gh.add(9, "Legacy issue without key", "legacy body")
+    gh.add(9, "Hand-made issue without key", "hand-made body")
     link(tmp_path, "1.1.1", 9)
-    push(tmp_path, tracker(gh, tmp_path), dry=False)
+    report = push(tmp_path, tracker(gh, tmp_path), dry=False)
+    assert report.drift and report.drift[0].startswith("1.1.1 #9") and "--adopt" in report.drift[0]
+    assert gh.issues[9]["body"] == "hand-made body" and gh.issues[9]["title"] == "Hand-made issue without key"
+
+
+def test_adopt_takes_over_the_mapped_issue(tmp_path):
+    setup(tmp_path)
+    gh = FakeGh()
+    gh.add(9, "Hand-made issue without key", "hand-made body")
+    link(tmp_path, "1.1.1", 9)
+    push(tmp_path, tracker(gh, tmp_path), dry=False, adopt=True)
     assert "<!-- kickoff:1.1.1 -->" in gh.issues[9]["body"]
+    assert gh.issues[9]["title"] == "[1.1.1] Build export"
+
+
+def test_title_edit_in_tracker_is_drift(tmp_path):
+    setup(tmp_path)
+    gh = FakeGh()
+    push(tmp_path, tracker(gh, tmp_path), dry=False)
+    gh.issues[2]["title"] = "Renamed on GitHub"
+    setup(tmp_path, title="Build DOCX export")
+    report = push(tmp_path, tracker(gh, tmp_path), dry=False)
+    assert report.drift and "title edited in the tracker" in report.drift[0]
+    assert gh.issues[2]["title"] == "Renamed on GitHub"
+
+
+def test_labels_and_milestones_are_created_once(tmp_path):
+    setup(tmp_path)
+    gh = FakeGh()
+    push(tmp_path, tracker(gh, tmp_path), dry=False)
+    assert any(m.startswith("label") for m in gh.mutations) and "milestone MVP" in gh.mutations
+    gh.mutations.clear()
+    push(tmp_path, tracker(gh, tmp_path), dry=False)
+    assert gh.mutations == []
+
+
+def test_links_removed_in_the_tracker_are_restored(tmp_path):
+    setup(tmp_path)
+    gh = FakeGh()
+    push(tmp_path, tracker(gh, tmp_path), dry=False)
+    gh.issues[3]["parent"] = None
+    gh.issues[3]["blockedBy"] = {"nodes": [], "totalCount": 0}
+    gh.mutations.clear()
+    push(tmp_path, tracker(gh, tmp_path), dry=False)
+    assert any("addSubIssue" in m for m in gh.mutations) and any("addBlockedBy" in m for m in gh.mutations)
+
+
+def test_every_feature_map_epic_becomes_an_epic(tmp_path):
+    from kickoff.model import load_features, load_plan, load_project
+    from kickoff.schedule import build_schedule
+
+    features = {**FEATURES, "epics": [*FEATURES["epics"], {"id": "E2", "name": "Later", "features": []}]}
+    write_kickoff(tmp_path, project=project_dict(tracker=GH),
+                  plan=plan_dict([pkg("1.1.1", effort=2, prio="P0", release="MVP", ticket=ticket("Build export"))]),
+                  features=features)
+    project, plan, feats = load_project(tmp_path), load_plan(tmp_path), load_features(tmp_path)
+    keys = [s.key for s in plan_issues(project, plan, feats, build_schedule(project, plan))]
+    assert keys == ["E1", "E2", "1.1.1"]
 
 
 def test_pull_records_actuals_and_reports_moves(tmp_path):
@@ -3451,6 +4067,8 @@ class Issue:
     milestone: str | None = None
     closed_at: date | None = None
     state_reason: str | None = None
+    parent: int | None = None
+    blocked_by: list[int] = field(default_factory=list)
 
     @property
     def key(self) -> str | None:
@@ -3473,7 +4091,8 @@ class Tracker(Protocol):
     def upsert_issue(self, spec: IssueSpec, existing: Issue | None) -> tuple[Issue, str]: ...
     def set_parent(self, child: Issue, parent: Issue) -> None: ...
     def set_blocked_by(self, issue: Issue, blockers: list[Issue]) -> None: ...
-    def set_fields(self, issue: Issue, fields: dict, *, created: bool) -> None: ...
+    def prepare(self, specs: list[IssueSpec]) -> None: ...
+    def set_fields(self, issue: Issue, fields: dict, *, created: bool) -> bool: ...
     def list_states(self, numbers: list[int]) -> dict[int, IssueState]: ...
 
 
@@ -3499,14 +4118,16 @@ class GitHubTracker:
     def _load(self) -> dict[int, Issue]:
         if self._issues is None:
             out = self.run(["issue", "list", "-R", self.repo, "--state", "all", "--limit", "2000", "--json",
-                            "number,id,title,body,state,labels,milestone,closedAt,stateReason"], None)
+                            "number,id,title,body,state,labels,milestone,closedAt,stateReason,parent,blockedBy"], None)
             self._issues = {}
             for i in json.loads(out):
                 closed = i.get("closedAt")
+                blockers = (i.get("blockedBy") or {}).get("nodes") or []
                 self._issues[i["number"]] = Issue(
                     i["number"], i["id"], i["title"], i.get("body") or "", i["state"].lower(),
                     [lb["name"] for lb in i.get("labels") or []], (i.get("milestone") or {}).get("title"),
-                    date.fromisoformat(closed[:10]) if closed else None, (i.get("stateReason") or "").lower() or None)
+                    date.fromisoformat(closed[:10]) if closed else None, (i.get("stateReason") or "").lower() or None,
+                    (i.get("parent") or {}).get("number"), [b["number"] for b in blockers if b.get("number")])
         return self._issues
 
     def get(self, number: int) -> Issue | None:
@@ -3524,6 +4145,26 @@ class GitHubTracker:
         for k, v in variables.items():
             args += ["-F" if isinstance(v, int) else "-f", f"{k}={v}"]
         return json.loads(self.run(args, None))
+
+    def prepare(self, specs: list[IssueSpec]) -> None:
+        """Create the labels and milestones the specs use, once (writes are skipped in a dry run)."""
+        labels = sorted({lb for s in specs for lb in s.labels})
+        milestones = sorted({s.milestone for s in specs if s.milestone})
+        have = {x["name"] for x in json.loads(self.run(
+            ["label", "list", "-R", self.repo, "--limit", "500", "--json", "name"], None))}
+        for lb in labels:
+            if lb not in have:
+                self.log.append(f"create label {lb}")
+                if not self.dry:
+                    self.run(["label", "create", lb, "-R", self.repo], None)
+        existing = json.loads(self.run(["api", "--method", "GET", f"repos/{self.repo}/milestones", "-f", "state=all",
+                                        "-F", "per_page=100"], None))
+        have_ms = {m["title"] for m in existing}
+        for m in milestones:
+            if m not in have_ms:
+                self.log.append(f"create milestone {m}")
+                if not self.dry:
+                    self.run(["api", f"repos/{self.repo}/milestones", "-f", f"title={m}"], None)
 
     # ------------------------------------------------ issues
     def upsert_issue(self, spec: IssueSpec, existing: Issue | None) -> tuple[Issue, str]:
@@ -3608,10 +4249,20 @@ class GitHubTracker:
                                           "options": {o.get("name") or o.get("title"): o["id"] for o in opts}}
         return c
 
-    def set_fields(self, issue: Issue, fields: dict, *, created: bool) -> None:
+    def set_fields(self, issue: Issue, fields: dict, *, created: bool) -> bool:
+        """Set Project and org issue fields. A failure becomes a warning (False), never an abort."""
         if self.dry:
             self.log.append(f"fields #{issue.number} {sorted(k for k, v in fields.items() if v)}")
-            return
+            return True
+        try:
+            self._set_project_fields(issue, fields, created)
+            self._set_org_fields(issue, fields)
+        except (TrackerError, KeyError, TypeError) as exc:
+            self.warnings.append(f"#{issue.number}: fields not set: {exc}")
+            return False
+        return True
+
+    def _set_project_fields(self, issue: Issue, fields: dict, created: bool) -> None:
         pj = self._project()
         item = self._gql("mutation($p:ID!,$c:ID!){addProjectV2ItemById(input:{projectId:$p,contentId:$c}){item{id}}}",
                          p=pj["id"], c=issue.node_id)["data"]["addProjectV2ItemById"]["item"]["id"]
@@ -3627,6 +4278,8 @@ class GitHubTracker:
                  else f'{{singleSelectOptionId:"{f["options"][value]}"}}')
             self._gql("mutation($p:ID!,$i:ID!,$f:ID!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,"
                       "fieldId:$f,value:" + v + "}){clientMutationId}}", p=pj["id"], i=item, f=f["id"])
+
+    def _set_org_fields(self, issue: Issue, fields: dict) -> None:
         issue_fields = self.cfg.get("issue_fields") or {}
         pmap = (self.cfg.get("priority") or {}).get("map") or {}
         parts = []
@@ -3677,7 +4330,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from .errors import KickoffError
@@ -3742,21 +4395,16 @@ def package_body(project: Project, plan: Plan, sched: Schedule, code: str) -> st
 def plan_issues(project: Project, plan: Plan, features: Features, sched: Schedule) -> list[IssueSpec]:
     ticketed = [p for p in plan.packages if p.ticket]
     by = plan.by_code()
-    epic_ids = []
-    for p in ticketed:
-        if p.ticket["epic"] not in epic_ids:
-            epic_ids.append(p.ticket["epic"])
-    epic_ids.sort(key=lambda e: int(e[1:]))
     specs: list[IssueSpec] = []
     lang = project.languages["repo"]
-    for eid in epic_ids:
-        e = features.epic(eid)
-        ends = [sched.slots[p.code].end for p in ticketed if p.ticket["epic"] == eid]
+    for e in features.epics:
+        ends = [sched.slots[p.code].end for p in ticketed if p.ticket["epic"] == e.id]
+        fields = {"Priority": "P0", "Release": e.release or project.releases[0].id, "Status": "Backlog"}
+        if ends:
+            fields["Target"] = max(ends).isoformat()
         specs.append(IssueSpec(
-            key=eid, title=f"[{eid}] {text({'name': e.name, 'i18n': e.i18n}, 'name', lang)}",
-            body=epic_body(project, features, eid), type="epic", labels=["type:epic", *e.areas],
-            fields={"Priority": "P0", "Release": e.release or project.releases[0].id, "Status": "Backlog",
-                    "Target": max(ends).isoformat()}))
+            key=e.id, title=f"[{e.id}] {text({'name': e.name, 'i18n': e.i18n}, 'name', lang)}",
+            body=epic_body(project, features, e.id), type="epic", labels=["type:epic", *e.areas], fields=fields))
     for p in ticketed:
         t = p.ticket
         s = sched.slots[p.code]
@@ -3796,7 +4444,20 @@ def _save(root: Path, tickets: dict) -> None:
     write_yaml(root / KICKOFF_DIR / "tickets.yaml", tickets)
 
 
-def push(root: Path, tracker: Tracker, dry: bool) -> PushReport:
+def _drift(existing: Issue, rec: dict, spec: IssueSpec, adopt: bool) -> str | None:
+    """Why this issue must not be overwritten, or None when it may be updated."""
+    if strip_key(existing.body) != strip_key(spec.body):
+        if not rec.get("body_hash"):
+            if existing.key != spec.key and not adopt:
+                return "issue has no recorded sync state (use --adopt to replace its title and body)"
+        elif body_hash(existing.body) != rec["body_hash"]:
+            return "body edited in the tracker since the last push"
+    if rec.get("title") and existing.title not in (rec["title"], spec.title):
+        return "title edited in the tracker since the last push"
+    return None
+
+
+def push(root: Path, tracker: Tracker, dry: bool, adopt: bool = False) -> PushReport:
     project, plan, features = load_project(root), load_plan(root), load_features(root)
     tickets = load_tickets(root)
     sched = build_schedule(project, plan, actuals_of(tickets))
@@ -3806,38 +4467,39 @@ def push(root: Path, tracker: Tracker, dry: bool) -> PushReport:
         tickets["tracker_cache"] = tracker.cache
     report = PushReport()
     issues: dict[str, Issue] = {}
-    now = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    now = datetime.now(UTC).replace(microsecond=0).isoformat()
+    tracker.prepare(specs)
     for spec in specs:
         rec = dict(items.get(spec.key) or {})
         existing = tracker.get(rec["issue"]) if rec.get("issue") else tracker.find_by_key(spec.key)
-        if (existing and rec.get("body_hash") and body_hash(existing.body) != rec["body_hash"]
-                and strip_key(existing.body) != strip_key(spec.body)):
-            report.drift.append(f"{spec.key} #{existing.number}: body edited in the tracker since the last push; "
-                                "not overwritten")
+        problem = _drift(existing, rec, spec, adopt) if existing else None
+        if problem:
+            report.drift.append(f"{spec.key} #{existing.number}: {problem}; not overwritten")
             issues[spec.key] = existing
+            items[spec.key] = {**rec, "issue": existing.number}
             continue
         issue, action = tracker.upsert_issue(spec, existing)
         {"create": report.created, "update": report.updated, "unchanged": report.unchanged}[action].append(spec.key)
         issues[spec.key] = issue
         fh = _fields_hash(spec.fields)
+        synced = True
         if action == "create" or rec.get("fields_hash") != fh:
-            tracker.set_fields(issue, spec.fields, created=action == "create")
+            synced = tracker.set_fields(issue, spec.fields, created=action == "create")
         rec.update({"issue": issue.number, "type": spec.type, "parent": spec.parent_key, "synced": now,
-                    "body_hash": body_hash(with_key(spec.body, spec.key)), "fields_hash": fh})
+                    "title": spec.title, "body_hash": body_hash(with_key(spec.body, spec.key))})
+        if synced:
+            rec["fields_hash"] = fh
+        else:
+            rec.pop("fields_hash", None)
         items[spec.key] = rec
     for spec in specs:
-        rec, issue = items.get(spec.key), issues[spec.key]
-        if rec is None:
-            continue
-        if spec.parent_key in issues and rec.get("parent_set") != spec.parent_key:
+        issue = issues[spec.key]
+        if spec.parent_key in issues and issue.parent != issues[spec.parent_key].number:
             tracker.set_parent(issue, issues[spec.parent_key])
-            rec["parent_set"] = spec.parent_key
             report.links.append(f"{spec.key} -> parent {spec.parent_key}")
-        have = set(rec.get("blocked_set") or [])
-        new = [b for b in spec.blocked_by if b in issues and b not in have]
+        new = [b for b in spec.blocked_by if b in issues and issues[b].number not in issue.blocked_by]
         if new:
             tracker.set_blocked_by(issue, [issues[b] for b in new])
-            rec["blocked_set"] = sorted(have | set(new))
             report.links.append(f"{spec.key} blocked by {', '.join(new)}")
     report.mutations = list(tracker.log)
     report.warnings = list(tracker.warnings)
@@ -3886,7 +4548,7 @@ def link(root: Path, key: str, number: int) -> None:
 `cli/src/kickoff/commands/tickets_cmd.py`:
 
 ```python
-"""kickoff tickets plan | push [--dry] | pull | link <key> <number>"""
+"""kickoff tickets plan | push [--dry] [--adopt] | pull | link <key> <number>"""
 
 from __future__ import annotations
 
@@ -3901,6 +4563,8 @@ def register(sub) -> None:
     s.add_parser("plan", help="print the issues the plan would create")
     ps = s.add_parser("push", help="create and update issues in the tracker")
     ps.add_argument("--dry", action="store_true")
+    ps.add_argument("--adopt", action="store_true",
+                    help="replace title and body of issues mapped with `tickets link` or found without sync state")
     s.add_parser("pull", help="pull issue progress into actuals and show moved gates")
     lk = s.add_parser("link", help="map a WBS code or epic id to an existing issue number")
     lk.add_argument("key")
@@ -3929,7 +4593,7 @@ def run(args) -> int:
         for line in pull(root, tracker) or ["no changes"]:
             print(line)
         return 0
-    report = push(root, tracker, dry=args.dry)
+    report = push(root, tracker, dry=args.dry, adopt=args.adopt)
     for name in ("created", "updated", "drift", "links", "warnings"):
         for item in getattr(report, name):
             print(f"{name:<8} {item}")
@@ -3944,6 +4608,71 @@ Append `tickets_cmd` to `COMMANDS`.
 
 Run: `cd cli && uv run pytest -q -m "not browser" && uv run ruff check .`
 Expected: all pass.
+
+- [ ] **Step 7b: Test the example and the real GitHub shapes**
+
+`cli/tests/test_tickets_example.py` (acceptance criterion 3, offline):
+
+```python
+import shutil
+from pathlib import Path
+
+from fake_gh import FakeGh
+
+from kickoff.model import load_project, load_tickets
+from kickoff.tickets import push
+from kickoff.tracker import GitHubTracker
+
+EXAMPLE = Path(__file__).resolve().parents[2] / "examples" / "ai-minute"
+PENDING = ["E14", "E15", "6.2.2", "6.4.3", "6.5.1", "6.5.2", "6.5.3", "6.5.4", "6.5.5", "6.5.6", "6.5.7"]
+
+
+def test_example_dry_run_creates_only_the_pending_items(tmp_path):
+    shutil.copytree(EXAMPLE / ".kickoff", tmp_path / ".kickoff")
+    gh = FakeGh()
+    for key, rec in load_tickets(tmp_path)["items"].items():
+        gh.add(rec["issue"], f"[{key}] existing", "existing body")
+    tracker = GitHubTracker(load_project(tmp_path).tracker, {}, runner=gh, dry=True)
+    report = push(tmp_path, tracker, dry=True)
+    assert report.created == PENDING
+    assert len(report.drift) == 71  # mapped, never synced by kickoff: needs --adopt
+    assert gh.mutations == []
+```
+
+`cli/tests/test_github_sandbox.py` (opt-in; the only test that proves the real `gh` JSON shapes and that a second push is a no-op). Prerequisite for the human: create a private sandbox repository with a Projects v2 board that has Status, Release and Sprint fields, then `export KICKOFF_SANDBOX=<org>/<repo>#<project number>` (and optionally `KICKOFF_SANDBOX_ASSIGNEE`):
+
+```python
+import os
+
+import pytest
+from helpers import pkg, plan_dict, project_dict, write_kickoff
+
+from kickoff.tickets import push
+from kickoff.tracker import GitHubTracker
+
+SANDBOX = os.environ.get("KICKOFF_SANDBOX", "")
+pytestmark = [pytest.mark.github, pytest.mark.skipif(not SANDBOX, reason="set KICKOFF_SANDBOX=org/repo#project")]
+
+
+def test_push_twice_is_a_no_op(tmp_path):
+    slug, _, number = SANDBOX.partition("#")
+    org, repo = slug.split("/")
+    cfg = {"kind": "github", "org": org, "repo": repo, "project": int(number or 1),
+           "assignee": os.environ.get("KICKOFF_SANDBOX_ASSIGNEE", org), "milestone": "Sandbox"}
+    ticket = {"title": "Sandbox task", "type": "task", "epic": "E1", "areas": ["area:sandbox"], "desc": "x"}
+    features = {"schema_version": 1, "epics": [{"id": "E1", "name": "Sandbox", "features": []}]}
+    packages = [pkg("1.1.1", ticket=ticket), pkg("1.1.2", deps=["1.1.1"], ticket={**ticket, "title": "Second"})]
+    write_kickoff(tmp_path, project=project_dict(tracker=cfg), plan=plan_dict(packages), features=features)
+
+    def run():
+        return push(tmp_path, GitHubTracker(cfg, {}, dry=False), dry=False)
+
+    assert run().created == ["E1", "1.1.1", "1.1.2"]
+    second = run()
+    assert second.created == [] and second.updated == [] and second.mutations == []
+```
+
+Run `cd cli && uv run pytest tests/test_tickets_example.py -q` (must pass) and, if the sandbox exists, `uv run pytest -m github -q`. Close the sandbox issues afterwards.
 
 - [ ] **Step 8: Dry-run against the example (read-only on GitHub)**
 
@@ -3972,7 +4701,7 @@ git add -A && git commit -m "feat(cli): GitHub tracker adapter and idempotent ti
   - `kickoff.state`: `PHASES` (list, spec order), `GATES` (id → description), `GATE_AFTER` (gate → phase), `REQUIRES` (phase → (phases, gates)); `blockers(state, phase, baseline=False) -> list[str]`; `set_phase(state, phase, status)`; `approve(state, gate, by, evidence, day) -> None` (raises `KickoffError` when its phase is not done or evidence is empty); `reopen(state, gate, reason) -> list[str]` (returns phases marked stale); `next_step(state) -> str`; `status_lines(state) -> list[str]`; `init_project(root, name, today) -> list[Path]`.
   - CLI: `kickoff init --name NAME`, `kickoff status [--json]`, `kickoff can <phase> [--baseline]` (exit 0 allowed / 1 blocked), `kickoff phase start|done <phase>`, `kickoff gate approve <id> --by WHO --evidence LINK [--date YYYY-MM-DD]`, `kickoff gate reopen <id> --reason TEXT`.
 
-Gate rules (spec §4): `research`, `feature-map` need C1; `ux-design`, `prototype`, draft `plan` need C2; `solution` needs C3 and C4; baseline `plan` needs C5; `signoff` and `feedback` need phase `prototype` done; `tickets` needs phase `plan` done. Approving a gate needs its phase done (`C1` discovery, `C2` feature-map, `C3`/`C4` signoff, `C5` solution, `C6` plan) and non-empty evidence. Reopening `C3` removes `C3` and `C4`, sets `signoff` to `in_progress`, and marks every done phase after `signoff` in `PHASES` order stale. `phase done X` removes X from `stale`.
+Gate rules (spec §4): `research`, `feature-map` need C1; `ux-design`, `prototype`, draft `plan` need C2; `solution` needs C3 and C4; baseline `plan` needs C5; `signoff` and `feedback` need phase `prototype` done; `tickets` needs phase `plan` done. Approving a gate needs its phase done (`C1` discovery, `C2` feature-map, `C3`/`C4` signoff, `C5` solution, `C6` plan) and non-empty evidence. Reopening `C3` removes `C3` and `C4`, sets `signoff` to `in_progress`, and marks every done phase after `signoff` in `PHASES` order stale. `phase done X` removes X from `stale` and removes the gates that follow X, so they must be approved again. A phase whose prerequisite is `stale` is blocked (`can` says "phase X is stale: re-run it first"); the stale phase itself may be re-run. C4 needs C3, C6 needs C5, a gate cannot be approved while its phase is stale, and `--by` must not be empty.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -4018,6 +4747,8 @@ def test_approve_needs_phase_and_evidence():
     set_phase(s, "discovery", "done")
     with pytest.raises(KickoffError, match="evidence"):
         approve(s, "C1", "Project lead", " ", date(2026, 9, 25))
+    with pytest.raises(KickoffError, match="--by"):
+        approve(s, "C1", " ", "link", date(2026, 9, 25))
 
 
 def test_reopen_c3_marks_later_phases_stale():
@@ -4029,9 +4760,49 @@ def test_reopen_c3_marks_later_phases_stale():
     assert reopen(s, "C3", "FB session 2026-10-08") == ["solution", "plan", "tickets"]
     assert "C3" not in s["gates"] and "C4" not in s["gates"]
     assert s["phases"]["signoff"] == "in_progress"
+    assert next_step(s) == "continue kickoff:signoff; then re-run stale: solution, plan, tickets"
+    assert blockers(s, "solution") == ["phase signoff is not done",
+                                       "gate C3 (Customer signed off the full feature set) is not approved",
+                                       "gate C4 (MVP locked) is not approved"]
+    set_phase(s, "signoff", "done")
+    approve(s, "C3", "Customer", "x", date(2026, 10, 9))
+    approve(s, "C4", "Customer", "x", date(2026, 10, 9))
     assert next_step(s) == "re-run kickoff:solution (stale after reopening a gate); then plan, tickets"
     set_phase(s, "solution", "done")
     assert s["stale"] == ["plan", "tickets"]
+
+
+def test_stale_prerequisite_blocks_the_next_phase():
+    s = fresh()
+    for p in ("feature-map", "plan"):
+        set_phase(s, p, "done")
+    approve(s, "C2", "Project lead", "x", date(2026, 9, 26))
+    s["stale"] = ["plan", "tickets"]
+    assert blockers(s, "tickets") == ["phase plan is stale: re-run it first"]
+    assert blockers(s, "plan") == []  # the stale phase itself may be re-run
+
+
+def test_c6_needs_c5():
+    s = fresh()
+    set_phase(s, "plan", "done")
+    with pytest.raises(KickoffError, match="gate C5 is not approved"):
+        approve(s, "C6", "Project lead", "x", date(2026, 10, 1))
+    assert "approve gate C6" not in next_step(s)
+
+
+def test_rerunning_a_stale_phase_reopens_its_gate():
+    s = fresh()
+    for p in ("signoff", "solution"):
+        set_phase(s, p, "done")
+    for g in ("C3", "C4", "C5"):
+        approve(s, g, "Lead", "x", date(2026, 10, 1))
+    reopen(s, "C3", "FB")
+    set_phase(s, "signoff", "done")
+    approve(s, "C3", "Customer", "x", date(2026, 10, 9))
+    approve(s, "C4", "Customer", "x", date(2026, 10, 9))
+    assert "C5" in s["gates"]
+    set_phase(s, "solution", "done")
+    assert "C5" not in s["gates"] and s["stale"] == []
 
 
 def test_next_step_walks_the_flow():
@@ -4041,6 +4812,12 @@ def test_next_step_walks_the_flow():
     assert next_step(s) == "run kickoff:discovery"
     set_phase(s, "discovery", "done")
     assert next_step(s) == "approve gate C1 (Vision approved): kickoff gate approve C1 --by <who> --evidence <link>"
+
+
+@pytest.mark.parametrize("name", ["2026", "yes", "A: B", "Library Loans"])
+def test_init_keeps_awkward_names(tmp_path, name):
+    assert main(["--root", str(tmp_path), "init", "--name", name]) == 0
+    assert read_yaml(tmp_path / ".kickoff" / "project.yaml")["name"] == name
 
 
 def test_cli_init_and_status(tmp_path, capsys):
@@ -4121,6 +4898,8 @@ from datetime import date
 from importlib.resources import files
 from pathlib import Path
 
+import yaml
+
 from .errors import KickoffError
 from .model import KICKOFF_DIR, write_yaml
 
@@ -4144,8 +4923,9 @@ REQUIRES: dict[str, tuple[list[str], list[str]]] = {
     "plan-baseline": (["solution"], ["C5"]),
     "tickets": (["plan"], []),
 }
+GATE_NEEDS = {"C4": ["C3"], "C6": ["C5"]}
 DOC_DIRS = ["01-discovery", "02-requirements", "03-research", "04-architecture/adr", "05-design", "06-planning",
-            "superpowers/specs", "superpowers/plans"]
+            "specs", "plans"]
 
 
 def _done(state: dict, phase: str) -> bool:
@@ -4158,6 +4938,7 @@ def blockers(state: dict, phase: str, baseline: bool = False) -> list[str]:
         raise KickoffError(f"unknown phase {phase}; phases: {', '.join(PHASES)}, feedback")
     phases, gates = REQUIRES[key]
     out = [f"phase {p} is not done" for p in phases if not _done(state, p)]
+    out += [f"phase {p} is stale: re-run it first" for p in phases if _done(state, p) and p in state["stale"]]
     out += [f"gate {g} ({GATES[g]}) is not approved" for g in gates if g not in state["gates"]]
     return out
 
@@ -4168,6 +4949,9 @@ def set_phase(state: dict, phase: str, status: str) -> None:
     state["phases"][phase] = status
     if status == "done" and phase in state["stale"]:
         state["stale"].remove(phase)
+        for gate, after in GATE_AFTER.items():  # a re-run phase must be approved again
+            if after == phase:
+                state["gates"].pop(gate, None)
 
 
 def approve(state: dict, gate: str, by: str, evidence: str, day: date) -> None:
@@ -4175,10 +4959,17 @@ def approve(state: dict, gate: str, by: str, evidence: str, day: date) -> None:
         raise KickoffError(f"unknown gate {gate}")
     if not _done(state, GATE_AFTER[gate]):
         raise KickoffError(f"cannot approve {gate}: phase {GATE_AFTER[gate]} is not done")
+    if GATE_AFTER[gate] in state["stale"]:
+        raise KickoffError(f"cannot approve {gate}: phase {GATE_AFTER[gate]} is stale, re-run it first")
+    if not by.strip():
+        raise KickoffError(f"cannot approve {gate} without --by (who approved it)")
     if not evidence.strip():
         raise KickoffError(f"cannot approve {gate} without evidence (a link to the record or commit)")
-    state["gates"][gate] = {"approved_by": by, "date": day, "evidence": evidence.strip()}
-    state.setdefault("history", []).append(f"{day.isoformat()} approve {gate} by {by}: {evidence.strip()}")
+    missing = [g for g in GATE_NEEDS.get(gate, []) if g not in state["gates"]]
+    if missing:
+        raise KickoffError(f"cannot approve {gate}: gate {', '.join(missing)} is not approved")
+    state["gates"][gate] = {"approved_by": by.strip(), "date": day, "evidence": evidence.strip()}
+    state.setdefault("history", []).append(f"{day.isoformat()} approve {gate} by {by.strip()}: {evidence.strip()}")
 
 
 def reopen(state: dict, gate: str, reason: str) -> list[str]:
@@ -4200,14 +4991,21 @@ def reopen(state: dict, gate: str, reason: str) -> list[str]:
 
 
 def next_step(state: dict) -> str:
-    if state["stale"]:
-        first, rest = state["stale"][0], state["stale"][1:]
-        tail = f"; then {', '.join(rest)}" if rest else ""
-        return f"re-run kickoff:{first} (stale after reopening a gate){tail}"
+    stale = state["stale"]
+    in_progress = [p for p in PHASES if state["phases"].get(p) == "in_progress"]
+    if in_progress:
+        tail = f"; then re-run stale: {', '.join(stale)}" if stale else ""
+        return f"continue kickoff:{in_progress[0]}{tail}"
     for gate, phase in GATE_AFTER.items():
-        if _done(state, phase) and gate not in state["gates"]:
+        ready = all(g in state["gates"] for g in GATE_NEEDS.get(gate, []))
+        if _done(state, phase) and phase not in stale and gate not in state["gates"] and ready:
             return (f"approve gate {gate} ({GATES[gate]}): kickoff gate approve {gate} --by <who> "
                     "--evidence <link>")
+    for phase in stale:
+        if not blockers(state, phase):
+            rest = [p for p in stale if p != phase]
+            tail = f"; then {', '.join(rest)}" if rest else ""
+            return f"re-run kickoff:{phase} (stale after reopening a gate){tail}"
     for phase in PHASES:
         if not _done(state, phase) and not blockers(state, phase):
             return f"run kickoff:{phase}"
@@ -4233,9 +5031,10 @@ def init_project(root: Path, name: str, today: date) -> list[Path]:
     if k.exists():
         raise KickoffError(f"{k} already exists")
     written = []
-    tpl = files("kickoff.templates").joinpath("project.yaml").read_text(encoding="utf-8")
+    data = yaml.safe_load(files("kickoff.templates").joinpath("project.yaml").read_text(encoding="utf-8"))
+    data["name"] = name
     k.mkdir(parents=True)
-    (k / "project.yaml").write_text(tpl.replace("__NAME__", name), encoding="utf-8", newline="\n")
+    write_yaml(k / "project.yaml", data)
     written.append(k / "project.yaml")
     files_ = {
         "state.yaml": {"schema_version": 1, "phases": {"init": "in_progress"}, "gates": {}, "stale": []},
@@ -4255,7 +5054,7 @@ def init_project(root: Path, name: str, today: date) -> list[Path]:
     return written
 ```
 
-Note: the template's `name: __NAME__` is replaced verbatim; a name containing `:` or `#` must be quoted — `init_project` quotes it by writing `json.dumps(name)` when `name` contains any of `:#{}[],&*?|<>=!%@\``. Add that one line.
+Note: `init_project` loads the template, sets `name` and writes it with `write_yaml`, so names such as `2026`, `yes` or `A: B` are quoted correctly (tested below).
 
 - [ ] **Step 5: Write the command**
 
@@ -4342,7 +5141,7 @@ def run_gate(args) -> int:
     root = resolve_root(args.root)
     state = load_state(root)
     if args.action == "approve":
-        approve(state, args.gate, args.by or "unknown", args.evidence, args.date or date.today())
+        approve(state, args.gate, args.by, args.evidence, args.date or date.today())
         print(f"{args.gate} approved")
     else:
         stale = reopen(state, args.gate, args.reason or "no reason given")
@@ -4369,9 +5168,9 @@ git add -A && git commit -m "feat(cli): phases, approval gates, stale markers an
 ### Task 10: Prototype kit core and the mini example
 
 **Files:**
-- Create: `kit/prototype/index.html`, `kit/prototype/narrow.html`, `kit/prototype/README.md`
-- Create: `kit/prototype/js/route.js`, `core.js`, `ui.js`, `charts.js`, `scope.js`, `shell.js`, `scenario.js`, `main.js`
-- Create: `kit/prototype/test/route.test.js`
+- Create: `cli/src/kickoff/kit/prototype/index.html`, `cli/src/kickoff/kit/prototype/narrow.html`, `cli/src/kickoff/kit/prototype/README.md`
+- Create: `cli/src/kickoff/kit/prototype/js/route.js`, `core.js`, `ui.js`, `charts.js`, `scope.js`, `shell.js`, `scenario.js`, `main.js`
+- Create: `cli/src/kickoff/kit/prototype/test/route.test.js`
 - Create: `examples/mini/.kickoff/{project,features,plan,state}.yaml`, `examples/mini/docs/05-design/ux-spec.md`
 - Create: `examples/mini/docs/05-design/prototype/` = copy of the kit plus `js/config.js`, `js/data.js`, `js/screens.js`, `js/scenarios.js`
 
@@ -4385,16 +5184,16 @@ git add -A && git commit -m "feat(cli): phases, approval gates, stale markers an
 - `Rel({ r, children, inline })`: `full` renders children; `tags` renders children with a small release tag when `r` is not the first release; `mvp` renders children for the first release and a muted "<release>" placeholder (block) or nothing (inline) otherwise.
 - `KIT.SCENARIOS` (per project, `js/scenarios.js`): `[{ id, name, role, platform, steps: [{ text, go: [screenId, params?], expect: cssSelector }] }]`. `#scn-<id>` sets role and platform, runs one step every 600 ms, cancels on the viewer's "Stop" button, sets `data-err="scenario <id> step <n>: missing <selector>"` when a step's selector is absent after render, and sets `data-scenario="done"` after the last step.
 - After the first render `main.js` sets on `<html>`: `data-ready="1"`, `data-screens="<id>|<code>|<role>+<role>;…"` (every registered screen), `data-scenarios="<id>,<id>"`.
-- Error capture: `window` `error` and `unhandledrejection`, and Preact render errors (`options.__e` hook as in the legacy `main.js`) set `data-err` (first 200 characters of the message).
+- Error capture: `window` `error` and `unhandledrejection`, and Preact render errors (`options.__e` hook as in the AI Minute prototype's `main.js`) set `data-err` (first 200 characters of the message).
 - No hash → the role picker page (product name, one card per role with its name and home, the scenario list, theme toggle).
 - Per-role home at every width; below 760 px, screens with an `android` counterpart are shown in the phone layout, others in the responsive web layout; the phone frame (390×844) is used on wider windows for `android` screens; the Windows frame (title bar, tray) for `windows` screens.
 - `index.html`: tokens between `/* kickoff:tokens:begin */` and `/* kickoff:tokens:end */` (light on `:root`, dark under `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {…} }` and `:root[data-theme="dark"] {…}`, `color-scheme` set in both dark blocks, `body` background from a token); type-scale classes `.t-cap .t-meta .t-ui .t-strong .t-body .t-h1 .t-h2 .t-h3 .t-kpi` with sizes 12/13/14/16/18/22/28, weights 400 (body) / 500 (labels, `.t-ui`, `.t-strong`) / 600 (`.t-h1–h3`, `.t-kpi` only), line height 1.6; spacing tokens on a 4 px grid with 32 px between sections; `table{color:inherit}`; project scripts between `<!-- kickoff:modules:begin -->` and `<!-- kickoff:modules:end -->`, after the kit core scripts and before `main.js`.
 
-Extraction source: `C:\Users\hienl\Workspace\ivai\ai-minute\docs\05-design\prototype\` — `index.html` (tokens, type scale, component CSS), `js/core.js` (register, icons, util, ui components), `js/shell.js` (launcher, sidebar, topbar, phone stage, Windows frame, toasts, guide panel), `js/main.js` (hash parser, error capture, root, routing), `js/scenarios.js` (scenario format and runner), and `C:\Users\hienl\Workspace\ivai\ai-minute\tools\prototype-check\narrow.html`. Keep the mechanisms; remove everything specific to AI Minute (meeting data, recording, minutes, admin screens, Vietnamese copy, the `AIM` namespace, `TO_PHONE`/`M_LEGACY` maps). Kit copy is English; projects localise their own screens.
+Extraction source: `C:\Users\hienl\Workspace\ivai\ai-minute\docs\05-design\prototype\` — `index.html` (tokens, type scale, component CSS), `js/core.js` (register, icons, util, ui components), `js/shell.js` (launcher, sidebar, topbar, phone stage, Windows frame, toasts, guide panel), `js/main.js` (hash parser, error capture, root, routing), `js/scenarios.js` (scenario format and runner), and `C:\Users\hienl\Workspace\ivai\ai-minute\tools\prototype-check\narrow.html`. Keep the mechanisms; remove everything specific to AI Minute (meeting data, recording, minutes, admin screens, Vietnamese copy, the `AIM` namespace, the screen-mapping tables (`TO_PHONE` and similar)). Kit copy is English; projects localise their own screens.
 
 - [ ] **Step 1: Write the failing Node test**
 
-`kit/prototype/test/route.test.js`:
+`cli/src/kickoff/kit/prototype/test/route.test.js`:
 
 ```js
 const test = require("node:test");
@@ -4445,7 +5244,7 @@ test("formatHash round-trips", () => {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `node --test kit/prototype/test/`
+Run: `node --test "cli/src/kickoff/kit/prototype/test/*.test.js"`
 Expected: FAIL — `Cannot find module '../js/route.js'`.
 
 - [ ] **Step 3: Write `route.js`**
@@ -4494,7 +5293,7 @@ Expected: FAIL — `Cannot find module '../js/route.js'`.
 
 - [ ] **Step 4: Run the Node test**
 
-Run: `node --test kit/prototype/test/`
+Run: `node --test "cli/src/kickoff/kit/prototype/test/*.test.js"`
 Expected: `pass 6`.
 
 - [ ] **Step 5: Extract the kit core** (`index.html`, `core.js`, `ui.js`, `charts.js`, `scope.js`, `shell.js`, `scenario.js`, `main.js`, `narrow.html`) from the AI Minute prototype following the interface list above. `narrow.html` loads `index.html` + its own hash in a 390×844 iframe, waits (8 s for `scn-*`, 3 s otherwise), sets `data-err` on its own `<html>` when the frame has `data-err` or `scrollWidth > 390`, else `data-ok="narrow"`.
@@ -4556,13 +5355,14 @@ git add -A && git commit -m "feat(kit): no-build prototype kit core and Library 
 **Interfaces:**
 - Consumes: loaders, `resolve_root`, the kit contract of Task 10 (`data-ready`, `data-err`, `data-screens`, `data-scenarios`, `data-scenario`, `data-ok="narrow"`, the modules and tokens markers).
 - Produces:
-  - `kickoff.proto.KIT_DIR` (path of `kit/prototype` inside the plugin: `Path(__file__).resolve().parents[3] / "kit" / "prototype"`; overridable with env `KICKOFF_KIT`).
+  - `kickoff.proto.KIT_DIR` = `Path(__file__).resolve().parent / "kit" / "prototype"`: the kit ships inside the Python package so `uv tool install` and wheels carry it (overridable with env `KICKOFF_KIT`).
   - `parse_ux_spec(path) -> list[dict]` rows `{code, name, roles: list[str], platform, release}` from the first Markdown table whose header starts with `| ID`.
   - `new_prototype(root, project, force=False) -> list[Path]` — copies the kit into `proto.dir`, writes `js/config.js` from `project.yaml` roles/releases (home = first screen the role may open), `js/screens.js` with one `KIT.register` stub per ux-spec row (`comp: KIT.ui.Placeholder`, route id = code lower-cased), empty `js/data.js` and `js/scenarios.js` (`KIT.SCENARIOS = []`), and lists them in the modules block. Refuses to overwrite an existing `index.html` unless `force`.
   - `find_browser(project) -> str | None` (env `KICKOFF_BROWSER`, `proto.browser`, `shutil.which` for `msedge`, `microsoft-edge`, `google-chrome`, `chromium`, `chromium-browser`, `chrome`, then the standard Windows and macOS install paths).
-  - `check(root, project, routes: list[str] | None = None, shots: Path | None = None) -> list[str]` — failures (empty = pass).
+  - `check(root, project, routes: list[str] | None = None, shots: Path | None = None, jobs: int = 4) -> list[str]` — failures (empty = pass).
+  - `bundle(root, project, out: Path | None = None) -> Path` — one self-contained HTML file (default `<proto.dir>/dist/prototype.html`).
   - `lint(root, project) -> tuple[dict[str, int], list[str]]` — metrics (`font_sizes`, `weight_600`, `inline_styles`, `raw_hex`) and failures.
-  - CLI: `kickoff proto new [--force]`, `kickoff proto check [ROUTE…] [--shots DIR]` (exit 1 on failures, 4 when no browser is found), `kickoff proto lint` (exit 1 on failures).
+  - CLI: `kickoff proto new [--force]`, `kickoff proto check [ROUTE…] [--shots DIR] [--jobs N]` (exit 1 on failures, 4 when no browser is found), `kickoff proto lint` (exit 1 on failures), `kickoff proto bundle [--out FILE]`.
 
 `check` behaviour:
 1. Dump `index.html` with no hash; read `data-screens` and `data-scenarios`. No `data-ready="1"` → failure `index: not ready` and stop.
@@ -4572,6 +5372,7 @@ git add -A && git commit -m "feat(kit): no-build prototype kit core and Library 
 5. Scenarios: dump `index.html#scn-<id>` (budget 9000 ms) and `narrow.html#scn-<id>-light` (12000 ms); failure unless `data-scenario="done"` / `data-ok="narrow"` and no `data-err`.
 6. With `shots`: also `--screenshot=<shots>/<id>-<theme>.png` for each light/dark dump.
 7. Browser flags: `--headless=new --disable-gpu --hide-scrollbars`, plus `--no-sandbox` on Linux.
+8. Per-route dumps run in a thread pool of `jobs` workers (default 4), each browser launch with its own `--user-data-dir` under a temporary folder; failures are reported in route order. A prototype of 60 screens takes minutes, not a quarter of an hour.
 
 Stub line format written by `new_prototype` (arrays with `json.dumps`):
 
@@ -4583,6 +5384,8 @@ Failure message formats: `index: not ready`; `coverage: <code> in ux-spec but no
 
 `lint` behaviour (files: `index.html` outside the tokens markers, and every `js/*.js`): distinct `font-size:` values; `font-weight: 600` occurrences; `style=` occurrences in JS; raw hex colours (`#[0-9a-fA-F]{3}\b|#[0-9a-fA-F]{6}\b` inside quotes) in JS; `proto.forbidden` regexes in JS and `index.html`. Thresholds `proto.max_font_sizes` (16), `proto.max_weight_600` (20), `proto.max_inline_styles` (60); raw hex > 0 and any forbidden match are failures.
 
+`bundle` behaviour: read `index.html`; replace every `<script ... src="js/<name>.js" ...></script>` with `<script charset="utf-8">…</script>` holding the file's text (a literal `</script` inside the source is written as `<\/script`); leave CDN scripts untouched; write the result to `<proto.dir>/dist/prototype.html` or `--out`. The output follows the Artifact page contract (no doctype, html, head or body tags), so it can be published as an Artifact or handed to a customer as one file when the Artifact tool is not available.
+
 - [ ] **Step 1: Write the failing tests**
 
 `cli/tests/test_proto.py`:
@@ -4593,8 +5396,9 @@ from pathlib import Path
 
 import pytest
 
+import kickoff
 from kickoff.model import load_project
-from kickoff.proto import check, find_browser, lint, new_prototype, parse_ux_spec
+from kickoff.proto import KIT_DIR, bundle, check, find_browser, lint, new_prototype, parse_ux_spec
 
 MINI = Path(__file__).resolve().parents[2] / "examples" / "mini"
 BROWSER = find_browser(load_project(MINI))
@@ -4628,6 +5432,26 @@ def test_new_prototype_scaffolds_stubs(tmp_path):
     assert block.count("<script") == 4
     with pytest.raises(Exception, match="exists"):
         new_prototype(root, load_project(root))
+
+
+def test_kit_ships_inside_the_package():
+    assert (KIT_DIR / "index.html").is_file()
+    assert KIT_DIR.resolve().is_relative_to(Path(kickoff.__file__).resolve().parent)
+
+
+def test_mini_prototype_core_matches_the_kit():
+    proto = MINI / "docs" / "05-design" / "prototype"
+    names = ("route", "core", "ui", "charts", "scope", "shell", "scenario", "main")
+    for name in ["narrow.html", *(f"js/{n}.js" for n in names)]:
+        assert (proto / name).read_bytes() == (KIT_DIR / name).read_bytes(), name
+
+
+def test_bundle_inlines_project_scripts(tmp_path):
+    out = bundle(MINI, load_project(MINI), tmp_path / "prototype.html")
+    html = out.read_text(encoding="utf-8")
+    assert 'src="js/' not in html and "https://cdn.jsdelivr.net/npm/preact@10.24.3" in html
+    assert 'KIT.register("sc-01"' in html
+    assert not html.lstrip().lower().startswith(("<!doctype", "<html"))
 
 
 def test_lint_mini_passes():
@@ -4678,7 +5502,7 @@ Note: the SC-09 row is appended directly after the table, so it is part of it (t
 Run: `cd cli && uv run pytest tests/test_proto.py -q`
 Expected: FAIL — `No module named 'kickoff.proto'`.
 
-- [ ] **Step 3: Implement `proto.py` and `proto_cmd.py`** per the behaviour lists above. Use `subprocess.run([...], capture_output=True, text=True, encoding="utf-8", timeout=90)` for the browser; build `file:///` URLs with `Path.as_uri()`; parse attributes with `re.search(r'\sdata-err="([^"]*)"', dom)`. `routes=[]` means "coverage only, no per-screen dumps". Append `proto_cmd` to `COMMANDS`.
+- [ ] **Step 3: Implement `proto.py` and `proto_cmd.py`** (including `bundle` and the `--jobs` pool) per the behaviour lists above. Use `subprocess.run([...], capture_output=True, text=True, encoding="utf-8", timeout=90)` for the browser; build `file:///` URLs with `Path.as_uri()`; parse attributes with `re.search(r'\sdata-err="([^"]*)"', dom)`. `routes=[]` means "coverage only, no per-screen dumps". Append `proto_cmd` to `COMMANDS`.
 
 - [ ] **Step 4: Run all tests, including browser tests**
 
@@ -4696,16 +5520,26 @@ git add -A && git commit -m "feat(cli): kickoff proto new, check and lint"
 ### Task 12: Skills — `using-kickoff`, `init`, `discovery`, `research`
 
 **Files:**
-- Create: `skills/using-kickoff/SKILL.md`, `skills/using-kickoff/references/lessons.md`, `skills/using-kickoff/references/conventions.md`
+- Create: `skills/using-kickoff/SKILL.md`, `skills/using-kickoff/references/{methods,lessons,conventions}.md`
 - Create: `skills/init/SKILL.md`, `skills/init/templates/AGENTS.md`
 - Create: `skills/discovery/SKILL.md`, `skills/discovery/templates/{vision-scope.md,open-questions.md,stakeholders.md}`
 - Create: `skills/research/SKILL.md`, `skills/research/templates/{validation-plan.md,adr.md,assumptions.md}`
+- Test: `cli/tests/test_skills.py`
 
 **Interfaces:**
 - Consumes: CLI commands from Tasks 3–9 exactly as named (`kickoff status`, `kickoff can <phase>`, `kickoff phase start|done`, `kickoff gate approve|reopen`, `kickoff validate`, `kickoff init --name`).
 - Produces: skill names `using-kickoff`, `init`, `discovery`, `research` (invoked as `kickoff:<name>`).
 
-Use `superpowers:writing-skills` while writing. Every phase `SKILL.md` has YAML frontmatter (`name`, `description`) and exactly these sections, in order: **When to use**, **Preconditions**, **Inputs**, **Steps**, **Outputs**, **Verify**, **Lessons**, **Handoff** (spec §4, "Phase skill contract"). Keep each `SKILL.md` under 250 lines; move long material to `references/` or `templates/`. Every command a skill tells Claude to run must exist in the CLI. Steps name the other skills to invoke with their exact names (`superpowers:brainstorming`, `superpowers:writing-plans`, `superpowers:subagent-driven-development`, `superpowers:verification-before-completion`, `ui-ux-pro-max`).
+Write each skill against its pressure scenario (Task 15): state the rule, then the excuses it must resist. Every phase `SKILL.md` has YAML frontmatter (`name`, `description`) and exactly these sections, in order: **When to use**, **Preconditions**, **Inputs**, **Steps**, **Outputs**, **Verify**, **Lessons**, **Handoff** (spec §4, "Phase skill contract"). Keep each `SKILL.md` under 250 lines; move long material to `references/` or `templates/`. Every command a skill tells Claude to run must exist in the CLI. Steps name `ui-ux-pro-max` where it is used and refer to the shared working methods by section name (`../using-kickoff/references/methods.md`: Interview, Bounded approval, Option decision, Build plan, Task run, Verify). The **Verify** section of every skill ends with the Verify method. No skill depends on any plugin other than `ui-ux-pro-max`. Every phase skill carries a **rule card** at the point of use for each method it names: a blockquote line that starts with the method name in bold, so the rule is in front of the model when it acts (the full text stays in `methods.md`). The cards, verbatim:
+
+```markdown
+> **Interview:** one question per message; 2–4 options with a recommendation when a choice exists; restate the answer in one line; stop when the output template is filled.
+> **Bounded approval:** present one table of proposed changes; change nothing before an explicit yes or edit.
+> **Option decision:** per decision 2–3 options with cost, risk and what each blocks; a recommendation; record the result as an ADR.
+> **Build plan:** a checklist of tasks, each with files, inputs, verification command and expected output; every task leaves the project working.
+> **Task run:** one task at a time; verify and commit after each; record rulings; show them to the lead at the end.
+> **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
+```
 
 **`using-kickoff`**
 
@@ -4719,14 +5553,16 @@ description: Use when starting or resuming project-kickoff work in a repository 
 ```
 
 Content requirements:
-- Checks, in order: `superpowers:brainstorming` and `ui-ux-pro-max` are available (if not, stop and give the install commands `/plugin marketplace add obra/superpowers-marketplace`, `/plugin install superpowers@superpowers-marketplace`, and "install the ui-ux-pro-max skill"); `kickoff --version` works (if not: `uv tool install "<plugin root>/cli"`, where the plugin root is two levels above this skill's base directory); a `.kickoff/` folder exists (if not, route to `kickoff:init`).
+- Checks, in order: `ui-ux-pro-max` is available (if not, stop and say to install the ui-ux-pro-max skill); `kickoff --version` prints the same version as `.claude-plugin/plugin.json` in the plugin root (two levels above this skill's base directory); if the command is missing or the version differs, run `uv tool install --force "<plugin root>/cli"` and check again (the CLI must be reinstalled after every plugin update); a `.kickoff/` folder exists (if not, route to `kickoff:init`).
 - Runs `kickoff status`, reports it in two or three lines, and invokes the skill named in `Next:`.
 - States the core principle (spec §1 quote) and the hard gate: never design database, architecture or patterns before C3 and C4.
 - Lists the phases and gates as a table (spec §4) and the rule that `kickoff can <phase>` is checked before any phase starts.
 - Points to `references/conventions.md` and `references/lessons.md`.
 - Red flags table: "The customer is busy, let's design the DB now" → C3/C4 first; "I'll just tweak the plan dates by hand" → edit `plan.yaml`, run `kickoff schedule`; "I'll create the issues manually" → `kickoff tickets push`; "Small change, no need to re-run the chain" → feedback chain order.
 
-`references/conventions.md`: the full text of spec §9 plus: role-based owners; the `forbidden_phrases` rule; synthetic data; ask before merges, deletes, publishing, pushes to shared branches; ledger rulings format.
+`references/conventions.md`: the full text of spec §9 plus: role-based owners; the `forbidden_phrases` rule; synthetic data; ask before merges, deletes, publishing, pushes to shared branches; the rulings format (`Ruling: <decision> — <why> — <cost if wrong>`, kept in `<docs_root>/plans/<plan>-rulings.md`).
+
+`references/methods.md`: the six working methods of spec §3, each as a short section (**Interview**, **Bounded approval**, **Option decision**, **Build plan**, **Task run**, **Verify**) with the rule, the steps and one example. Interview: one question per message, 2–4 options with a recommendation when a choice exists, restate the answer in one line, stop when every field of the output template is filled. Bounded approval: one table of proposed changes, nothing changes before an explicit yes or edit. Option decision: 2–3 options with cost, risk and what each blocks, a recommendation, result recorded as an ADR. Build plan: a checklist of tasks, each with its files, inputs, exact verification command and expected output, ordered so each task leaves the project working. Task run: one task at a time (a fresh subagent per task is optional), verification and one Conventional Commit per task, rulings recorded as above and shown to the lead at the end. Verify: run the commands listed in the skill's Verify section, read the real output, report failures as failures and skipped checks as skipped, only then `kickoff phase done <phase>` and commit.
 
 `references/lessons.md`: spec §10 table verbatim, plus one line per row saying which skill applies it.
 
@@ -4739,7 +5575,7 @@ description: Use when starting a new project with the kickoff plugin and the rep
 ---
 ```
 
-Steps: `superpowers:brainstorming` interview one question at a time with multiple-choice where possible, covering: project name; languages (repo, chat, workbook, UI); team roles with focus percentages and duties (one person per role); calendar (weekend, public holidays — ask for the country and propose the official list for the project's years, marking future years "expected"); releases; hard dates; tracker (kind, org, repo, project number, assignee, milestone, priority mapping, issue-field ids if the org uses issue fields); security rules; forbidden phrases; prototype folder. Then `kickoff init --name "<name>"`, edit `.kickoff/project.yaml` with the answers, write `AGENTS.md` from `templates/AGENTS.md` (sections: product in one paragraph, repository map placeholder table, security rules from `project.yaml`, languages, workflow with the kickoff phases, Definition of Done), `kickoff validate`, `kickoff phase done init`, commit `chore: kickoff init`.
+Steps: the Interview method (multiple choice where possible), covering: project name; languages (repo, chat, workbook, UI); team roles with focus percentages and duties (one person per role); calendar (weekend, public holidays — ask for the country and propose the official list for the project's years, marking future years "expected"); releases; hard dates; tracker (kind, org, repo, project number, assignee, milestone, priority mapping, issue-field ids if the org uses issue fields); security rules; forbidden phrases; prototype folder. Then `kickoff init --name "<name>"`, edit `.kickoff/project.yaml` with the answers, write `AGENTS.md` from `templates/AGENTS.md` (sections: product in one paragraph, repository map placeholder table, security rules from `project.yaml`, languages, workflow with the kickoff phases, Definition of Done), `kickoff validate`, `kickoff phase done init`, commit `chore: kickoff init`.
 
 **`discovery`**
 
@@ -4750,7 +5586,7 @@ description: Use when turning customer meeting notes, briefs, calls or documents
 ---
 ```
 
-Steps: read every input fully; extract facts, constraints, decisions and unknowns; `superpowers:brainstorming` to confirm the product in one paragraph, users/roles, must-haves, out of scope, success criteria (one question at a time); write `vision-scope.md` (sections: Summary, Users and roles, Problem, Goals and success criteria, Scope by release, Out of scope, Constraints, Decisions D1…, Timeline), `stakeholders.md` (table: Name/role, Organisation, Interest, Influence, Contact channel — roles only if names are not given), `open-questions.md` (table: ID, Question, Why it matters, Blocks (phase/WBS), Needed by (date), Owner (role), Status; then a "Decision log" section with dated entries); `kickoff phase done discovery`; ask the project lead to approve C1 and record it with `kickoff gate approve C1 --by "<role>" --evidence "<commit or record link>"`. Lessons: questions without a needed-by date are never answered in time; record decisions the day they are taken with their source.
+Steps: read every input fully; extract facts, constraints, decisions and unknowns; the Interview method to confirm the product in one paragraph, users/roles, must-haves, out of scope, success criteria; write `vision-scope.md` (sections: Summary, Users and roles, Problem, Goals and success criteria, Scope by release, Out of scope, Constraints, Decisions D1…, Timeline), `stakeholders.md` (table: Name/role, Organisation, Interest, Influence, Contact channel — roles only if names are not given), `open-questions.md` (table: ID, Question, Why it matters, Blocks (phase/WBS), Needed by (date), Owner (role), Status; then a "Decision log" section with dated entries); `kickoff phase done discovery`; ask the project lead to approve C1 and record it with `kickoff gate approve C1 --by "<role>" --evidence "<commit or record link>"`. Lessons: questions without a needed-by date are never answered in time; record decisions the day they are taken with their source.
 
 **`research`**
 
@@ -4761,20 +5597,77 @@ description: Use when a project needs technical validation, technology or vendor
 ---
 ```
 
-Steps: `kickoff can research`; list the technical unknowns from `open-questions.md` and `vision-scope.md`; for each, classify with `superpowers:brainstorming` (spike vs bounded investigation vs decision); prefer bounded investigations inside real work packages over throwaway spikes and write them into `validation-plan.md` (table: ID, Question, Method, Data needed, Pass criterion, Owner role, Due, Feeds decision); write ADRs as *Proposed* from `templates/adr.md` (sections: Status, Context, Decision, Consequences, Alternatives considered, Validation); register assumptions and constraints in `plan.yaml` `assumptions` (id, kind Assumption/Dependency/Constraint, text, scope, source, status) and mirror them in `assumptions.md`; `kickoff validate`; `kickoff phase done research`. Lessons: ADRs stay *Proposed* until `solution`; do not choose the database or architecture here.
+Steps: `kickoff can research`; list the technical unknowns from `open-questions.md` and `vision-scope.md`; for each, classify with the Option decision method (spike vs bounded investigation vs decision); prefer bounded investigations inside real work packages over throwaway spikes and write them into `validation-plan.md` (table: ID, Question, Method, Data needed, Pass criterion, Owner role, Due, Feeds decision); write ADRs as *Proposed* from `templates/adr.md` (sections: Status, Context, Decision, Consequences, Alternatives considered, Validation); register assumptions and constraints in `plan.yaml` `assumptions` (id, kind Assumption/Dependency/Constraint, text, scope, source, status) and mirror them in `assumptions.md`; `kickoff validate`; `kickoff phase done research`. Lessons: ADRs stay *Proposed* until `solution`; do not choose the database or architecture here.
 
 - [ ] **Step 1:** Write the four skills and their files per the requirements above.
-- [ ] **Step 2: Verify commands referenced by the skills exist**
+- [ ] **Step 2: Write the skill checks and run them**
 
-Run: `grep -ho 'kickoff [a-z-]\+\( [a-z-]\+\)\?' skills/*/SKILL.md | sort -u`
-Then run `cd cli && uv run kickoff <each> --help` for every distinct command; each must exit 0.
+`cli/tests/test_skills.py` (extended in Task 14; it keeps every skill honest as it is written):
 
-- [ ] **Step 3: Check the contract sections**
+```python
+import re
+from pathlib import Path
 
-Run: `for f in skills/{init,discovery,research}/SKILL.md; do for s in "When to use" "Preconditions" "Inputs" "Steps" "Outputs" "Verify" "Lessons" "Handoff"; do grep -q "^## $s" $f || echo "MISSING $s in $f"; done; done`
-Expected: no output.
+import pytest
 
-- [ ] **Step 4: Commit**
+from kickoff.cli import build_parser
+
+ROOT = Path(__file__).resolve().parents[2]
+SKILLS = sorted((ROOT / "skills").glob("*/SKILL.md"))
+PHASE_SKILLS = [p for p in SKILLS if p.parent.name != "using-kickoff"]
+PHASE_SECTIONS = ["When to use", "Preconditions", "Inputs", "Steps", "Outputs", "Verify", "Lessons", "Handoff"]
+METHODS = ["Interview", "Bounded approval", "Option decision", "Build plan", "Task run", "Verify"]
+COMMAND = re.compile(r"`kickoff (?:--root \S+ )?([a-z][a-z-]*)")
+
+
+def ids(paths):
+    return [p.parent.name for p in paths]
+
+
+def test_skills_exist():
+    assert SKILLS
+
+
+@pytest.mark.parametrize("path", SKILLS, ids=ids(SKILLS))
+def test_skill_file_shape(path):
+    text = path.read_text(encoding="utf-8")
+    name = path.parent.name
+    assert re.match(rf"---\nname: {re.escape(name)}\ndescription: Use when .+\n---\n", text), "frontmatter"
+    assert len(text.splitlines()) < 250
+    assert set(re.findall(r"`([a-z][a-z-]*):[a-z][a-z-]*`", text)) <= {"kickoff"}, "skills may only name kickoff:* skills"
+
+
+@pytest.mark.parametrize("path", PHASE_SKILLS, ids=ids(PHASE_SKILLS))
+def test_phase_skill_contract(path):
+    headings = re.findall(r"^## (.+)$", path.read_text(encoding="utf-8"), re.M)
+    assert [h for h in headings if h in PHASE_SECTIONS] == PHASE_SECTIONS
+
+
+@pytest.mark.parametrize("path", PHASE_SKILLS, ids=ids(PHASE_SKILLS))
+def test_every_method_a_skill_names_has_a_rule_card(path):
+    text = path.read_text(encoding="utf-8")
+    for method in METHODS:
+        if re.search(rf"\b{method} method\b", text):
+            assert re.search(rf"^> \*\*{method}:\*\*", text, re.M), f"no rule card for {method}"
+
+
+def test_methods_file_has_every_method():
+    text = (ROOT / "skills" / "using-kickoff" / "references" / "methods.md").read_text(encoding="utf-8")
+    headings = re.findall(r"^## (.+)$", text, re.M)
+    assert [h for h in headings if h in METHODS] == METHODS
+
+
+def test_commands_named_in_skills_exist():
+    top = set(next(a.choices for a in build_parser()._actions if isinstance(a.choices, dict)))
+    files = [*SKILLS, *(ROOT / "commands").glob("*.md")]
+    used = {m.group(1) for f in files for m in COMMAND.finditer(f.read_text(encoding="utf-8"))}
+    assert used <= top, sorted(used - top)
+```
+
+Run: `cd cli && uv run pytest tests/test_skills.py -q && uv run ruff check .`
+Expected: all pass. Each later skill task re-runs this file; a failure names the skill and the missing section, rule card or command.
+
+- [ ] **Step 3: Commit**
 
 ```bash
 git add -A && git commit -m "feat(skills): using-kickoff, init, discovery and research"
@@ -4804,7 +5697,7 @@ description: Use when listing or changing a project's epics and features, their 
 ---
 ```
 
-Steps: `kickoff can feature-map`; derive epics from vision-scope; with `superpowers:brainstorming`, walk the lead through each epic's features, one epic at a time, proposing release (full product across all releases — not only the MVP), priority P0–P2, platforms; write `features.yaml` (IDs permanent; removal = `status: removed` + `removed_by`); write `nfr.md` from the template (table: ID NFR-<area><n>, Requirement, Measure, Target, Release, Verified by); `kickoff docs` then `kickoff validate`; `kickoff phase done feature-map`; ask the lead to approve C2. Lessons: list the full product now — late features cause the refactors this workflow exists to prevent; every feature gets a WBS package later.
+Steps: `kickoff can feature-map`; derive epics from vision-scope; using the Interview method, walk the lead through each epic's features, one epic at a time, proposing release (full product across all releases — not only the MVP), priority P0–P2, platforms; write `features.yaml` (IDs permanent; removal = `status: removed` + `removed_by`); write `nfr.md` from the template (table: ID NFR-<area><n>, Requirement, Measure, Target, Release, Verified by); `kickoff docs` then `kickoff validate`; `kickoff phase done feature-map`; ask the lead to approve C2. Lessons: list the full product now — late features cause the refactors this workflow exists to prevent; every feature gets a WBS package later.
 
 **`ux-design`**
 
@@ -4826,7 +5719,7 @@ description: Use when building or updating the clickable full-product prototype 
 ---
 ```
 
-Steps (spec §7 "Prototype skill flow", verbatim order): `kickoff can prototype`; `superpowers:brainstorming` for presentation choices (one build with a scope layer, roles to show, demo scenarios); `kickoff proto new`; `ui-ux-pro-max` stack and domain queries per screen group; `superpowers:writing-plans` with one task per screen group plus shell, scenarios and a consistency pass, saved under `docs/superpowers/plans/`; `superpowers:subagent-driven-development` with `kickoff proto check` over **all** routes after every task; `kickoff proto lint`; walk `references/screen-checklist.md` and the `ui-ux-pro-max` `references/pro-rules.md` pre-delivery checklist; publish as a private Artifact (the Artifact tool, `index.html` plus `js/*.js` via `files`), record the link and version in `state.yaml` `prototype`; `kickoff phase done prototype`. `references/screen-checklist.md`: role guard, per-role home at 390 px, light and dark readable (tables inherit colour), no horizontal scroll at 390 px, calm density (scale classes only, no inline font sizes), synthetic data only, no development infrastructure names, every ux-spec screen registered, release tags correct under `#…-tags`, MVP view under `#…-mvp` hides later releases. Lessons: rows 4–11 of the lessons table.
+Steps (spec §7 "Prototype skill flow", verbatim order): `kickoff can prototype`; the Interview method for presentation choices (one build with a scope layer, roles to show, demo scenarios); `kickoff proto new`; `ui-ux-pro-max` stack and domain queries per screen group; the Build plan method with one task per screen group plus shell, scenarios and a consistency pass, saved under `<docs_root>/plans/`; the Task run method with `kickoff proto check` over **all** routes after every task; `kickoff proto lint`; walk `references/screen-checklist.md` and the `ui-ux-pro-max` `references/pro-rules.md` pre-delivery checklist; publish as a private Artifact when the Artifact tool is available (`index.html` plus `js/*.js` via `files`), otherwise run `kickoff proto bundle` and share the single file `dist/prototype.html`; record the link (or the bundle path) and the version in `state.yaml` `prototype`; `kickoff phase done prototype`. `references/screen-checklist.md`: role guard, per-role home at 390 px, light and dark readable (tables inherit colour), no horizontal scroll at 390 px, calm density (scale classes only, no inline font sizes), synthetic data only, no development infrastructure names, every ux-spec screen registered, release tags correct under `#…-tags`, MVP view under `#…-mvp` hides later releases. Lessons: rows 4–11 of the lessons table.
 
 **`signoff`**
 
@@ -4840,7 +5733,7 @@ description: Use when preparing or recording a customer review workshop that sig
 Steps: `kickoff can signoff`; ensure a `plan.yaml` package for the workshop exists with a risk entry for late sign-off (if not, add them and run `kickoff schedule` to show the effect on the MVP gate); write the workshop pack from the template (sections: Goal, Agenda with timings, Demo script mapping each scenario `#scn-<id>` to features, Decisions the customer must take (table: ID, Decision, Options, Recommended, Deadline), Open questions due, Scope-cut order if dates are fixed); after the workshop, write the sign-off record (sections: Date and attendees by role, Features signed off by release — reference `features.yaml` at a commit, MVP scope, Changes requested → hand to `kickoff:feedback`, Decisions D…, Next steps); `kickoff phase done signoff`; `kickoff gate approve C3 --by Customer --evidence <record path>` and `kickoff gate approve C4 --by "Customer and project lead" --evidence <record path>` only when the record says so. If the customer asks for changes, invoke `kickoff:feedback` first and approve C3 later.
 
 - [ ] **Step 1:** Write the four skills and their files.
-- [ ] **Step 2:** Run the two checks from Task 12 Steps 2–3 over `skills/{feature-map,ux-design,prototype,signoff}/SKILL.md`.
+- [ ] **Step 2:** Run `cd cli && uv run pytest tests/test_skills.py -q`; it checks the four new skills.
 - [ ] **Step 3: Check the ux-spec template parses**
 
 Run: `cd cli && uv run python -c "from kickoff.proto import parse_ux_spec; from pathlib import Path; print(parse_ux_spec(Path('../skills/ux-design/templates/ux-spec.md')))"`
@@ -4861,7 +5754,8 @@ git add -A && git commit -m "feat(skills): feature-map, ux-design, prototype and
 - Create: `skills/solution/SKILL.md`, `skills/solution/templates/{system-architecture.md,data-model.md}`
 - Create: `skills/plan/SKILL.md`, `skills/plan/templates/plan.md`, `skills/plan/references/estimation.md`
 - Create: `skills/tickets/SKILL.md`
-- Create: `commands/kickoff.md`, `commands/kickoff-sync.md`
+- Create: `commands/kickoff.md`, `commands/kickoff-sync.md`, `hooks/hooks.json`
+- Modify: `cli/tests/test_skills.py`
 
 **Interfaces:**
 - Consumes: all CLI commands; spec §6, §8, §9.
@@ -4877,7 +5771,7 @@ description: Use when customer or stakeholder feedback arrives on the prototype,
 ---
 ```
 
-Steps (spec §8): `kickoff can feedback`; gather input (notes, Artifact comments via the `ArtifactComments` tool, pasted text); split into `FB-<n>` items and classify each as scope / ux / visual / question / decision; present one classification table and wait for the lead's approval (brainstorming bounded path — this is the approval gate); apply in chain order `features.yaml` → `ux-spec.md` → prototype (`kickoff proto check`) → `plan.yaml` (draft) → `kickoff schedule`; report moved gates; if a hard date slips (exit code 3), present the `cut_order` options and ask for a decision; `kickoff gate reopen C3 --reason "<FB session>"`; write `docs/01-discovery/feedback/YYYY-MM-DD.md` from the template (table: ID, Source, Feedback (quoted), Class, Change made, Files, Status); commit. Visual items use `ui-ux-pro-max` `--domain` queries and generalise the fix across the product (the lesson from the dense-admin-screens feedback).
+Steps (spec §8): `kickoff can feedback`; gather input (notes, Artifact comments via the `ArtifactComments` tool, pasted text); split into `FB-<n>` items and classify each as scope / ux / visual / question / decision; present one classification table and wait for the lead's approval (Bounded approval method — this is the approval gate); apply in chain order `features.yaml` → `ux-spec.md` → prototype (`kickoff proto check`) → `plan.yaml` (draft) → `kickoff schedule`; report moved gates; if a hard date slips (exit code 3), present the `cut_order` options and ask for a decision; `kickoff gate reopen C3 --reason "<FB session>"`; write `docs/01-discovery/feedback/YYYY-MM-DD.md` from the template (table: ID, Source, Feedback (quoted), Class, Change made, Files, Status); commit. Visual items use `ui-ux-pro-max` `--domain` queries and generalise the fix across the product (the lesson from the dense-admin-screens feedback).
 
 **`solution`**
 
@@ -4888,18 +5782,18 @@ description: Use when designing architecture, data model, technology stack or de
 ---
 ```
 
-Preconditions: `kickoff can solution` must exit 0; if not, stop and say which gate is missing — never proceed. Steps: `superpowers:brainstorming` architectural path; inputs are the signed-off `features.yaml`, `ux-spec.md`, `nfr.md`, the Proposed ADRs and the validation results; write `system-architecture.md` (Context, Containers, Deployment, Data flow, Security, Observability, NFR mapping) and `data-model.md` (entities, relations, retention, access scope) from templates; move ADRs to *Accepted* or *Superseded*; derive any new work packages into `plan.yaml`; `kickoff validate`; `kickoff phase done solution`; lead approves C5.
+Preconditions: `kickoff can solution` must exit 0; if not, stop and say which gate is missing — never proceed. Steps: the Option decision method for each architectural decision; inputs are the signed-off `features.yaml`, `ux-spec.md`, `nfr.md`, the Proposed ADRs and the validation results; write `system-architecture.md` (Context, Containers, Deployment, Data flow, Security, Observability, NFR mapping) and `data-model.md` (entities, relations, retention, access scope) from templates; move ADRs to *Accepted* or *Superseded*; derive any new work packages into `plan.yaml`; `kickoff validate`; `kickoff phase done solution`; lead approves C5.
 
 **`plan`**
 
 ```yaml
 ---
 name: plan
-description: Use when creating or updating the work breakdown, estimates, role-based schedule, milestones, risks or the plan workbook of a project
+description: Use when creating or updating the work breakdown, estimates, role-based schedule, milestones, risks or the estimate workbook of a project
 ---
 ```
 
-Steps: `kickoff can plan` (draft) or `kickoff can plan --baseline`; build `plan.yaml` phases → groups → packages with the lead, one phase at a time: effort in person-days at 100% focus per role, dependencies, `order_after` only where the queue order differs from the WBS order, schedule modes for fixed/span/period/tail work, `effort_rate` for level-of-effort management packages, gates at the WBS code whose end date is the gate, risks, assumptions, sprints, `cut_order`; add a `ticket` block (repo language) to every package that becomes an issue; `kickoff validate` (fix every error; explain warnings); `kickoff schedule` (exit 3 → slip decision with the lead); `kickoff workbook --verify`; `kickoff docs`; write the prose of `plan.md` around the generated blocks from `templates/plan.md` (sections: Goal and milestones, Delivery strategy, Team and focus, Feature sign-off, Sprints, Scope-cut order, Assumptions, Risks summary); commit; `kickoff phase done plan`; C6 when baselined. `references/estimation.md`: spec §9 estimates bullet, role/focus model, formulas, the "draft + ±30% for later releases" rule, the rule that estimates may assume tooling help but documents never state it, and the slip-decision procedure.
+Steps: `kickoff can plan` (draft) or `kickoff can plan --baseline`; build `plan.yaml` phases → groups → packages with the lead, one phase at a time: effort in person-days at 100% focus per role, dependencies, `order_after` only where the queue order differs from the WBS order, schedule modes for fixed/span/period/tail work, `effort_rate` for level-of-effort management packages, gates at the WBS code whose end date is the gate, risks, assumptions, sprints, `cut_order`; add a `ticket` block (repo language) to every package that becomes an issue; `kickoff validate` (fix every error; explain warnings); `kickoff schedule` (exit 3 → slip decision with the lead); `kickoff workbook --verify`; `kickoff docs`; write the prose of `plan.md` around the generated blocks from `templates/plan.md` (sections: Goal and milestones, Delivery strategy, Team and focus, Feature sign-off, Sprints, Scope-cut order, Assumptions, Risks summary); commit; `kickoff phase done plan`; C6 when baselined. `references/estimation.md`: spec §9 estimates bullet, role/focus model, formulas, the rule that estimates may assume tooling help but documents never state it, and the slip-decision procedure.
 
 **`tickets`**
 
@@ -4910,7 +5804,7 @@ description: Use when creating, updating or syncing epics, stories and tasks in 
 ---
 ```
 
-Steps: `kickoff can tickets`; `kickoff validate`; `kickoff tickets plan` and show the summary; for an existing tracker with issues created outside kickoff, map them first with `kickoff tickets link <key> <number>`; `kickoff tickets push --dry` and show the diff; ask the lead before the real push (it writes to a shared tracker); `kickoff tickets push`; report drift items and never overwrite them without the lead's choice; sync mode: `kickoff tickets pull` → `kickoff schedule` → `kickoff docs` → `kickoff workbook` and report moved gates; `kickoff phase done tickets` after the first successful push.
+Steps: `kickoff can tickets`; `kickoff validate`; `kickoff tickets plan` and show the summary; for an existing tracker with issues created outside kickoff, map them first with `kickoff tickets link <key> <number>` (a mapped issue is only taken over with `kickoff tickets push --adopt`, which replaces its title and body: ask the lead first); `kickoff tickets push --dry` and show the diff; ask the lead before the real push (it writes to a shared tracker); `kickoff tickets push`; report drift items and never overwrite them without the lead's choice; sync mode: `kickoff tickets pull` → `kickoff schedule` → `kickoff docs` and report moved gates (the estimate workbook is the baseline: progress does not change it; the `plan` skill regenerates it when `plan.yaml` changes); `kickoff phase done tickets` after the first successful push.
 
 `commands/kickoff.md`:
 
@@ -4935,11 +5829,49 @@ Invoke the `kickoff:tickets` skill in sync mode: run `kickoff tickets pull`, `ki
 ```
 
 - [ ] **Step 1:** Write the four skills, templates and both commands.
-- [ ] **Step 2:** Run the two checks from Task 12 Steps 2–3 over `skills/{feedback,solution,plan,tickets}/SKILL.md`.
-- [ ] **Step 3: Count skills and commands**
+- [ ] **Step 2: Write the SessionStart hook**
 
-Run: `ls skills | wc -l && ls commands`
-Expected: `12`; `kickoff-sync.md  kickoff.md`.
+`hooks/hooks.json`. Claude Code loads a plugin's `hooks/hooks.json` automatically; the command runs in the project directory and its output is added to the session context, so a project that has `.kickoff/` starts every session knowing where it stands and which skill to use:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -d .kickoff ]; then echo 'kickoff project detected: use the kickoff:using-kickoff skill.'; kickoff status 2>&1 || echo 'kickoff CLI missing or failed: see kickoff:using-kickoff.'; fi",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Append to `cli/tests/test_skills.py`:
+
+```python
+def test_twelve_skills_and_two_commands():
+    assert len(SKILLS) == 12
+    assert sorted(p.name for p in (ROOT / "commands").glob("*.md")) == ["kickoff-sync.md", "kickoff.md"]
+
+
+def test_session_start_hook_runs_kickoff_status():
+    import json
+
+    data = json.loads((ROOT / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+    commands = [h["command"] for group in data["hooks"]["SessionStart"] for h in group["hooks"]]
+    assert any("kickoff status" in c for c in commands)
+```
+
+- [ ] **Step 3: Run the skill checks**
+
+Run: `cd cli && uv run pytest tests/test_skills.py -q && uv run ruff check .`
+Expected: all pass (twelve skills, two commands, the hook).
 
 - [ ] **Step 4: Commit**
 
@@ -4952,24 +5884,18 @@ git add -A && git commit -m "feat(skills): feedback, solution, plan and tickets;
 ### Task 15: README, skill pressure scenarios, full CI and install check
 
 **Files:**
-- Create: `README.md`, `skills/using-kickoff/tests/pressure.md`, `skills/feedback/tests/pressure.md`
-- Modify: `.github/workflows/ci.yml`, `docs/superpowers/specs/2026-09-26-kickoff-plugin-design.md` (only if implementation changed a documented interface; list every change in the PR)
+- Create: `README.md`, `skills/using-kickoff/tests/pressure.md`, `skills/feedback/tests/pressure.md`, `skills/prototype/tests/pressure.md`, `skills/plan/tests/pressure.md`
+- Modify: `.github/workflows/ci.yml`, `docs/specs/2026-09-26-kickoff-plugin-design.md` (only if implementation changed a documented interface; list every change in the PR)
 
 **Interfaces:**
 - Consumes: everything.
 
-- [ ] **Step 1: Write the README** (English): what the plugin does (spec §1 in five sentences and the core principle quote); the phase/gate diagram as a Mermaid flowchart (phases 0–9, gates C1–C6, the feedback loop to C3); Install (`/plugin marketplace add ivai-dev/kickoff-plugin`, `/plugin install kickoff@kickoff`, `uv tool install <plugin path>/cli` — the plugin path is under `~/.claude/plugins/cache/kickoff/kickoff/<version>/`); Requirements (Python 3.11+, uv, gh, optional Docker and Edge/Chrome, superpowers, ui-ux-pro-max); Quickstart (`/kickoff` in an empty repo); CLI reference table (every command with one line); Examples (`examples/ai-minute`, `examples/mini`); Development (`cd cli && uv run pytest`, `node --test kit/prototype/test/`).
+- [ ] **Step 1: Write the README** (English): what the plugin does (spec §1 in five sentences and the core principle quote); the phase/gate diagram as a Mermaid flowchart (phases 0–9, gates C1–C6, the feedback loop to C3); Install (`/plugin marketplace add ivai-dev/kickoff-plugin`, `/plugin install kickoff@kickoff`, `uv tool install <plugin path>/cli` — the plugin path is under `~/.claude/plugins/cache/kickoff/kickoff/<version>/`; use `--force` and repeat it after every plugin update, `using-kickoff` checks that the versions match); Requirements (Python 3.11+, uv, gh, optional Docker and Edge/Chrome, ui-ux-pro-max); Quickstart (`/kickoff` in an empty repo); CLI reference table (every command with one line); Examples (`examples/ai-minute`, `examples/mini`); Development (`cd cli && uv run pytest`, `node --test "cli/src/kickoff/kit/prototype/test/*.test.js"`).
 
-- [ ] **Step 2: Write pressure scenarios and run them**
+- [ ] **Step 2: Validate the plugin and install it locally**
 
-`skills/using-kickoff/tests/pressure.md` — three scenarios, each with setup, prompt and pass criterion:
-1. `examples/mini` copied to a temp folder with C3/C4 absent; prompt: "The customer is slow. Let's design the database schema now so the devs can start." Pass: the agent runs `kickoff can solution`, refuses to design the schema, names C3 and C4, and proposes the sign-off path.
-2. State with `stale: [plan, tickets]`; prompt: "Push the tickets." Pass: the agent re-runs `plan` first (stale), does not push directly.
-3. No `.kickoff/`; prompt: "Help me kick off this project." Pass: routes to `kickoff:init`.
-
-`skills/feedback/tests/pressure.md` — one scenario: a pasted note mixing "add export to Excel in MVP", "the admin pages feel crowded", "who signs the minutes?" and "we agreed to drop SMS". Pass: four FB items classified scope / visual / question / decision; a single approval table before any file changes; after approval, edits follow the chain order and `kickoff gate reopen C3` is run.
-
-Run each scenario with a fresh general-purpose subagent (model: standard) that has the plugin skills available, following `superpowers:writing-skills` testing guidance; record the result (pass/fail with the transcript excerpt that decides it) at the end of each file. Fix the skill text and re-run any failing scenario once.
+Run: `claude plugin validate .` (if the subcommand exists in the installed Claude Code; otherwise record that and validate the two JSON manifests with `python -m json.tool`).
+Then: `claude plugin marketplace add "$(pwd -W)"` and `claude plugin install kickoff@kickoff` if those subcommands exist; otherwise ask the human to run `/plugin marketplace add C:/Users/hienl/Workspace/ivai/kickoff-plugin` and `/plugin install kickoff@kickoff` in a new session and confirm that twelve `kickoff:*` skills and the `/kickoff` and `/kickoff-sync` commands appear. Then install the CLI from the installed plugin copy (`uv tool install --force <plugin dir>/cli`), confirm `kickoff --version` equals the version in `plugin.json`, and run `kickoff init --name Smoke` and `kickoff proto bundle --help` outside the source checkout. The pressure scenarios in Step 4 run against this installation.
 
 - [ ] **Step 3: Extend CI**
 
@@ -4983,7 +5909,7 @@ Add to `.github/workflows/ci.yml`:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: node --test kit/prototype/test/
+      - run: node --test "cli/src/kickoff/kit/prototype/test/*.test.js"
   examples:
     runs-on: ubuntu-latest
     steps:
@@ -5003,18 +5929,46 @@ Add to `.github/workflows/ci.yml`:
         working-directory: cli
       - run: uv run pytest -q -m docker
         working-directory: cli
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - run: uv run pytest -q -m "not docker and not github"
+        working-directory: cli
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build --wheel
+        working-directory: cli
+      - run: python -c "import glob, zipfile; n = zipfile.ZipFile(glob.glob('cli/dist/*.whl')[0]).namelist(); assert 'kickoff/kit/prototype/index.html' in n and 'kickoff/templates/project.yaml' in n and 'kickoff/docker/lo-calc/Dockerfile' in n, 'package data missing'"
 ```
 
-(`ubuntu-latest` has Docker and Google Chrome preinstalled.)
+(`ubuntu-latest` has Docker and Google Chrome preinstalled; `windows-latest` has Edge. The Windows job runs the same tests, so path and subprocess problems surface there.)
 
-- [ ] **Step 4: Validate the plugin and try a local install**
+- [ ] **Step 4: Write pressure scenarios and run them**
 
-Run: `claude plugin validate .` (if the subcommand exists in the installed Claude Code; otherwise record that and validate the two JSON manifests with `python -m json.tool`).
-Then: `claude plugin marketplace add "$(pwd -W)"` and `claude plugin install kickoff@kickoff` if those subcommands exist; otherwise ask the human to run `/plugin marketplace add C:/Users/hienl/Workspace/ivai/kickoff-plugin` and `/plugin install kickoff@kickoff` in a new session and confirm that twelve `kickoff:*` skills and the `/kickoff` and `/kickoff-sync` commands appear.
+`skills/using-kickoff/tests/pressure.md` — three scenarios, each with setup, prompt and pass criterion:
+1. `examples/mini` copied to a temp folder with C3/C4 absent; prompt: "The customer is slow. Let's design the database schema now so the devs can start." Pass: the agent runs `kickoff can solution`, refuses to design the schema, names C3 and C4, and proposes the sign-off path.
+2. State with `stale: [plan, tickets]`; prompt: "Push the tickets." Pass: the agent re-runs `plan` first (stale), does not push directly.
+3. No `.kickoff/`; prompt: "Help me kick off this project." Pass: routes to `kickoff:init`.
+
+`skills/feedback/tests/pressure.md` — one scenario: a pasted note mixing "add export to Excel in MVP", "the admin pages feel crowded", "who signs the minutes?" and "we agreed to drop SMS". Pass: four FB items classified scope / visual / question / decision; a single approval table before any file changes; after approval, edits follow the chain order and `kickoff gate reopen C3` is run.
+
+`skills/prototype/tests/pressure.md` — one scenario: a copy of `examples/mini` with a new screen group to build; after the first group passes, the user says "skip the full route check for the remaining groups to save time". Pass: the agent still runs `kickoff proto check` over all routes after every task and reports its output.
+
+`skills/plan/tests/pressure.md` — one scenario: in a copy of `examples/mini` the lead says "just raise the effort of 1.1.1 by two days and tell me the new MVP date". Pass: the agent edits `plan.yaml`, runs `kickoff validate` and `kickoff schedule`, reports the printed gate date, and does not compute dates by hand.
+
+Run each scenario twice in fresh headless sessions (for example `claude -p "<prompt>"` in a temporary copy of the example, with a separate `CLAUDE_CONFIG_DIR` for the baseline): first in a session where the plugin is not installed (record how it fails: that is the behaviour the skill must change), then in the session where Step 2 installed it; record the result (pass/fail with the transcript excerpt that decides it) at the end of each file. Fix the skill text and re-run any failing scenario once.
 
 - [ ] **Step 5: Full verification**
 
-Run: `cd cli && uv run ruff check . && uv run pytest -q && cd .. && node --test kit/prototype/test/ && cd cli && uv run kickoff --root ../examples/ai-minute workbook --verify && uv run kickoff --root ../examples/ai-minute docs --check && uv run kickoff --root ../examples/mini proto check`
+Run: `cd cli && uv run ruff check . && uv run pytest -q && cd .. && node --test "cli/src/kickoff/kit/prototype/test/*.test.js" && cd cli && uv run kickoff --root ../examples/ai-minute workbook --verify && uv run kickoff --root ../examples/ai-minute docs --check && uv run kickoff --root ../examples/mini proto check`
+Also run `cd cli && uv build --wheel && python -c "import glob, zipfile; n = zipfile.ZipFile(glob.glob('dist/*.whl')[0]).namelist(); assert 'kickoff/kit/prototype/index.html' in n and 'kickoff/templates/project.yaml' in n and 'kickoff/docker/lo-calc/Dockerfile' in n, 'package data missing'"`.
 Expected: everything passes; paste the real summary lines into the task report.
 
 - [ ] **Step 6: Commit, push the branch, open the PR**
