@@ -44,7 +44,7 @@ Not for changes the team found itself before the prototype is shown: those re-ru
    | question | something to find out before deciding | a new `Q<n>` with a needed-by date in `open-questions.md` |
    | decision | the customer decided something | a new `D<n>` in the Decision log, with its date and source |
 
-   A remark that is unclear is a question, not a guess. A remark that moves a feature to a later release is scope, even when it sounds like a plan remark.
+   A remark that does not say what is wanted is a question, not a guess. A remark that clearly asks to add, remove or move a feature is scope even when its details are still open (what exactly, for which role): classify it as scope and name the open details as a `Q<n>` in its Proposed change. A remark that moves a feature to a later release is scope, even when it sounds like a plan remark.
 4. **Present one classification table** with the Bounded approval method, and wait. Columns: ID, Source, Feedback (quoted), Class, Proposed change, Files, Effect (gates or releases it may move). This approval is the gate of this skill.
 
 > **Bounded approval:** present one table of proposed changes; change nothing before an explicit yes or edit.
