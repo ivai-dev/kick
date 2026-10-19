@@ -1,0 +1,16 @@
+schema_version: 1
+phases:
+  init: done
+  discovery: done
+  feature-map: done
+  ux-design: done
+gates:
+  C1:
+    approved_by: Project lead
+    date: 2026-09-30
+    evidence: examples/mini/docs/05-design/ux-spec.md
+  C2:
+    approved_by: Project lead
+    date: 2026-10-02
+    evidence: examples/mini/docs/05-design/ux-spec.md
+stale: []
