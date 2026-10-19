@@ -47,7 +47,7 @@ Not for changing an existing project's settings: edit `.kickoff/project.yaml` an
 
 Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the lead wants another root, move the created folders and set `docs_root` to match.
 
-2. **Create the skeleton:** `kickoff init --name "<name>"`. It writes `.kickoff/{project,state,features,plan,tickets}.yaml` and `docs/{01-discovery,02-requirements,03-research,04-architecture/adr,05-design,06-planning,specs,plans}/`.
+2. **Create the skeleton:** `kickoff init --name "<name>"`. It writes `.kickoff/{project,state,features,plan,tickets}.yaml` and `docs/{01-discovery,02-requirements,03-research,04-architecture/adr,05-design,06-planning,07-task-specs,08-task-plans}/`.
 
 3. **Fill `.kickoff/project.yaml`** with the answers, using the Edit tool (never a shell heredoc). Quote strings that look like numbers or dates. Hard dates: `hard_dates` keys must be gate IDs that exist in `plan.yaml` (`kickoff validate` rejects any other key), and `plan.yaml` has no gates yet. Until the `plan` skill creates the gates, keep the hard dates as comments under `hard_dates: {}`, one per line: `# <gate id> <what must be done>: <YYYY-MM-DD>`.
 
@@ -62,7 +62,7 @@ Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the
 ## Outputs
 
 - `.kickoff/project.yaml` (filled), `.kickoff/state.yaml`, `.kickoff/features.yaml`, `.kickoff/plan.yaml`, `.kickoff/tickets.yaml`
-- `docs/01-discovery/`, `docs/02-requirements/`, `docs/03-research/`, `docs/04-architecture/adr/`, `docs/05-design/`, `docs/06-planning/`, `docs/specs/`, `docs/plans/` (each with `.gitkeep`)
+- `docs/01-discovery/`, `docs/02-requirements/`, `docs/03-research/`, `docs/04-architecture/adr/`, `docs/05-design/`, `docs/06-planning/`, `docs/07-task-specs/`, `docs/08-task-plans/` (each with `.gitkeep`)
 - `AGENTS.md` in the repository root
 
 ## Verify

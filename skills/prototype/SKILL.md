@@ -36,7 +36,7 @@ Builds the clickable prototype of the full product: every role, platform and rel
 
 3. **Scaffold:** `kickoff proto new`. It copies the kit into `proto.dir` and writes `js/config.js` (roles, homes, releases, platforms from the ux-spec), `js/data.js`, `js/screens.js` (one `KIT.ui.Placeholder` stub per screen) and `js/scenarios.js`. It refuses when `index.html` already exists. When updating an existing prototype, skip this step and register new screens by hand. Never run `kickoff proto new --force` on a built prototype without the lead's yes: it overwrites the kit files and all four project files.
 4. **Queries per screen group with `ui-ux-pro-max`:** invoke the skill and run `--stack react` (the kit is Preact with htm, the nearest stack) and `--domain` queries (`ux`, `chart`, `typography`, `color`) for each group's concerns: tables, forms, dashboards, phone lists. Retry an empty search once; never copy output you have not checked.
-5. **Build plan:** save `<docs_root>/plans/YYYY-MM-DD-prototype.md` using the Build plan method and show it to the lead. Tasks, in order:
+5. **Build plan:** save `<docs_root>/08-task-plans/YYYY-MM-DD-prototype.md` using the Build plan method and show it to the lead. Tasks, in order:
    1. shell: the design-system tokens copied into `index.html` between `/* kickoff:tokens:begin */` and `/* kickoff:tokens:end */` (keep the token names), the `<title>`, `js/config.js` (role names and homes), and the synthetic data model in `js/data.js`;
    2. one task per screen group: a module `js/<area>.js` that registers the group's screens;
    3. scenarios: `js/scenarios.js`;
@@ -64,12 +64,12 @@ Builds the clickable prototype of the full product: every role, platform and rel
 8. **Pre-delivery review:** walk `references/screen-checklist.md` and the pre-delivery checklist in `ui-ux-pro-max`'s `references/pro-rules.md`, screen group by screen group. For screenshots, run `kickoff proto check --shots <folder>` with a git-ignored folder. Fix what fails and run `kickoff proto check` again.
 9. **Publish.** If the Artifact tool is available, publish `index.html` as a private Artifact with every `js/*.js` file passed through `files` at the same relative path (`js/config.js`, …). Republish to the same URL for every new version. Otherwise run `kickoff proto bundle` and share the single file `<proto.dir>/dist/prototype.html` (not committed: add `dist/` to `.gitignore` if it is missing). Sharing beyond the lead is publishing: ask the lead first.
 10. **Record** the Artifact link (or the bundle path) and the version in `.kickoff/state.yaml` with the Edit tool, `prototype: { artifact: "<link or path>", version: <n> }`. The version goes up by one with every publish. Change no other key there; phases and gates change only through the CLI.
-11. **Verify** (section below), then `kickoff phase done prototype` and commit `feat(prototype): full-product prototype v<n>`. List the rulings from `<docs_root>/plans/<plan>-rulings.md` to the lead and ask which ones to revisit.
+11. **Verify** (section below), then `kickoff phase done prototype` and commit `feat(prototype): full-product prototype v<n>`. List the rulings from `<docs_root>/08-task-plans/<plan>-rulings.md` to the lead and ask which ones to revisit.
 
 ## Outputs
 
 - `<proto.dir>/index.html`, `js/config.js`, `js/data.js`, `js/<area>.js` modules, `js/scenarios.js` (kit core files unchanged)
-- `<docs_root>/plans/YYYY-MM-DD-prototype.md` (build plan, tasks ticked) and `<docs_root>/plans/YYYY-MM-DD-prototype-rulings.md`
+- `<docs_root>/08-task-plans/YYYY-MM-DD-prototype.md` (build plan, tasks ticked) and `<docs_root>/08-task-plans/YYYY-MM-DD-prototype-rulings.md`
 - A private Artifact link or `<proto.dir>/dist/prototype.html`, recorded in `.kickoff/state.yaml` `prototype`
 - `.kickoff/state.yaml`: `phases.prototype: done`, set by `kickoff phase done prototype` (not by hand); the top-level `prototype` object (artifact, version) is a different key
 

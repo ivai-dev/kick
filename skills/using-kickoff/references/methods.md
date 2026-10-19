@@ -73,7 +73,7 @@ Recommendation: B, validated by V2 (accuracy on 3 synthetic recordings) before C
 
 Steps:
 
-1. Save the plan as `<docs_root>/plans/YYYY-MM-DD-<topic>.md`.
+1. Save the plan as `<docs_root>/08-task-plans/YYYY-MM-DD-<topic>.md`.
 2. Write one checkbox (`- [ ]`) per task. Each task names:
    - **Files:** the paths it creates or changes;
    - **Inputs:** the documents and IDs it uses;
@@ -103,7 +103,7 @@ Steps:
 2. Do the task, writing files with the file tools (never shell heredocs).
 3. Run the task's verification command and read the real output. Fix and re-run until the expected output appears, or stop and report the failure.
 4. Tick the task and make one Conventional Commit for it.
-5. When a judgement call is taken without the lead, record it in `<docs_root>/plans/<plan>-rulings.md` as `Ruling: <decision> — <why> — <cost if wrong>`.
+5. When a judgement call is taken without the lead, record it in `<docs_root>/08-task-plans/<plan>-rulings.md` as `Ruling: <decision> — <why> — <cost if wrong>`.
 6. At the end, list the rulings to the lead and ask which ones to revisit.
 
 Example:

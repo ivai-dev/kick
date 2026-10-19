@@ -23,7 +23,7 @@ Epic → Story → Task via sub-issues; blocked-by for dependencies; one ticket 
 
 ## Rulings
 
-Long multi-task runs record decisions in `<docs_root>/plans/<plan>-rulings.md` as `Ruling: <decision> — <why> — <cost if wrong>` and list them to the lead at the end.
+Long multi-task runs record decisions in `<docs_root>/08-task-plans/<plan>-rulings.md` as `Ruling: <decision> — <why> — <cost if wrong>` and list them to the lead at the end.
 
 ## Irreversible actions
 

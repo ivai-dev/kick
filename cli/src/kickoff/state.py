@@ -33,7 +33,7 @@ REQUIRES: dict[str, tuple[list[str], list[str]]] = {
 }
 GATE_NEEDS = {"C4": ["C3"], "C6": ["C5"]}
 DOC_DIRS = ["01-discovery", "02-requirements", "03-research", "04-architecture/adr", "05-design", "06-planning",
-            "specs", "plans"]
+            "07-task-specs", "08-task-plans"]
 
 
 def _done(state: dict, phase: str) -> bool:

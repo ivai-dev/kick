@@ -83,7 +83,7 @@ Each skill folder holds `SKILL.md`, and where useful `references/` (checklists, 
   tickets.yaml   # written by the CLI: WBS code <-> issue number, pulled actuals
 <docs_root>/     # default "docs"
   01-discovery/ 02-requirements/ 03-research/ 04-architecture/adr/ 05-design/ 06-planning/
-  specs/ plans/
+  07-task-specs/ 08-task-plans/
 ```
 
 ## 3. Dependencies on other skills
@@ -387,7 +387,7 @@ The prototype is a design artifact. Its CDN use does not relax the product's own
 - **Estimates:** by role and focus percentage; person-days at 100% focus; every plan has a scope-cut order; a slipped hard date always ends in an explicit decision. When `rules.forbidden_phrases` lists a phrase such as "AI assistance", estimates may assume it but no document, ticket or report states it; `kickoff validate` warns when one does.
 - **Owners:** tickets are assigned to `tracker.assignee`; bodies name the owning role; never a person or an assistant as owner.
 - **Tickets:** Epic → Story → Task via sub-issues; blocked-by for dependencies; one ticket per WBS leaf; Conventional Commits per ticket.
-- **Rulings:** long multi-task runs record decisions in `<docs_root>/plans/<plan>-rulings.md` as `Ruling: <decision> — <why> — <cost if wrong>` and list them to the lead at the end.
+- **Rulings:** long multi-task runs record decisions in `<docs_root>/08-task-plans/<plan>-rulings.md` as `Ruling: <decision> — <why> — <cost if wrong>` and list them to the lead at the end.
 - **Irreversible actions:** merges, deleting branches, publishing and pushing to shared branches are confirmed with the lead first.
 
 ## 10. Lessons encoded as checks
