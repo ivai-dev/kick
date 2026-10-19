@@ -90,7 +90,7 @@ Example:
   - Files: `docs/05-design/prototype/js/meetings.js`, `docs/05-design/prototype/js/data.js`
   - Inputs: `ux-spec.md` screens SC-03..SC-07, `design-system.md`
   - Verify: `kickoff proto check`
-  - Expected: `0 failures` over all routes, coverage complete
+  - Expected: exit 0 and `prototype check passed` (all routes and scenarios, coverage complete)
 ```
 
 ## Task run
