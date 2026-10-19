@@ -55,3 +55,16 @@ def test_commands_named_in_skills_exist():
     files = [*SKILLS, *(ROOT / "commands").glob("*.md")]
     used = {m.group(1) for f in files for m in COMMAND.finditer(f.read_text(encoding="utf-8"))}
     assert used <= top, sorted(used - top)
+
+
+def test_twelve_skills_and_two_commands():
+    assert len(SKILLS) == 12
+    assert sorted(p.name for p in (ROOT / "commands").glob("*.md")) == ["kickoff-sync.md", "kickoff.md"]
+
+
+def test_session_start_hook_runs_kickoff_status():
+    import json
+
+    data = json.loads((ROOT / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+    commands = [h["command"] for group in data["hooks"]["SessionStart"] for h in group["hooks"]]
+    assert any("kickoff status" in c for c in commands)
