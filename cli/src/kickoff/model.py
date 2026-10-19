@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 import yaml
@@ -31,6 +31,21 @@ def find_root(start: Path) -> Path:
 
 def resolve_root(root: Path | None) -> Path:
     return find_root(root or Path.cwd())
+
+
+def inside_root(root: Path, value: str, what: str) -> Path:
+    """`root / value`, resolved, for a path read from project.yaml.
+
+    A path from a cloned repository is untrusted: absolute paths, drive letters and anything that resolves
+    outside `root` (`..`, symlinks) are rejected with a ModelError naming the setting."""
+    text_ = str(value)
+    if not text_ or text_[0] in "/\\" or PureWindowsPath(text_).drive or PurePosixPath(text_).is_absolute():
+        raise ModelError(f"{what}: {text_!r} must be a relative path inside the project folder")
+    base = root.resolve()
+    path = (base / text_).resolve()
+    if not path.is_relative_to(base):
+        raise ModelError(f"{what}: {text_!r} leaves the project folder")
+    return path
 
 
 def read_yaml(path: Path) -> Any:
@@ -157,6 +172,9 @@ class Project:
             proto=d.get("proto") or {},
             date_format=d.get("date_format", "%d/%m/%Y"),
         )
+
+    def docs_dir(self, root: Path) -> Path:
+        return inside_root(root, self.docs_root, "docs_root")
 
     def role_title(self, role_id: str, lang: str | None = None) -> str:
         role = self.roles[role_id]

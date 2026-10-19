@@ -177,7 +177,7 @@ def plan_skeleton(project: Project) -> str:
 def render_docs(root: Path) -> dict[Path, str]:
     project, plan, features = load_project(root), load_plan(root), load_features(root)
     sched = build_schedule(project, plan, actuals_of(load_tickets(root)))
-    base = root / project.docs_root
+    base = project.docs_dir(root)
     plan_path = base / "06-planning" / "plan.md"
     current = plan_path.read_text(encoding="utf-8") if plan_path.exists() else plan_skeleton(project)
     return {

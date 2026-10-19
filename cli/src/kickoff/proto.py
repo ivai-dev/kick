@@ -11,10 +11,10 @@ import subprocess
 import sys
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 from .errors import KickoffError
-from .model import Project
+from .model import Project, inside_root
 
 # The kit ships inside the package so `uv tool install` and wheels carry it.
 KIT_DIR = Path(__file__).resolve().parent / "kit" / "prototype"
@@ -44,11 +44,13 @@ def kit_dir() -> Path:
 
 
 def proto_dir(root: Path, project: Project) -> Path:
-    return root / project.proto.get("dir", f"{project.docs_root}/05-design/prototype")
+    project.docs_dir(root)
+    return inside_root(root, project.proto.get("dir", f"{project.docs_root}/05-design/prototype"), "proto.dir")
 
 
 def ux_spec_path(root: Path, project: Project) -> Path:
-    return root / project.proto.get("ux_spec", f"{project.docs_root}/05-design/ux-spec.md")
+    project.docs_dir(root)
+    return inside_root(root, project.proto.get("ux_spec", f"{project.docs_root}/05-design/ux-spec.md"), "proto.ux_spec")
 
 
 def _cells(line: str) -> list[str]:
@@ -186,13 +188,39 @@ def new_prototype(root: Path, project: Project, force: bool = False) -> list[Pat
 
 
 # ---------------------------------------------------------------- browser
+KNOWN_BROWSER_FILES = frozenset(
+    {"msedge", "microsoft-edge", "microsoft-edge-stable", "chrome", "google-chrome", "google-chrome-stable",
+     "chromium", "chromium-browser"}
+)
+
+
+def _vetted_browser(value: str) -> str:
+    """proto.browser comes from the repository, so it may only name Edge, Chrome or Chromium.
+
+    The file name must be a known one, and a relative path with folders is refused (it could point at a binary
+    shipped in the repository). KICKOFF_BROWSER, set by the user, is not restricted."""
+    win = PureWindowsPath(value)
+    name = win.name.lower().replace(" ", "-")
+    if name.endswith(".exe"):
+        name = name[: -len(".exe")]
+    folders = "/" in value or "\\" in value
+    absolute = win.is_absolute() or PurePosixPath(value).is_absolute()
+    if name not in KNOWN_BROWSER_FILES or (folders and not absolute):
+        raise ProtoError(
+            f"proto.browser {value!r} is not allowed: project.yaml may only name Edge, Chrome or Chromium "
+            f"({', '.join(sorted(KNOWN_BROWSER_FILES))}), as a bare command or an absolute path; "
+            "set KICKOFF_BROWSER to run any other executable"
+        )
+    return value
+
+
 def find_browser(project: Project) -> str | None:
     env = os.environ.get("KICKOFF_BROWSER")
     if env:
         return env
     configured = project.proto.get("browser")
     if configured:
-        return str(configured)
+        return _vetted_browser(str(configured))
     for name in BROWSER_NAMES:
         found = shutil.which(name)
         if found:
@@ -439,6 +467,15 @@ def lint(root: Path, project: Project) -> tuple[dict[str, int], list[str]]:
 
 # ---------------------------------------------------------------- bundle
 SCRIPT_RE = re.compile(r'<script\b[^>]*\bsrc="js/([^"]+)"[^>]*></script>')
+SCRIPT_END_RE = re.compile(r"</(script)", re.IGNORECASE)
+
+
+def _script_path(base: Path, src: str) -> Path:
+    """The file a `js/<src>` tag names; absolute paths, drive letters and `..` are refused."""
+    if (src[0] in "/\\" or PureWindowsPath(src).drive or ".." in re.split(r"[/\\]", src)
+            or not (base / "js" / src).resolve().is_relative_to((base / "js").resolve())):
+        raise ProtoError(f"script src 'js/{src}' must stay inside the prototype's js folder")
+    return base / "js" / src
 
 
 def bundle(root: Path, project: Project, out: Path | None = None) -> Path:
@@ -449,12 +486,12 @@ def bundle(root: Path, project: Project, out: Path | None = None) -> Path:
         raise ProtoError(f"no prototype in {base}; run: kickoff proto new")
 
     def inline(match: re.Match) -> str:
-        path = base / "js" / match.group(1)
+        path = _script_path(base, match.group(1))
         try:
             source = path.read_text(encoding="utf-8")
         except FileNotFoundError as exc:
             raise ProtoError(f"missing script: {path}") from exc
-        return '<script charset="utf-8">' + source.replace("</script", "<\\/script") + "</script>"
+        return '<script charset="utf-8">' + SCRIPT_END_RE.sub(r"<\\/\1", source) + "</script>"
 
     result = SCRIPT_RE.sub(inline, index.read_text(encoding="utf-8"))
     target = out or base / "dist" / "prototype.html"

@@ -25,7 +25,7 @@ def run(args) -> int:
     if report_plan_errors(project, plan):
         return 1
     slug = re.sub(r"[^a-z0-9]+", "-", project.name.lower()).strip("-")
-    out = args.out or root / project.docs_root / "06-planning" / f"{slug}-estimate.xlsx"
+    out = args.out or project.docs_dir(root) / "06-planning" / f"{slug}-estimate.xlsx"
     layout = build_workbook(project, plan, out)
     print(f"wrote {out}")
     if not args.verify:

@@ -6,6 +6,11 @@
   "required": ["schema_version", "name", "languages", "calendar", "roles", "releases", "tracker"],
   "$defs": {
     "date": { "type": "string", "format": "date" },
+    "relpath": {
+      "type": "string",
+      "description": "a relative path inside the project folder: no leading slash or drive letter, no '..' segment",
+      "pattern": "^(?![/\\\\]|[A-Za-z]:)(?!(?:.*[/\\\\])?\\.\\.(?:[/\\\\]|$)).+$"
+    },
     "i18n": { "type": "object", "additionalProperties": { "type": "object", "additionalProperties": { "type": "string" } } }
   },
   "properties": {
@@ -22,7 +27,7 @@
         "ui": { "type": "string" }
       }
     },
-    "docs_root": { "type": "string" },
+    "docs_root": { "$ref": "#/$defs/relpath" },
     "date_format": { "type": "string" },
     "calendar": {
       "type": "object",
@@ -110,8 +115,8 @@
     "proto": {
       "type": "object",
       "properties": {
-        "dir": { "type": "string" },
-        "ux_spec": { "type": "string" },
+        "dir": { "$ref": "#/$defs/relpath" },
+        "ux_spec": { "$ref": "#/$defs/relpath" },
         "browser": { "type": "string" },
         "forbidden": { "type": "array", "items": { "type": "string" } },
         "max_font_sizes": { "type": "integer" },
