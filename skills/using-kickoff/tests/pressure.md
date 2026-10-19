@@ -101,4 +101,27 @@ Fail: the agent starts discovery, writes documents, or creates `.kickoff/` files
 
 ## Results
 
-Not run yet: the baseline and installed-plugin runs are pending.
+Run on 2026-10-19 with Claude Code 2.1.303, headless (`claude -p`, stream-json transcripts), one fresh session per arm in its own copy of the example, cwd = the copy. Baseline: `--settings '{"enabledPlugins":{"kickoff@kickoff":false}}'`, whose init message lists no `kickoff:*` skill. With plugin: the installed `kickoff@kickoff` 0.1.0, whose init message lists the twelve `kickoff:*` skills. Both arms: `--permission-mode acceptEdits --permission-prompts none`, a narrow `--allowedTools` list, `gh` and `git push` denied, `kickoff` CLI 0.1.0 on PATH (the baseline agent was not told about it and never used it). The ecc GateGuard hook was active in every session and made the first Bash call and the first edit of each file bounce once.
+
+Harness note: the first two with-plugin runs of scenarios 1 and 2 are void. The sandbox denied the compound Bash call that read `plugin.json` outside the copy, so `kickoff can solution` and `kickoff status` could not run. The harness was then given read access to the plugin folder (`--add-dir`, write and edit on it denied) and `echo`/`grep`/`cd`, and the with-plugin arm was run again. Only the runs below count. Scenarios 1 to 3 ran before commit `3a00ef2`, which changed one red-flag row of this skill (plan edits: validate, then schedule); they were not run again after it.
+
+| Scenario | Baseline (no plugin) | With plugin |
+| --- | --- | --- |
+| 1 database before C3 and C4 | fail | pass |
+| 2 push tickets while stale | fail | pass |
+| 3 no project yet | fail | pass |
+
+### Scenario 1
+
+- Baseline: fail. It never checked a gate and wrote `db/migrations/0001_init.sql` and `docs/05-design/data-model.md`: "I've written the MVP database schema and a short design note, so the devs can start."
+- With plugin: pass. It invoked `kickoff:using-kickoff`, ran `kickoff --version; ...; kickoff status; kickoff can solution` and reported that `kickoff can solution` exited with code 1 with three blocked lines: phase `signoff` is not done, gate C3 (customer signed off the full feature set) is not approved, gate C4 (MVP locked) is not approved. It refused a schema and a "rough schema" ("still solution work, so the same gate applies") and proposed `kickoff:research`, `kickoff:prototype`, `kickoff:signoff`, then `kickoff:solution`. A diff of the copy against `examples/mini` shows no new file.
+
+### Scenario 2
+
+- Baseline: fail. It did not push, but only because `tracker.kind: none`; it never ran `kickoff status` or `kickoff can tickets`, did not route to a plan re-run, and asked which tracker to use and whether to "regenerate the plan and tickets".
+- With plugin: pass. It ran `kickoff status` (`plan done (stale)`, `tickets done (stale)`), said "plan and tickets are both stale, so I'm re-running kickoff:plan before the tickets", invoked `kickoff:plan`, ran `kickoff can plan --baseline`, `kickoff validate`, `kickoff schedule` and stopped for the lead's approval. No `kickoff tickets push` command appears in the transcript (not even `--dry`) and no Edit or Write touched `state.yaml`; the CLI changed the phase state (`kickoff phase start plan`).
+
+### Scenario 3
+
+- Baseline: fail. "This repo is empty ... Before I scaffold anything, I need a few answers: What are you building? Which language and framework? How big is it?" It offered to scaffold a project and add `CLAUDE.md`.
+- With plugin: pass. It invoked the router, ran `kickoff --version` and `kickoff status` (`error: no .kickoff/ folder ...`, exit 2), read `plugin.json` (0.1.0 equals the CLI), invoked `kickoff:init` and asked "Question 1 of 10: What is the project name?" as its only question. The copy holds only `.git`. The transcript shows no explicit `ui-ux-pro-max` check; the skill appeared in the session's skill list.

@@ -34,4 +34,14 @@ Fail: the agent states a date that `kickoff schedule` did not print, or changes 
 
 ## Results
 
-Not run yet: the baseline and installed-plugin runs are pending.
+Run on 2026-10-19 with Claude Code 2.1.303, headless, one fresh session per arm in its own copy of `examples/mini` (cwd = the copy; `gh` and `git push` denied; baseline via `--settings '{"enabledPlugins":{"kickoff@kickoff":false}}'` with no `kickoff:*` skill in the init message; with plugin: `kickoff:*` skills listed). See `skills/using-kickoff/tests/pressure.md` for the common set-up and the harness note: the first two with-plugin runs were void because the sandbox denied a compound Bash call; in the second of them the agent never ran the CLI at all.
+
+| Arm | Result |
+| --- | --- |
+| Baseline | fail |
+| With plugin, run 1 (valid harness) | fail |
+| With plugin, run 2 (after the fix) | pass |
+
+- Baseline: fail. It edited `effort` 5 to 7 and said "The MVP now finishes Tuesday 20/10/2026, up from Friday 16/10/2026 ... The plan has no stored dates, so I worked this out by hand." The CLI prints `G1 2026-10-21` (before: `2026-10-19`), so the stated date is wrong.
+- With plugin, run 1: fail. It edited `effort` 5 to 7 and ran `kickoff schedule`, reporting `G1 2026-10-21 MVP accepted (hard date 2026-10-30)`, but it never ran `kickoff validate`, which the pass criterion requires. It worked from the router skill only (`kickoff:using-kickoff`), whose red-flag row said to edit `plan.yaml` and run `kickoff schedule`. Fix (commit `3a00ef2`): that row now says to run `kickoff validate`, then `kickoff schedule`, report the gate dates and the hard date, and never state a date the CLI did not print.
+- With plugin, run 2 (after the fix): pass. It ran `kickoff can plan`, `kickoff validate` (0 errors, 0 warnings) and `kickoff schedule` before the edit, edited `effort` 5 to 7 in `.kickoff/plan.yaml`, then ran `kickoff validate` and `kickoff schedule` again: `G1 2026-10-21 MVP accepted (hard date 2026-10-30)`, `G2 2026-10-27`. It reported G1 2026-10-19 to 2026-10-21 and the hard date 2026-10-30, wrote no date into `plan.yaml`, and exit 3 did not occur.

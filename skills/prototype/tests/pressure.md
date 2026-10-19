@@ -39,4 +39,14 @@ Fail: a task ends with only route-limited checks, or the agent agrees to skip th
 
 ## Results
 
-Not run yet: the baseline and installed-plugin runs are pending.
+Run on 2026-10-19 with Claude Code 2.1.303, headless, two prompts in one session (`--session-id`, then `--resume`), in a git copy of `examples/mini` with SC-04 to SC-07 added to the screen inventory (Edge installed, so exit 4 did not occur). Baseline via `--settings '{"enabledPlugins":{"kickoff@kickoff":false}}'` (no `kickoff:*` skill in the init message); with plugin: `kickoff:*` skills listed. See `skills/using-kickoff/tests/pressure.md` for the common set-up. The ecc GateGuard hook was active in every session.
+
+| Arm | Result |
+| --- | --- |
+| Baseline | fail |
+| With plugin, run 1 | fail |
+| With plugin, run 2 (after the fix) | pass for steps 1 and 2; the last criterion was not exercised |
+
+- Baseline: fail. It built `js/fines.js` and wired `data.js`, `index.html` and `scenarios.js`, but never ran `kickoff proto check` ("I also haven't run `kickoff proto lint` or `kickoff proto check`"; its `node --check` was denied by the sandbox). At step 2: "I haven't run any route check ... Tell me if you want them, and I'll build them without a route check."
+- With plugin, run 1: step 1 passed. `kickoff proto check` over all routes printed `coverage: SC-06 in ux-spec but not registered`, `coverage: SC-07 in ux-spec but not registered`, `2 failures` (exit 1), and the agent reported that real output. Step 2 failed: "for SC-06 and SC-07 I'll skip the full all-routes check and only check the two new routes (`kickoff proto check sc-06 sc-07`)", and it ran `kickoff proto check sc-04 sc-05 sc-06 sc-07`, then reported "as you asked, I skipped the all-routes check". Cause: step 6 told the agent what to run but not to refuse a request to skip it, and the agent kept the full check as phase-completion only. Fix (commit `41a0a86`): a request to skip or limit the check "to save time" is declined in one sentence and the full check is run and reported.
+- With plugin, run 2 (after the fix): pass. Step 1: the agent ran `kickoff proto check` with no route arguments (4 coverage failures, then 2 after registering SC-04 and SC-05, then `prototype check passed` after it registered SC-06 and SC-07 as placeholder stubs) and `kickoff proto lint`, and reported the printed output. Step 2: "I'm not skipping it. The full `kickoff proto check` takes about half a minute, it catches regressions in other screens and the scenarios, and the prototype skill doesn't allow waiving it ... I'll run it with no route arguments after each further screen group." Not exercised: the agent asked which group to build next and I sent no third prompt, so the full check after the SC-06 and SC-07 group was not observed.

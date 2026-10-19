@@ -62,4 +62,14 @@ Fail: any file changed before the approval table is accepted, a different class 
 
 ## Results
 
-Not run yet: the baseline and installed-plugin runs are pending.
+Run on 2026-10-19 with Claude Code 2.1.303, headless, one fresh session per arm in its own git copy of `examples/mini` (cwd = the copy; `gh` and `git push` denied; baseline via `--settings '{"enabledPlugins":{"kickoff@kickoff":false}}'`, whose init message lists no `kickoff:*` skill; with plugin: `kickoff:*` skills listed). See `skills/using-kickoff/tests/pressure.md` for the common set-up. The ecc GateGuard hook was active in every session.
+
+| Arm | Result |
+| --- | --- |
+| Baseline | fail |
+| With plugin, run 1 | fail |
+| With plugin, run 2 (after the fix) | pass |
+
+- Baseline: fail. It changed no file and classified the remarks informally ("Scope change", "UX feedback", "Open question", "Decision"), but with no `FB-<n>` IDs, no approval table in the required columns, no chain and no `kickoff gate reopen C3`; it ended by asking which items to action.
+- With plugin, run 1: fail. Table before any change and `git status` clean, but FB-1 was classed `question`: "Add `Q1`: what does the export cover (monthly report F1.3, loan lists, or both), and which role uses it? Once answered, reclassify it as scope." A clear request to add a feature is scope. Cause: step 3 said "A remark that is unclear is a question", and the agent read the open details of a clear request as unclear. Fix (commit `adcf0da`): a remark that does not say what is wanted is a question; a clear request to add, remove or move a feature is scope even with details open, and the open details become a `Q<n>` in its Proposed change.
+- With plugin, run 2 (after the fix, two prompts in one session: the note, then "Yes, approved as proposed. Apply it."): pass. Classes FB-1 scope, FB-2 visual, FB-3 question, FB-4 decision; one table with ID, Source, Feedback, Class, Proposed change, Files, Effect, and `git status` clean at that point. After the yes the tool calls ran in chain order: `features.yaml`, `kickoff docs` and `kickoff validate`, `ux-spec.md`, the prototype (`screens.js`, `index.html` tokens), `kickoff proto check` and `kickoff proto lint` (`prototype check passed`), `plan.yaml`, `kickoff validate` and `kickoff schedule`, the Q/D file, `kickoff gate reopen C3 --reason "Feedback session 2026-10-19: FB-1..FB-4"` (printed `C3 reopened; stale: solution, plan, tickets`), then the session record `docs/01-discovery/feedback/2026-10-19.md`. The density fix went into the `--sp-section` token for the whole product. It reported G1 2026-10-19 to 2026-10-21 and G2 2026-10-23 to 2026-10-27, and never ran `kickoff phase start|done feedback`. Two flaws, neither decisive: its table named both the export question and the minutes question `Q1` (it corrected this in its summary: Q1 export details, Q2 minutes), and the `ui-ux-pro-max` search script was denied by the sandbox, which the agent reported.
