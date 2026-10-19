@@ -77,7 +77,7 @@ Read `conventions.md` before writing any project file. Write files with the file
 | Thought or request | Do instead |
 | --- | --- |
 | "The customer is busy, let's design the DB now" | C3 and C4 first: run `kickoff can solution`, name the missing gates, propose the sign-off path. |
-| "I'll just tweak the plan dates by hand" | Edit `plan.yaml` (effort, dependencies, schedule mode) and run `kickoff schedule`; report the dates it prints. |
+| "I'll just tweak the plan dates by hand" | Edit `plan.yaml` (effort, dependencies, schedule mode), run `kickoff validate`, then `kickoff schedule`; report the gate dates it prints and the hard date. Never state a date `kickoff schedule` did not print. |
 | "I'll create the issues manually" | `kickoff tickets push` (after `kickoff tickets push --dry` and the lead's yes). |
 | "Small change, no need to re-run the chain" | Use `kickoff:feedback`: `features.yaml` → `ux-spec.md` → prototype → `plan.yaml` → `kickoff schedule`, in that order. |
 | "The lead said OK in chat, I'll approve the gate" | Ask for the evidence link and the role, then `kickoff gate approve <id> --by "<role>" --evidence "<link>"`; no evidence, no gate. |
