@@ -104,6 +104,7 @@ class PushReport:
     updated: list[str] = field(default_factory=list)
     unchanged: list[str] = field(default_factory=list)
     drift: list[str] = field(default_factory=list)
+    missing: list[str] = field(default_factory=list)
     links: list[str] = field(default_factory=list)
     mutations: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
@@ -147,6 +148,13 @@ def push(root: Path, tracker: Tracker, dry: bool, adopt: bool = False) -> PushRe
     for spec in specs:
         rec = dict(items.get(spec.key) or {})
         existing = tracker.get(rec["issue"]) if rec.get("issue") else tracker.find_by_key(spec.key)
+        if existing is None and rec.get("issue"):
+            existing = tracker.fetch(rec["issue"])  # not in the list: over the limit, deleted or transferred
+            if existing is None:
+                report.missing.append(f"{spec.key} #{rec['issue']}: mapped issue not found in the tracker; not "
+                                      "recreated (fix the mapping with `kickoff tickets link` or remove its entry "
+                                      "from tickets.yaml)")
+                continue
         problem = _drift(existing, rec, spec, adopt) if existing else None
         if problem:
             report.drift.append(f"{spec.key} #{existing.number}: {problem}; not overwritten")
@@ -168,6 +176,8 @@ def push(root: Path, tracker: Tracker, dry: bool, adopt: bool = False) -> PushRe
             rec.pop("fields_hash", None)
         items[spec.key] = rec
     for spec in specs:
+        if spec.key not in issues:
+            continue
         issue = issues[spec.key]
         if spec.parent_key in issues and issue.parent != issues[spec.parent_key].number:
             tracker.set_parent(issue, issues[spec.parent_key])

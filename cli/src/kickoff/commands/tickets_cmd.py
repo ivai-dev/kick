@@ -5,6 +5,7 @@ from __future__ import annotations
 from ..model import load_features, load_plan, load_project, load_tickets, resolve_root
 from ..schedule import actuals_of, build_schedule
 from ..tickets import link, make_tracker, plan_issues, pull, push
+from ..validate import report_plan_errors
 
 
 def register(sub) -> None:
@@ -25,6 +26,8 @@ def register(sub) -> None:
 def run(args) -> int:
     root = resolve_root(args.root)
     cmd = args.tickets_command
+    if cmd in ("plan", "push", "pull") and report_plan_errors(load_project(root), load_plan(root)):
+        return 1
     if cmd == "plan":
         project, plan, features = load_project(root), load_plan(root), load_features(root)
         sched = build_schedule(project, plan, actuals_of(load_tickets(root)))
@@ -44,9 +47,10 @@ def run(args) -> int:
             print(line)
         return 0
     report = push(root, tracker, dry=args.dry, adopt=args.adopt)
-    for name in ("created", "updated", "drift", "links", "warnings"):
+    for name in ("created", "updated", "drift", "missing", "links", "warnings"):
         for item in getattr(report, name):
             print(f"{name:<8} {item}")
     print(f"{len(report.created)} created, {len(report.updated)} updated, {len(report.unchanged)} unchanged, "
-          f"{len(report.drift)} drift, {len(report.mutations)} mutations" + (" (dry run)" if args.dry else ""))
-    return 1 if report.drift else 0
+          f"{len(report.drift)} drift, {len(report.missing)} missing, {len(report.mutations)} mutations"
+          + (" (dry run)" if args.dry else ""))
+    return 1 if report.drift or report.missing else 0

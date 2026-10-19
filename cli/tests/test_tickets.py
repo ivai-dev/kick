@@ -102,6 +102,67 @@ def test_drift_is_reported_not_overwritten(tmp_path):
     assert gh.issues[2]["body"].startswith("Edited on GitHub")
 
 
+def sprint_sets(gh):
+    return [m for m in gh.mutations if "updateProjectV2ItemFieldValue" in m]
+
+
+def test_missing_project_option_is_retried_on_the_next_push(tmp_path):
+    setup(tmp_path)
+    gh = FakeGh()
+    gh.iterations = []  # the Project has no "Sprint 1" iteration yet
+    first = push(tmp_path, tracker(gh, tmp_path), dry=False)
+    assert any("has no option 'Sprint 1'" in w for w in first.warnings)
+    saved = load_tickets(tmp_path)
+    assert "fields_hash" not in saved["items"]["1.1.1"] and "fields_hash" not in saved["items"]["1.1.2"]
+    assert "project" not in saved.get("tracker_cache", {})  # option ids are re-read next time
+    gh.iterations = ["Sprint 1"]
+    gh.mutations.clear()
+    second = push(tmp_path, tracker(gh, tmp_path), dry=False)
+    assert second.warnings == []
+    assert len(sprint_sets(gh)) >= 2  # the sprint of both packages is now set
+    saved = load_tickets(tmp_path)
+    assert saved["items"]["1.1.1"]["fields_hash"] and saved["items"]["1.1.2"]["fields_hash"]
+    assert saved["tracker_cache"]["project"]["fields"]["Sprint"]["options"] == {"Sprint 1": "it1"}
+    gh.mutations.clear()
+    push(tmp_path, tracker(gh, tmp_path), dry=False)
+    assert gh.mutations == []
+
+
+def test_set_fields_reports_a_skipped_option(tmp_path):
+    setup(tmp_path)
+    gh = FakeGh()
+    gh.iterations = []
+    t = tracker(gh, tmp_path)
+    t.prepare([])
+    gh.add(5, "x")
+    assert t.set_fields(t.get(5), {"Sprint": "Sprint 1"}, created=True) is False
+    assert "project" not in t.cache
+
+
+def test_mapped_issue_missing_from_the_list_is_found_by_number(tmp_path):
+    setup(tmp_path)
+    gh = FakeGh()
+    push(tmp_path, tracker(gh, tmp_path), dry=False)
+    gh.hidden.add(2)  # e.g. beyond the list limit
+    gh.mutations.clear()
+    report = push(tmp_path, tracker(gh, tmp_path), dry=False)
+    assert report.missing == [] and report.created == []
+    assert sorted(gh.issues) == [1, 2, 3] and gh.mutations == []
+
+
+def test_mapped_issue_that_is_gone_is_reported_not_duplicated(tmp_path):
+    setup(tmp_path)
+    gh = FakeGh()
+    push(tmp_path, tracker(gh, tmp_path), dry=False)
+    del gh.issues[2]  # deleted or transferred
+    gh.mutations.clear()
+    report = push(tmp_path, tracker(gh, tmp_path), dry=False)
+    assert len(report.missing) == 1 and report.missing[0].startswith("1.1.1 #2")
+    assert report.created == [] and sorted(gh.issues) == [1, 3]
+    assert not any(m.startswith("create") for m in gh.mutations)
+    assert load_tickets(tmp_path)["items"]["1.1.1"]["issue"] == 2  # the mapping is kept for the lead to fix
+
+
 def test_dry_run_changes_nothing(tmp_path):
     setup(tmp_path)
     gh = FakeGh()

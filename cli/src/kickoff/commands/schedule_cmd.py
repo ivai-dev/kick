@@ -7,7 +7,7 @@ from pathlib import Path
 
 from ..model import load_features, load_plan, load_project, load_tickets, resolve_root
 from ..schedule import actuals_of, build_schedule, schedule_json, slip_report
-from ..validate import check_plan
+from ..validate import report_plan_errors
 
 
 def register(sub) -> None:
@@ -19,10 +19,7 @@ def register(sub) -> None:
 def run(args) -> int:
     root = resolve_root(args.root)
     project, plan, features = load_project(root), load_plan(root), load_features(root)
-    errors = [f for f in check_plan(project, plan) if f.level == "error"]
-    if errors:
-        for f in errors:
-            print(f)
+    if report_plan_errors(project, plan):
         return 1
     sched = build_schedule(project, plan, actuals_of(load_tickets(root)))
     dates = sched.gate_dates(plan)
@@ -33,7 +30,7 @@ def run(args) -> int:
         print(f"{g['id']:<5} {d.isoformat() if d else '—':<11} {g['name']}{suffix}")
     if args.json:
         args.json.write_text(json.dumps(schedule_json(project, plan, sched), ensure_ascii=False, indent=0),
-                             encoding="utf-8")
+                             encoding="utf-8", newline="\n")
         print(f"{len(sched.slots)} codes -> {args.json}")
     slips = slip_report(project, plan, features, sched)
     for line in slips:

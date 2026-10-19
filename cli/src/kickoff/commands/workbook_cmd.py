@@ -8,6 +8,7 @@ from pathlib import Path
 from .. import lo_verify
 from ..model import load_plan, load_project, resolve_root
 from ..schedule import build_schedule
+from ..validate import report_plan_errors
 from ..workbook import build_workbook
 
 
@@ -21,6 +22,8 @@ def register(sub) -> None:
 def run(args) -> int:
     root = resolve_root(args.root)
     project, plan = load_project(root), load_plan(root)
+    if report_plan_errors(project, plan):
+        return 1
     slug = re.sub(r"[^a-z0-9]+", "-", project.name.lower()).strip("-")
     out = args.out or root / project.docs_root / "06-planning" / f"{slug}-estimate.xlsx"
     layout = build_workbook(project, plan, out)

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 
+from kickoff.tracker import TrackerError
+
 
 class FakeGh:
     def __init__(self):
@@ -13,6 +15,8 @@ class FakeGh:
         self.milestones: set[str] = set()
         self.calls: list[list[str]] = []
         self.mutations: list[str] = []
+        self.iterations: list[str] = ["Sprint 1"]  # Sprint options of the Project
+        self.hidden: set[int] = set()  # issues `issue list` omits but `issue view` still finds
 
     def add(self, number, title, body="", state="OPEN", labels=(), closed_at=None, reason=None, milestone=None):
         self.labels.update(labels)
@@ -45,9 +49,13 @@ class FakeGh:
     def __call__(self, args, stdin=None):
         self.calls.append(args)
         if args[:2] == ["issue", "list"]:
-            return json.dumps(list(self.issues.values()))
+            return json.dumps([i for n, i in self.issues.items() if n not in self.hidden])
         if args[:2] == ["issue", "view"]:
-            return json.dumps({"id": f"I_{args[2]}"})
+            if int(args[2]) not in self.issues:
+                raise TrackerError(f"gh issue view: Could not resolve to an issue with the number of {args[2]}.")
+            if self._opt(args, "--json") == ["id"]:
+                return json.dumps({"id": f"I_{args[2]}"})
+            return json.dumps(self.issues[int(args[2])])
         if args[:2] == ["label", "list"]:
             return json.dumps([{"name": n} for n in sorted(self.labels)])
         if args[:2] == ["label", "create"]:
@@ -100,7 +108,8 @@ class FakeGh:
                 return json.dumps({"data": {"organization": {"projectV2": {"id": "PVT_1", "fields": {"nodes": [
                     {"id": "F_S", "name": "Status", "options": [{"id": "o_b", "name": "Backlog"}, {"id": "o_r", "name": "Ready"}]},
                     {"id": "F_R", "name": "Release", "options": [{"id": "o_m", "name": "MVP"}]},
-                    {"id": "F_I", "name": "Sprint", "configuration": {"iterations": [{"id": "it1", "title": "Sprint 1"}]}},
+                    {"id": "F_I", "name": "Sprint", "configuration": {"iterations": [
+                        {"id": f"it{n}", "title": t} for n, t in enumerate(self.iterations, 1)]}},
                     {}]}}}}})
             if "addProjectV2ItemById" in q:
                 return json.dumps({"data": {"addProjectV2ItemById": {"item": {"id": "PVTI_1"}}}})

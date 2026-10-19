@@ -76,6 +76,7 @@ class Tracker(Protocol):
     warnings: list[str]
 
     def get(self, number: int) -> Issue | None: ...
+    def fetch(self, number: int) -> Issue | None: ...
     def find_by_key(self, key: str) -> Issue | None: ...
     def upsert_issue(self, spec: IssueSpec, existing: Issue | None) -> tuple[Issue, str]: ...
     def set_parent(self, child: Issue, parent: Issue) -> None: ...
@@ -102,25 +103,42 @@ class GitHubTracker:
         self.log: list[str] = []
         self.warnings: list[str] = []
         self._issues: dict[int, Issue] | None = None
+        self._pj: dict | None = None  # the Project ids used in this run, even after the cache entry is dropped
 
     # ------------------------------------------------ reads
+    ISSUE_JSON = "number,id,title,body,state,labels,milestone,closedAt,stateReason,parent,blockedBy"
+
+    @staticmethod
+    def _issue(i: dict) -> Issue:
+        closed = i.get("closedAt")
+        blockers = (i.get("blockedBy") or {}).get("nodes") or []
+        return Issue(
+            i["number"], i["id"], i["title"], i.get("body") or "", i["state"].lower(),
+            [lb["name"] for lb in i.get("labels") or []], (i.get("milestone") or {}).get("title"),
+            date.fromisoformat(closed[:10]) if closed else None, (i.get("stateReason") or "").lower() or None,
+            (i.get("parent") or {}).get("number"), [b["number"] for b in blockers if b.get("number")])
+
     def _load(self) -> dict[int, Issue]:
         if self._issues is None:
             out = self.run(["issue", "list", "-R", self.repo, "--state", "all", "--limit", "2000", "--json",
-                            "number,id,title,body,state,labels,milestone,closedAt,stateReason,parent,blockedBy"], None)
-            self._issues = {}
-            for i in json.loads(out):
-                closed = i.get("closedAt")
-                blockers = (i.get("blockedBy") or {}).get("nodes") or []
-                self._issues[i["number"]] = Issue(
-                    i["number"], i["id"], i["title"], i.get("body") or "", i["state"].lower(),
-                    [lb["name"] for lb in i.get("labels") or []], (i.get("milestone") or {}).get("title"),
-                    date.fromisoformat(closed[:10]) if closed else None, (i.get("stateReason") or "").lower() or None,
-                    (i.get("parent") or {}).get("number"), [b["number"] for b in blockers if b.get("number")])
+                            self.ISSUE_JSON], None)
+            self._issues = {i["number"]: self._issue(i) for i in json.loads(out)}
         return self._issues
 
     def get(self, number: int) -> Issue | None:
         return self._load().get(number)
+
+    def fetch(self, number: int) -> Issue | None:
+        """Look one issue up directly (it may be missing from the list: over the limit, deleted, transferred)."""
+        if number in self._load():
+            return self._load()[number]
+        try:
+            out = self.run(["issue", "view", str(number), "-R", self.repo, "--json", self.ISSUE_JSON], None)
+        except TrackerError:
+            return None
+        issue = self._issue(json.loads(out))
+        self._load()[number] = issue
+        return issue
 
     def find_by_key(self, key: str) -> Issue | None:
         return next((i for i in self._load().values() if i.key == key), None)
@@ -222,7 +240,9 @@ class GitHubTracker:
 
     # ------------------------------------------------ fields
     def _project(self) -> dict:
-        c = self.cache.setdefault("project", {})
+        if self._pj is not None:
+            return self._pj
+        c = self.cache.get("project") or {}
         if not c:
             q = ("query($org:String!,$n:Int!){organization(login:$org){projectV2(number:$n){id fields(first:50){nodes{"
                  "... on ProjectV2SingleSelectField{id name options{id name}} "
@@ -236,22 +256,28 @@ class GitHubTracker:
                 opts = f["configuration"]["iterations"] if iteration else f.get("options") or []
                 c["fields"][f["name"]] = {"id": f["id"], "kind": "iteration" if iteration else "select",
                                           "options": {o.get("name") or o.get("title"): o["id"] for o in opts}}
+            self.cache["project"] = c
+        self._pj = c
         return c
 
     def set_fields(self, issue: Issue, fields: dict, *, created: bool) -> bool:
-        """Set Project and org issue fields. A failure becomes a warning (False), never an abort."""
+        """Set Project and org issue fields. A failure or a skipped option becomes a warning and returns False
+        (never an abort), so the caller does not record the fields as synced and retries them on the next push."""
         if self.dry:
             self.log.append(f"fields #{issue.number} {sorted(k for k, v in fields.items() if v)}")
             return True
         try:
-            self._set_project_fields(issue, fields, created)
+            complete = self._set_project_fields(issue, fields, created)
             self._set_org_fields(issue, fields)
         except (TrackerError, KeyError, TypeError) as exc:
             self.warnings.append(f"#{issue.number}: fields not set: {exc}")
             return False
-        return True
+        return complete
 
-    def _set_project_fields(self, issue: Issue, fields: dict, created: bool) -> None:
+    def _set_project_fields(self, issue: Issue, fields: dict, created: bool) -> bool:
+        """False when a field or option is missing in the Project; the cached ids are then dropped so the next
+        push reads them again (a Sprint or Release may have been added to the Project since)."""
+        complete = True
         pj = self._project()
         item = self._gql("mutation($p:ID!,$c:ID!){addProjectV2ItemById(input:{projectId:$p,contentId:$c}){item{id}}}",
                          p=pj["id"], c=issue.node_id)["data"]["addProjectV2ItemById"]["item"]["id"]
@@ -262,11 +288,14 @@ class GitHubTracker:
             f = pj["fields"].get(name)
             if not f or value not in f["options"]:
                 self.warnings.append(f"#{issue.number}: project field {name} has no option {value!r}")
+                self.cache.pop("project", None)
+                complete = False
                 continue
             v = (f'{{iterationId:"{f["options"][value]}"}}' if f["kind"] == "iteration"
                  else f'{{singleSelectOptionId:"{f["options"][value]}"}}')
             self._gql("mutation($p:ID!,$i:ID!,$f:ID!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,"
                       "fieldId:$f,value:" + v + "}){clientMutationId}}", p=pj["id"], i=item, f=f["id"])
+        return complete
 
     def _set_org_fields(self, issue: Issue, fields: dict) -> None:
         issue_fields = self.cfg.get("issue_fields") or {}

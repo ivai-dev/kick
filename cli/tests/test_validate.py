@@ -42,6 +42,29 @@ def test_order_after_across_roles(tmp_path):
     assert "error: order_after 1.1.2: 1.1.2 (qa) and 1.1.1 (dev) are in different role queues" in out
 
 
+def test_order_after_itself_is_an_error_not_a_crash(tmp_path):
+    out = run(tmp_path, [pkg("1.1.1"), pkg("1.1.2")], order_after={"1.1.2": "1.1.2"})
+    assert "error: order_after 1.1.2: a package cannot be ordered after itself" in out
+
+
+def test_order_after_a_non_seq_or_unknown_code_is_an_error(tmp_path):
+    out = run(tmp_path, [pkg("1.1.1"), pkg("1.1.2", schedule={"span": ["1.1.1", "1.1.1"]})],
+              order_after={"1.1.1": "1.1.2", "1.1.9": "1.1.1"})
+    assert "error: order_after 1.1.1: both packages must be seq packages" in out
+    assert "error: order_after 1.1.9: unknown code 1.1.9" in out
+
+
+def test_role_queues_rejects_bad_order_after_without_a_value_error():
+    import pytest
+    from helpers import plan
+
+    from kickoff.errors import KickoffError
+    from kickoff.schedule import role_queues
+
+    with pytest.raises(KickoffError, match="order_after"):
+        role_queues(plan([pkg("1.1.1")], order_after={"1.1.1": "1.1.1"}))
+
+
 def test_cycle_is_an_error(tmp_path):
     out = run(tmp_path, [pkg("1.1.1", deps=["1.1.2"]), pkg("1.1.2", role="qa", deps=["1.1.1"])])
     assert "error: schedule: dependency cycle: 1.1.1 -> 1.1.2 -> 1.1.1" in out

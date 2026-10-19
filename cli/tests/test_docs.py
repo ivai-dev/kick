@@ -68,6 +68,15 @@ def test_plan_md_created_with_all_markers(tmp_path):
         assert f"<!-- kickoff:begin {name} -->" in out
 
 
+def test_generated_documents_use_lf_line_endings(tmp_path):
+    docs = setup(tmp_path)
+    write_docs(tmp_path, check=False)
+    for path in (docs / "02-requirements" / "feature-map.md", docs / "06-planning" / "wbs.md",
+                 docs / "06-planning" / "risk-register.md", docs / "06-planning" / "plan.md"):
+        raw = path.read_bytes()
+        assert b"\n" in raw and b"\r" not in raw, path.name
+
+
 def test_fill_markers_ignores_unknown_blocks():
     src = "a\n<!-- kickoff:begin x -->\n1\n<!-- kickoff:end x -->\n"
     assert fill_markers(src, {"y": "2"}) == src

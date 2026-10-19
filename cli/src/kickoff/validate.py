@@ -71,6 +71,8 @@ def check_plan(project: Project, plan: Plan) -> list[Finding]:
         where = f"order_after {code}"
         if code not in by or after not in by:
             err(where, f"unknown code {code if code not in by else after}")
+        elif code == after:
+            err(where, "a package cannot be ordered after itself")
         elif by[code].mode != "seq" or by[after].mode != "seq":
             err(where, "both packages must be seq packages")
         elif by[code].role != by[after].role:
@@ -94,6 +96,14 @@ def check_plan(project: Project, plan: Plan) -> list[Finding]:
         except CycleError as exc:
             err("schedule", f"dependency cycle: {exc}")
     return out
+
+
+def report_plan_errors(project: Project, plan: Plan) -> bool:
+    """Print the plan's error findings; True when there were any (commands then exit 1 like `validate`)."""
+    errors = [f for f in check_plan(project, plan) if f.level == "error"]
+    for f in errors:
+        print(f)
+    return bool(errors)
 
 
 def check_features(project: Project, plan: Plan, features: Features) -> list[Finding]:

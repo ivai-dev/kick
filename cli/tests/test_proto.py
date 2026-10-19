@@ -61,6 +61,15 @@ def test_bundle_inlines_project_scripts(tmp_path):
     assert not html.lstrip().lower().startswith(("<!doctype", "<html"))
 
 
+def test_bundle_and_new_write_lf_line_endings(tmp_path):
+    out = bundle(MINI, load_project(MINI), tmp_path / "prototype.html")
+    assert b"\r" not in out.read_bytes()
+    root = copy_mini(tmp_path)
+    for path in new_prototype(root, load_project(root)):
+        if path.suffix in (".js", ".html"):
+            assert b"\r" not in path.read_bytes(), path.name
+
+
 def test_lint_mini_passes():
     metrics, failures = lint(MINI, load_project(MINI))
     assert failures == []

@@ -29,7 +29,7 @@
       "additionalProperties": false,
       "required": ["weekend", "holidays"],
       "properties": {
-        "weekend": { "type": "array", "items": { "enum": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] }, "uniqueItems": true },
+        "weekend": { "type": "array", "items": { "enum": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] }, "uniqueItems": true, "maxItems": 6 },
         "holidays": {
           "type": "array",
           "items": {

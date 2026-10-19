@@ -55,7 +55,9 @@ def role_queues(plan: Plan) -> dict[str, list[str]]:
         if p.mode == "seq":
             queues.setdefault(p.role, []).append(p.code)
     for code, after in plan.order_after.items():
-        queue = queues[by[code].role]
+        queue = queues.get(by[code].role, []) if code in by else []
+        if code == after or code not in queue or after not in queue:
+            raise KickoffError(f"order_after {code}: {after}: both must be different seq packages of the same role")
         queue.remove(code)
         queue.insert(queue.index(after) + 1, code)
     return queues
