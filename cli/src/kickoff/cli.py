@@ -7,10 +7,11 @@ import sys
 from pathlib import Path
 
 from . import __version__
+from .commands import schedule_cmd
 from .errors import KickoffError
 
 # Command modules, each with register(subparsers) and run(args) -> int. Later tasks append here.
-COMMANDS: list = []
+COMMANDS: list = [schedule_cmd]
 
 
 def build_parser() -> argparse.ArgumentParser:
