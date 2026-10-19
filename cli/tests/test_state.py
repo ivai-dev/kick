@@ -62,6 +62,17 @@ def test_reopen_c3_marks_later_phases_stale():
     assert s["stale"] == ["plan", "tickets"]
 
 
+def test_the_phase_being_re_run_is_not_listed_as_a_later_stale_one():
+    s = fresh()
+    for p in ("discovery", "research", "feature-map", "plan"):
+        set_phase(s, p, "done")
+    reopen(s, "C1", "new scope")
+    set_phase(s, "discovery", "done")
+    set_phase(s, "research", "in_progress")  # started again while still stale
+    assert s["stale"] == ["research", "feature-map", "plan"]
+    assert next_step(s) == "continue kickoff:research; then re-run stale: feature-map, plan"
+
+
 def test_stale_prerequisite_blocks_the_next_phase():
     s = fresh()
     for p in ("feature-map", "plan"):

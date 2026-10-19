@@ -102,7 +102,8 @@ def next_step(state: dict) -> str:
     stale = state["stale"]
     in_progress = [p for p in PHASES if state["phases"].get(p) == "in_progress"]
     if in_progress:
-        tail = f"; then re-run stale: {', '.join(stale)}" if stale else ""
+        later = [p for p in stale if p != in_progress[0]]  # the phase being continued is not "then re-run"
+        tail = f"; then re-run stale: {', '.join(later)}" if later else ""
         return f"continue kickoff:{in_progress[0]}{tail}"
     for gate, phase in GATE_AFTER.items():
         ready = all(g in state["gates"] for g in GATE_NEEDS.get(gate, []))

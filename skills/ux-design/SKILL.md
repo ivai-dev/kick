@@ -10,7 +10,7 @@ Turns the approved feature map into the UX specification (roles, IA per role, ev
 ## When to use
 
 - After C2, before the first prototype.
-- Again when the feature map gains screens, or the lead changes the design direction. Customer feedback on screens goes through `kickoff:feedback`, which updates `ux-spec.md` in chain order.
+- Again when features gain or lose screens, or the lead changes the design direction. Customer feedback on screens goes through `kickoff:feedback`, which updates `ux-spec.md` in chain order.
 
 ## Preconditions
 
@@ -56,14 +56,14 @@ Turns the approved feature map into the UX specification (roles, IA per role, ev
    - development infrastructure (VPN names, private IP ranges, internal hosts, tool names) never appears in product UI;
    - copy, sample data and fixtures are in `languages.ui`, with invented names only.
 9. **Write `<docs_root>/05-design/design-system.md`** from `templates/design-system.md`, sections: Principles, Tokens (light and dark), Type scale, Spacing, Motion, Status vocabulary, Components, Charts, Scope layer, Density and copy, Accessibility. Use the kit's token names so the prototype can copy the values into its tokens block. The calm-density defaults are a type scale of 12/13/14/16/18/22/28 px, weights 400 body, 500 labels and 600 headings and KPI numbers only, line height 1.6, a 4 px spacing grid and 32 px between sections. State that the product bundles its fonts and assets; the prototype's CDN use does not relax that.
-10. **Regenerate and validate:** `kickoff docs` (the feature map now shows screens), then `kickoff validate`.
+10. **Regenerate and validate:** `kickoff docs` (it regenerates the feature map; screens are not rendered there, they live in `features.yaml` and the ux-spec inventory), then `kickoff validate`.
 11. **Verify** (section below), then `kickoff phase done ux-design` and commit `docs: UX specification and design system`.
 
 ## Outputs
 
 - `<docs_root>/05-design/ux-spec.md` (or the path in `proto.ux_spec`)
 - `<docs_root>/05-design/design-system.md`
-- `.kickoff/features.yaml` with `screens` on every active feature; `<docs_root>/02-requirements/feature-map.md` regenerated
+- `.kickoff/features.yaml` with `screens` on every active feature (`<docs_root>/02-requirements/feature-map.md` is regenerated but does not list screens)
 - `.kickoff/state.yaml`: `ux-design: done`
 
 ## Verify

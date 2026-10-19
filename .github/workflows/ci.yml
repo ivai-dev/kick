@@ -61,4 +61,4 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv build --wheel
         working-directory: cli
-      - run: python -c "import glob, zipfile; n = zipfile.ZipFile(glob.glob('cli/dist/*.whl')[0]).namelist(); assert 'kickoff/kit/prototype/index.html' in n and 'kickoff/templates/project.yaml' in n and 'kickoff/docker/lo-calc/Dockerfile' in n, 'package data missing'"
+      - run: python -c "import glob, zipfile; n = zipfile.ZipFile(glob.glob('cli/dist/*.whl')[0]).namelist(); assert 'kickoff/kit/prototype/index.html' in n and 'kickoff/templates/project.yaml' in n and 'kickoff/schemas/project.schema.json' in n and 'kickoff/docker/lo-calc/Dockerfile' in n, 'package data missing'"

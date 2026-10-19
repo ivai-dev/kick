@@ -71,7 +71,7 @@ Builds the clickable prototype of the full product: every role, platform and rel
 - `<proto.dir>/index.html`, `js/config.js`, `js/data.js`, `js/<area>.js` modules, `js/scenarios.js` (kit core files unchanged)
 - `<docs_root>/plans/YYYY-MM-DD-prototype.md` (build plan, tasks ticked) and `<docs_root>/plans/YYYY-MM-DD-prototype-rulings.md`
 - A private Artifact link or `<proto.dir>/dist/prototype.html`, recorded in `.kickoff/state.yaml` `prototype`
-- `.kickoff/state.yaml`: `prototype: done`
+- `.kickoff/state.yaml`: `phases.prototype: done`, set by `kickoff phase done prototype` (not by hand); the top-level `prototype` object (artifact, version) is a different key
 
 ## Verify
 

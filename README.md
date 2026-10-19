@@ -26,8 +26,9 @@ flowchart TD
     P7 --> C5{{"C5 Solution approved"}}
     C5 --> P8["8 plan (baseline)"]
     P8 --> C6{{"C6 Plan baselined"}}
-    C6 --> P9["9 tickets"]
+    P8 --> P9["9 tickets"]
     C2 -.->|"draft plan"| P8d["8 plan (draft)"]
+    P8d -.-> P9
     P5 -.->|"customer feedback"| FB["feedback"]
     FB -.->|"reopens C3, later phases stale"| C3
 ```
@@ -49,6 +50,7 @@ flowchart TD
 Gate rules:
 
 - A gate is approved only with `--by` (the approving role) and `--evidence` (a link to the record or commit). C4 needs C3; C6 needs C5.
+- `kickoff:tickets` needs only `plan` done: a draft plan is enough, and C6 is not checked by the CLI. Push tickets from a draft plan only when the lead wants the preparation work tracked early; the baseline (C6) is what the team commits to.
 - Reopening a gate (`kickoff gate reopen C3 --reason "..."`) marks every later phase that was done as stale. A stale phase blocks the phases that depend on it until it is re-run; re-running it removes the gates that follow it, so they are approved again.
 - `kickoff:feedback` is not a phase; it is a loop that classifies customer feedback, applies it along the chain `features.yaml`, `ux-spec.md`, prototype, draft `plan.yaml`, schedule, and reopens C3.
 - Every phase ends with real verification commands, then `kickoff phase done <phase>` and a Conventional Commit.
@@ -77,7 +79,7 @@ Repeat the CLI install after every plugin update. `kickoff:using-kickoff` compar
 - Python 3.11 or newer and [uv](https://docs.astral.sh/uv/)
 - [`gh`](https://cli.github.com/), signed in, for the GitHub tracker (`kickoff tickets ...`); the plugin stores no tokens
 - Optional: Docker, for `kickoff workbook --verify` (LibreOffice recalculation)
-- Optional: Microsoft Edge or Google Chrome, for `kickoff proto check` (set `KICKOFF_BROWSER` or `proto.browser` in `project.yaml` to choose one)
+- Optional: Microsoft Edge or Google Chrome, for `kickoff proto check` (set `KICKOFF_BROWSER` to any executable, or `proto.browser` in `project.yaml` to an Edge, Chrome or Chromium name such as `msedge` or `google-chrome`; other values in `project.yaml` are refused because a cloned repository could otherwise run any program)
 - The `ui-ux-pro-max` skill, for the design phases; `kickoff:using-kickoff` stops with install instructions when it is missing
 - Node 22 or newer, only for developing the prototype kit
 
