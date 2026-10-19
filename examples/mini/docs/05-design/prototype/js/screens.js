@@ -2,7 +2,7 @@
 // A-01 My loans (Android).
 (function () {
   "use strict";
-  const { html, hooks, useApp, register, D } = KIT;
+  const { html, hooks, useApp, D } = KIT;
   const { useState } = hooks;
   const { Button, Field, Table, KPI, StatusChip, Card, PageHeader, Drawer, EmptyState, Rel } = KIT.ui;
   const { BarChart, Donut } = KIT.charts;
@@ -154,8 +154,8 @@
       </section>`;
   }
 
-  register("sc-01", { comp: Home, code: "SC-01", name: "Home", roles: ["librarian", "admin"], platforms: ["web"], rel: "MVP", nav: "Library", icon: "home" });
-  register("sc-02", { comp: Loans, code: "SC-02", name: "Loans", roles: ["librarian"], platforms: ["web"], rel: "MVP", nav: "Library", icon: "book" });
-  register("sc-03", { comp: MonthlyReport, code: "SC-03", name: "Monthly report", roles: ["admin"], platforms: ["web"], rel: "R2", nav: "Reports", icon: "chart" });
-  register("a-01", { comp: MyLoans, code: "A-01", name: "My loans", roles: ["member"], platforms: ["android"], rel: "MVP", nav: "Loans", icon: "library" });
+  KIT.register("sc-01", { comp: Home, code: "SC-01", name: "Home", roles: ["librarian", "admin"], platforms: ["web"], rel: "MVP", nav: "Library", icon: "home" });
+  KIT.register("sc-02", { comp: Loans, code: "SC-02", name: "Loans", roles: ["librarian"], platforms: ["web"], rel: "MVP", nav: "Library", icon: "book" });
+  KIT.register("sc-03", { comp: MonthlyReport, code: "SC-03", name: "Monthly report", roles: ["admin"], platforms: ["web"], rel: "R2", nav: "Reports", icon: "chart" });
+  KIT.register("a-01", { comp: MyLoans, code: "A-01", name: "My loans", roles: ["member"], platforms: ["android"], rel: "MVP", nav: "Loans", icon: "library" });
 })();
