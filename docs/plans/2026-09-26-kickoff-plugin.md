@@ -20,7 +20,7 @@
 - Files are written UTF-8 with LF line endings (`.gitattributes`: `* text=auto eol=lf`). Subprocess calls pass `encoding="utf-8"`.
 - Tests run offline, except tests marked `@pytest.mark.browser` (need Edge/Chrome and the CDN) and `@pytest.mark.docker` (need Docker); both skip automatically when the tool is missing.
 - Generated documents, ticket bodies and templates never mention AI assistance, and name roles, never people or assistants, as owners.
-- Commits: Conventional Commits, one per task (fix rounds may add more), each ending with the line `Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>`.
+- Commits: Conventional Commits, one per task (fix rounds may add more), with no `Co-Authored-By` trailer.
 - Run CLI tests from `cli/`: `cd cli && uv run pytest -q`. Lint: `cd cli && uv run ruff check .`.
 - The AI Minute example is committed data, not generated code: `examples/ai-minute/.kickoff/*.yaml` and the golden schedule `examples/ai-minute/expected/schedule.json` (205 codes). Nothing in the repository reads from outside the repository except the prototype the kit is extracted from, `C:\Users\hienl\Workspace\ivai\ai-minute\docs\05-design\prototype\` (read only, Task 10).
 

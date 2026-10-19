@@ -1,0 +1,64 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  cli:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - run: uv run ruff check .
+        working-directory: cli
+      - run: uv run pytest -q
+        working-directory: cli
+  kit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test "cli/src/kickoff/kit/prototype/test/*.test.js"
+  examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - run: uv run kickoff --root ../examples/ai-minute validate
+        working-directory: cli
+      - run: uv run kickoff --root ../examples/mini validate
+        working-directory: cli
+      - run: uv run kickoff --root ../examples/ai-minute docs --check
+        working-directory: cli
+      - run: uv run kickoff --root ../examples/mini proto lint
+        working-directory: cli
+      - run: KICKOFF_BROWSER=$(which google-chrome) uv run kickoff --root ../examples/mini proto check
+        working-directory: cli
+      - run: uv run pytest -q -m docker
+        working-directory: cli
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - run: uv run pytest -q -m "not docker and not github"
+        working-directory: cli
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build --wheel
+        working-directory: cli
+      - run: python -c "import glob, zipfile; n = zipfile.ZipFile(glob.glob('cli/dist/*.whl')[0]).namelist(); assert 'kickoff/kit/prototype/index.html' in n and 'kickoff/templates/project.yaml' in n and 'kickoff/schemas/project.schema.json' in n and 'kickoff/docker/lo-calc/Dockerfile' in n, 'package data missing'"

@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "kickoff project.yaml",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "name", "languages", "calendar", "roles", "releases", "tracker"],
+  "$defs": {
+    "date": { "type": "string", "format": "date" },
+    "relpath": {
+      "type": "string",
+      "description": "a relative path inside the project folder: no leading slash or drive letter, no '..' segment",
+      "pattern": "^(?![/\\\\]|[A-Za-z]:)(?!(?:.*[/\\\\])?\\.\\.(?:[/\\\\]|$)).+$"
+    },
+    "i18n": { "type": "object", "additionalProperties": { "type": "object", "additionalProperties": { "type": "string" } } }
+  },
+  "properties": {
+    "schema_version": { "const": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "languages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repo", "chat", "workbook", "ui"],
+      "properties": {
+        "repo": { "enum": ["en", "vi"] },
+        "chat": { "type": "string" },
+        "workbook": { "enum": ["en", "vi"] },
+        "ui": { "type": "string" }
+      }
+    },
+    "docs_root": { "$ref": "#/$defs/relpath" },
+    "date_format": { "type": "string" },
+    "calendar": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weekend", "holidays"],
+      "properties": {
+        "weekend": { "type": "array", "items": { "enum": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] }, "uniqueItems": true, "maxItems": 6 },
+        "holidays": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/date" },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["date"],
+                "properties": { "date": { "$ref": "#/$defs/date" }, "name": { "type": "string" }, "kind": { "type": "string" } }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "roles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "focus"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*$" },
+          "name": { "type": "string" },
+          "focus": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+          "duties": { "type": "string" },
+          "i18n": { "$ref": "#/$defs/i18n" }
+        }
+      }
+    },
+    "releases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id"],
+            "properties": { "id": { "type": "string" }, "name": { "type": "string" } }
+          }
+        ]
+      }
+    },
+    "hard_dates": { "type": "object", "additionalProperties": { "$ref": "#/$defs/date" } },
+    "tracker": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["github", "none"] },
+        "org": { "type": "string" },
+        "repo": { "type": "string" },
+        "project": { "type": "integer" },
+        "assignee": { "type": "string" },
+        "milestone": { "type": "string" },
+        "priority": {
+          "type": "object",
+          "properties": { "source": { "enum": ["org-field", "none"] }, "map": { "type": "object", "additionalProperties": { "type": "string" } } }
+        },
+        "issue_fields": { "type": "object" },
+        "blob_base": { "type": "string" }
+      },
+      "if": { "properties": { "kind": { "const": "github" } } },
+      "then": { "required": ["org", "repo", "project", "assignee"] }
+    },
+    "rules": {
+      "type": "object",
+      "properties": {
+        "owners_by_role": { "type": "boolean" },
+        "synthetic_data_only": { "type": "boolean" },
+        "forbidden_phrases": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "security": { "type": "array", "items": { "type": "string" } },
+    "proto": {
+      "type": "object",
+      "properties": {
+        "dir": { "$ref": "#/$defs/relpath" },
+        "ux_spec": { "$ref": "#/$defs/relpath" },
+        "browser": { "type": "string" },
+        "forbidden": { "type": "array", "items": { "type": "string" } },
+        "max_font_sizes": { "type": "integer" },
+        "max_weight_600": { "type": "integer" },
+        "max_inline_styles": { "type": "integer" }
+      }
+    }
+  }
+}

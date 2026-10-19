@@ -63,6 +63,7 @@ examples/
   ai-minute/               # full worked example (committed data, not generated)
     .kickoff/              # project, features, plan, state, tickets
     expected/schedule.json # golden schedule the scheduler must reproduce
+    docs/                  # output of `kickoff docs`, committed so CI's `docs --check` has something to compare
   mini/                    # tiny project used by kit and CI tests
 docs/
   specs/, plans/
@@ -188,7 +189,7 @@ epics:
         platforms: W            # free text: W web, D Windows, M Android
         screens: [SC-12]
         wbs: [2.3.1]
-      - { id: F6.9, name: Multi-step approval, release: R2, prio: P2, status: removed, removed_by: D-2026-09-26 }
+      - { id: F6.9, name: Multi-step approval, release: R2, prio: P2, status: removed, removed_by: D3 }
 ```
 
 ### plan.yaml
@@ -269,7 +270,7 @@ stale: [plan, tickets]
 
 ### ID rules
 
-- IDs are permanent: `E<n>`, `F<epic>.<n>`, screens `SC-nn` (web), `W-nn` (Windows), `A-nn` (Android) or prefixes from `project.yaml`, WBS codes in dotted numbers, `R<n>`, `A<n>`, `Q<n>`, `D-<date>`, `FB-<n>`.
+- IDs are permanent: `E<n>`, `F<epic>.<n>`, screens `SC-nn` (web), `W-nn` (Windows), `A-nn` (Android) or prefixes from `project.yaml`, WBS codes in dotted numbers, `R<n>`, `A<n>`, `Q<n>`, `D<n>` (the decision log row carries the date), `FB-<n>`.
 - Renaming never changes an ID. Removal sets `status: removed` with a reference to the decision; the entry stays.
 - Tracker issues are matched by a hidden key in the body, `<!-- kickoff:1.2.7 -->`, never by title.
 
@@ -280,8 +281,8 @@ Python 3.11+, installed with `uv tool install --force <plugin>/cli` (or `pipx in
 | Command | Behaviour |
 | --- | --- |
 | `kickoff validate` | Schema check; duplicate or dangling IDs; features without WBS and WBS without features; unknown roles; cycles across `deps` and `order_after` (reports the exact cycle); dependencies and span ends that point at a package that is not `seq` or `fixed`. Exit code 1 on any error. |
-| `kickoff schedule [--json]` | Role-based schedule (below). Prints gate dates; warns when a hard date slips and lists the `cut_order` candidates with the effort each frees. `--json` writes `{code: [start, end, workdays, effort, name, role]}`. |
-| `kickoff workbook [--verify]` | Writes the baseline estimate workbook, a formula-only xlsx with the WBS, effort and schedule (*Workbook sheets* below); it tracks no progress. `--verify` recalculates it with LibreOffice headless in Docker (image from `kickoff/docker/lo-calc`, shipped inside the package), requires zero error cells, and compares every WBS row's dates, working days and effort, the gate dates and the total effort with the baseline schedule. Without Docker it says the recalculation was skipped. |
+| `kickoff schedule [--json FILE]` | Role-based schedule (below). Prints gate dates; warns when a hard date slips (exit code 3) and lists the `cut_order` candidates with the effort each frees. `--json FILE` writes `{code: [start, end, workdays, effort, name, role]}` to FILE. |
+| `kickoff workbook [--out FILE] [--verify]` | Writes the baseline estimate workbook, a formula-only xlsx with the WBS, effort and schedule (*Workbook sheets* below); it tracks no progress. `--verify` recalculates it with LibreOffice headless in Docker (image from `kickoff/docker/lo-calc`, shipped inside the package), requires zero error cells, and compares every WBS row's dates, working days and effort, the gate dates and the total effort with the baseline schedule. Without Docker it says the recalculation was skipped. |
 | `kickoff docs [--check]` | Generates `feature-map.md`, `wbs.md`, `risk-register.md` and the tables inside `plan.md` between `<!-- kickoff:begin <name> -->` and `<!-- kickoff:end <name> -->`; hand-written prose is kept. `--check` fails if regeneration would change anything. |
 | `kickoff tickets plan` | Builds the intended issue set: one Epic per feature-map epic (`[E6] Minutes`), and one Story or Task per package that has a `ticket` block (`[1.2.7] ...`), linked to its epic as a sub-issue. Bodies in the repo language state WBS code, owning role, effort, planned dates and priority, then the description, acceptance criteria and references. |
 | `kickoff tickets push [--dry] [--adopt]` | Idempotent sync through the adapter: creates missing `type:*`/`area:*` labels and milestones, then creates/updates issues, sub-issues and blocked-by links (read from the tracker; only missing links are sent), Project fields (Status, Release, Sprint) and org fields (Priority, Start date, Target date). `--dry` prints the diff. Title or body drift made in the tracker is reported, not overwritten; issues mapped with `tickets link` are only taken over with `--adopt`. |
@@ -293,7 +294,7 @@ Python 3.11+, installed with `uv tool install --force <plugin>/cli` (or `pipx in
 | `kickoff gate approve\|reopen <id>` | Approves a gate with `--by` and `--evidence` (both required), or reopens it with `--reason`, marking later phases stale. |
 | `kickoff tickets link <key> <number>` | Maps a WBS code or epic to an existing issue before the first push (adopting a tracker populated by hand). |
 | `kickoff proto new` | Scaffolds a prototype from the kit and one stub per screen in `ux-spec.md`. |
-| `kickoff proto check [routes] [--jobs N]` | Section 7. |
+| `kickoff proto check [routes] [--shots DIR] [--jobs N]` | Section 7. Without routes it checks every screen and scenario; explicit routes check only those screens and skip the scenarios, so they never replace the full check. Exit 4 when no Edge or Chrome is found (skipped, not passed). |
 | `kickoff proto lint` | Section 7. |
 | `kickoff proto bundle [--out FILE]` | Writes the prototype as one self-contained HTML file (project scripts inlined) for publishing as an Artifact or handing over as a single file. |
 

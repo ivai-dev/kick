@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -d .kickoff ]; then echo 'kickoff project detected: use the kickoff:using-kickoff skill.'; kickoff status 2>&1 || echo 'kickoff CLI missing or failed: see kickoff:using-kickoff.'; fi",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
