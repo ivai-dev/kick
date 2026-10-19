@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "kickoff state.yaml",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "phases", "gates", "stale"],
+  "$defs": {
+    "phase": { "enum": ["init", "discovery", "research", "feature-map", "ux-design", "prototype", "signoff", "solution", "plan", "tickets"] }
+  },
+  "properties": {
+    "schema_version": { "const": 1 },
+    "phases": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/phase" },
+      "additionalProperties": { "enum": ["in_progress", "done"] }
+    },
+    "gates": {
+      "type": "object",
+      "propertyNames": { "enum": ["C1", "C2", "C3", "C4", "C5", "C6"] },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["approved_by", "date", "evidence"],
+        "properties": {
+          "approved_by": { "type": "string", "minLength": 1 },
+          "date": { "type": "string", "format": "date" },
+          "evidence": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "stale": { "type": "array", "items": { "$ref": "#/$defs/phase" }, "uniqueItems": true },
+    "history": { "type": "array", "items": { "type": "string" } },
+    "prototype": {
+      "type": "object",
+      "properties": { "artifact": { "type": "string" }, "version": { "type": "integer" } }
+    }
+  }
+}

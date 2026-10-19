@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "kickoff plan.yaml",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "start", "phases", "groups", "packages", "gates"],
+  "$defs": {
+    "date": { "type": "string", "format": "date" },
+    "code": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)*$" },
+    "i18n": { "type": "object", "additionalProperties": { "type": "object", "additionalProperties": { "type": "string" } } },
+    "node": {
+      "type": "object",
+      "required": ["code", "name"],
+      "properties": { "code": { "$ref": "#/$defs/code" }, "name": { "type": "string" }, "i18n": { "$ref": "#/$defs/i18n" } }
+    },
+    "schedule": {
+      "oneOf": [
+        { "const": "seq" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fixed"],
+          "properties": { "fixed": { "type": "array", "prefixItems": [{ "$ref": "#/$defs/date" }, { "$ref": "#/$defs/date" }], "minItems": 2, "maxItems": 2 } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["span"],
+          "properties": { "span": { "type": "array", "items": { "$ref": "#/$defs/code" }, "minItems": 2, "maxItems": 2 } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["period"],
+          "properties": {
+            "period": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["after", "months"],
+              "properties": { "after": { "$ref": "#/$defs/code" }, "months": { "type": "integer", "minimum": 1 } }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tail"],
+          "properties": {
+            "tail": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["of", "days"],
+              "properties": { "of": { "$ref": "#/$defs/code" }, "days": { "type": "integer", "minimum": 1 } }
+            }
+          }
+        }
+      ]
+    },
+    "ticket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "type", "epic"],
+      "properties": {
+        "title": { "type": "string" },
+        "type": { "enum": ["story", "task", "bug", "spike"] },
+        "epic": { "type": "string", "pattern": "^E[0-9]+$" },
+        "areas": { "type": "array", "items": { "type": "string" } },
+        "desc": { "type": "string" },
+        "ac": { "type": "array", "items": { "type": "string" } },
+        "sprint": { "type": "string" },
+        "status": { "type": "string" },
+        "milestone": { "type": "string" }
+      }
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "name", "role", "effort"],
+      "properties": {
+        "code": { "$ref": "#/$defs/code" },
+        "name": { "type": "string" },
+        "desc": { "type": "string" },
+        "ref": { "type": "string" },
+        "role": { "type": "string" },
+        "effort": { "type": "number", "minimum": 0 },
+        "done": { "type": "number", "minimum": 0, "maximum": 1 },
+        "prio": { "enum": ["P0", "P1", "P2"] },
+        "deps": { "type": "array", "items": { "$ref": "#/$defs/code" } },
+        "coop": { "type": "string" },
+        "note": { "type": "string" },
+        "release": { "type": "string" },
+        "status": { "enum": ["todo", "wip", "done"] },
+        "schedule": { "$ref": "#/$defs/schedule" },
+        "effort_rate": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "ticket": { "$ref": "#/$defs/ticket" },
+        "i18n": { "$ref": "#/$defs/i18n" }
+      }
+    }
+  },
+  "properties": {
+    "schema_version": { "const": 1 },
+    "start": { "$ref": "#/$defs/date" },
+    "phases": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+    "groups": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+    "packages": { "type": "array", "items": { "$ref": "#/$defs/package" } },
+    "order_after": { "type": "object", "additionalProperties": { "$ref": "#/$defs/code" } },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "at"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "at": { "$ref": "#/$defs/code" },
+          "hard": { "type": "boolean" },
+          "i18n": { "$ref": "#/$defs/i18n" }
+        }
+      }
+    },
+    "sprints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "start", "days"],
+        "properties": { "name": { "type": "string" }, "start": { "$ref": "#/$defs/date" }, "days": { "type": "integer", "minimum": 1 } }
+      }
+    },
+    "cut_order": { "type": "array", "items": { "type": "string" } },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "p", "i"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "p": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "i": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "i18n": { "$ref": "#/$defs/i18n" }
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "text"],
+        "properties": { "id": { "type": "string" }, "text": { "type": "string" }, "i18n": { "$ref": "#/$defs/i18n" } }
+      }
+    }
+  }
+}
