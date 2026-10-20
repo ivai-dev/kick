@@ -131,22 +131,16 @@
   --shadow-3: 0 24px 60px -12px rgba(0, 0, 0, .7), 0 4px 12px rgba(0, 0, 0, .4);
   color-scheme: dark;
 }
-/* Type, weight, spacing and shape. Calm density: a 7-step scale, three weights, one line height,
-   a 4 px spacing grid and 32 px between sections. */
+/* Type, weight, spacing, shape and motion. The kit's Foundation tokens (after this block) give the
+   type roles (--t-*), density sizes (--ctl-h, --row-h, …), layout widths and z-index layers; set any of
+   them here only where the design system differs. Weights 400–700, never 800. */
 :root {
-  --font-ui: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-ui: "Inter", "Segoe UI", Roboto, "Noto Sans", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Cascadia Mono", Consolas, ui-monospace, monospace;
-  --fs-12: 12px;
-  --fs-13: 13px;
-  --fs-14: 14px;
-  --fs-16: 16px;
-  --fs-18: 18px;
-  --fs-22: 22px;
-  --fs-28: 28px;
   --fw-regular: 400;
   --fw-medium: 500;
-  --fw-bold: 600;
-  --lh: 1.6;
+  --fw-semibold: 600;
+  --fw-strong: 700;
   --sp-1: 4px;
   --sp-2: 8px;
   --sp-3: 12px;
@@ -156,16 +150,18 @@
   --sp-8: 32px;
   --sp-10: 40px;
   --sp-12: 48px;
-  --sp-section: var(--sp-8);
   --r-sm: 6px;
   --r-md: 8px;
   --r-lg: 12px;
   --r-xl: 16px;
-  --ease-out: cubic-bezier(.2, .8, .2, 1);
-  --ease-spring: cubic-bezier(.34, 1.4, .64, 1);
-  --d-fast: 120ms;
-  --d-base: 200ms;
-  --d-slow: 320ms;
+  --dur-1: 100ms;
+  --dur-2: 150ms;
+  --dur-3: 200ms;
+  --dur-4: 250ms;
+  --dur-5: 300ms;
+  --ease-standard: cubic-bezier(.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0, 0, 0, 1);
+  --ease-exit: cubic-bezier(.3, 0, 1, 1);
   --sidebar: 256px;
   --rail: 72px;
   --proto-h: 48px;

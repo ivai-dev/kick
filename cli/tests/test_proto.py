@@ -353,3 +353,37 @@ def test_check_reports_coverage_gap(tmp_path):
     spec.write_text(spec.read_text(encoding="utf-8") + "| SC-09 | Missing | admin | web | R2 |\n", encoding="utf-8")
     failures = check(root, load_project(root), routes=[])
     assert "coverage: SC-09 in ux-spec but not registered" in failures
+
+
+@pytest.mark.browser
+@browser
+def test_check_reports_audit_failure(tmp_path):
+    root = tmp_path / "mini"
+    shutil.copytree(MINI, root)
+    index = root / "docs" / "05-design" / "prototype" / "index.html"
+    index.write_text(index.read_text(encoding="utf-8").replace("/* kickoff:tokens:end */", ".page-h h1 { font-weight: 800 !important; }\n/* kickoff:tokens:end */"), encoding="utf-8")
+    warnings = []
+    failures = check(root, load_project(root), routes=["sc-02"], warnings=warnings)
+    assert any(f.startswith("sc-02 light: audit A1") for f in failures), failures
+
+
+@pytest.mark.browser
+@browser
+def test_check_selftest_runs():
+    from kickoff.proto import _cdp_selftest, proto_dir
+
+    url = (proto_dir(MINI, load_project(MINI)) / "index.html").as_uri() + "#kit-selftest-light"
+    assert _cdp_selftest(BROWSER, url) is None
+
+
+@pytest.mark.browser
+@browser
+def test_check_reports_library_failure(tmp_path):
+    root = tmp_path / "mini"
+    shutil.copytree(MINI, root)
+    index = root / "docs" / "05-design" / "prototype" / "index.html"
+    text = index.read_text(encoding="utf-8")
+    loader = re.search(r'<script type="module".*?</script>', text, re.DOTALL).group(0)
+    index.write_text(text.replace(loader, loader.replace("webawesome@3.14.0", "webawesome@3.14.999")), encoding="utf-8")
+    failures = check(root, load_project(root), routes=[])
+    assert failures and failures[0].startswith("index: not ready (ui library:"), failures

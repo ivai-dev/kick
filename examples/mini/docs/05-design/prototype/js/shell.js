@@ -432,7 +432,7 @@
       <div class="m-status" aria-hidden="true"></div>
       <header class="m-top">
         ${A.canBack ? html`<${IconButton} icon="back" label=${t("back")} onClick=${A.back} />` : html`<span class="m-top-sp"></span>`}
-        <h1 class="m-top-t clamp1 grow" tabindex="-1" data-kit-h1="">${reg ? reg.name : A.config.product}</h1>
+        <span class="m-top-t clamp1 grow">${reg ? reg.name : A.config.product}</span>
         <${ThemeButton} />
       </header>
       <${ScreenBody} wrap="m-content" id="kit-content" />

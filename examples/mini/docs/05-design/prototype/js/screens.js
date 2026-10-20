@@ -143,7 +143,7 @@
       <${Status} st=${l.status} />
     </div>`;
     return html`
-      <div class="col gap-4"><span class="t-cap">Card ${me.card}</span><h2 class="t-h2">Hello, ${me.name.split(" ")[0]}</h2></div>
+      <div class="col gap-4"><span class="t-cap">Card ${me.card}</span><h1 class="t-headline" tabindex="-1" data-kit-h1="">Hello, ${me.name.split(" ")[0]}</h1></div>
       <section class="col gap-8" aria-label="On loan now">
         <span class="t-cap">On loan now</span>
         ${now.length ? html`<div class="m-card">${now.map(row)}</div>` : html`<${EmptyState} icon="book" title="Nothing on loan" />`}
