@@ -108,16 +108,16 @@
       show(KIT._api, sc.steps[k]);
       A.setScenario({ n: k });
     };
-    return html`<section class=${cx("guide", A.layout !== "web" && A.layout !== "windows" && "guide-phone")} role="region" aria-label="Guided scenario" data-guide=${sc.id}>
+    return html`<section class=${cx("guide", A.layout !== "web" && A.layout !== "windows" && "guide-phone")} role="region" aria-label=${KIT.t("scn.region")} data-guide=${sc.id}>
       <div class="guide-h"><span class="guide-ic"><${Icon} n="route" s=${16} /></span>
-        <div class="col grow minw0"><b class="t-h3 clamp1">${sc.name}</b><span class="t-meta">Step ${n + 1} of ${N}${st.playing ? " · playing" : ""}</span></div>
-        <${Button} kind="ghost" size="sm" icon="x" label="Close scenario" onClick=${A.closeScenario} /></div>
+        <div class="col grow minw0"><b class="t-h3 clamp1">${sc.name}</b><span class="t-meta">${KIT.t("scn.step", { n: n + 1, total: N })}${st.playing ? KIT.t("scn.playing") : ""}</span></div>
+        <${Button} kind="ghost" size="sm" icon="x" label=${KIT.t("scn.close")} onClick=${A.closeScenario} /></div>
       ${N > 0 && html`<p class="t-ui guide-txt">${sc.steps[n].text}</p>`}
       <div class="row gap-8">
         ${st.playing
-          ? html`<${Button} size="sm" icon="stop" onClick=${() => stop(KIT._api)}>Stop<//>`
-          : html`<${Button} size="sm" icon="left" disabled=${n === 0} onClick=${() => move(n - 1)}>Previous<//>
-            <${Button} kind="primary" size="sm" iconRight="right" disabled=${n >= N - 1} onClick=${() => move(n + 1)}>Next<//>`}
+          ? html`<${Button} size="sm" icon="stop" onClick=${() => stop(KIT._api)}>${KIT.t("scn.stop")}<//>`
+          : html`<${Button} size="sm" icon="left" disabled=${n === 0} onClick=${() => move(n - 1)}>${KIT.t("scn.prev")}<//>
+            <${Button} kind="primary" size="sm" iconRight="right" disabled=${n >= N - 1} onClick=${() => move(n + 1)}>${KIT.t("scn.next")}<//>`}
       </div>
     </section>`;
   }

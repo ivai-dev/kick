@@ -83,11 +83,12 @@
   }
 
   /* ---------------- Controls ---------------- */
-  // kind: primary | ghost | soft | danger; size: sm | lg. An icon with no children is a square icon button (give it a label).
-  function Button({ kind, size, icon, iconRight, block, label, children, type = "button", ...rest }) {
+  // kind: primary | ghost | soft | danger; size: sm | lg; cls (or class): extra classes, kept with the kit's own.
+  // An icon with no children is a square icon button (give it a label).
+  function Button({ kind, size, icon, iconRight, block, label, children, type = "button", cls, class: klass, ...rest }) {
     const only = icon && (children == null || children === false);
     const is = size === "sm" ? 15 : size === "lg" ? 18 : 16;
-    return html`<button type=${type} class=${cx("btn", kind, size, block && "block", only && "icon")} aria-label=${label} title=${only ? label : undefined} ...${rest}>
+    return html`<button type=${type} class=${cx("btn", kind, size, block && "block", only && "icon", cls, klass)} aria-label=${label} title=${only ? label : undefined} ...${rest}>
       ${icon && html`<${Icon} n=${icon} s=${is} />`}${children}${iconRight && html`<${Icon} n=${iconRight} s=${is} />`}
     </button>`;
   }
@@ -108,14 +109,14 @@
 
   // columns: [{ key, label, num?, render?: (row) => vnode }]; rows: objects; onRow makes rows clickable.
   // The table scrolls inside its own wrapper on narrow screens, never the page.
-  function Table({ columns = [], rows = [], rowKey = "id", onRow, empty = "Nothing here yet.", caption, dense }) {
+  function Table({ columns = [], rows = [], rowKey = "id", onRow, empty, caption, dense }) {
     return html`<div class="table-wrap"><table class=${cx("tbl", dense && "dense")}>
       ${caption && html`<caption class="sr-only">${caption}</caption>`}
       <thead><tr>${columns.map((c) => html`<th key=${c.key} scope="col" class=${c.num ? "n" : undefined}>${c.label}</th>`)}</tr></thead>
       <tbody>${rows.length
         ? rows.map((r, i) => html`<tr key=${r[rowKey] != null ? r[rowKey] : i} class=${onRow ? "click" : undefined} onClick=${onRow ? () => onRow(r) : undefined}>
             ${columns.map((c) => html`<td key=${c.key} class=${c.num ? "n" : undefined}>${c.render ? c.render(r) : r[c.key]}</td>`)}</tr>`)
-        : html`<tr><td colspan=${columns.length} class="tbl-empty">${empty}</td></tr>`}</tbody>
+        : html`<tr><td colspan=${columns.length} class="tbl-empty">${empty == null ? KIT.t("table.empty") : empty}</td></tr>`}</tbody>
     </table></div>`;
   }
 
@@ -125,12 +126,12 @@
     const has = delta != null && !isNaN(delta);
     const dir = !has || Math.abs(delta) < 1e-9 ? 0 : delta > 0 ? 1 : -1;
     const good = dir === 0 ? null : (dir > 0) === (deltaGood === "up");
-    const dtxt = !has ? "" : dir === 0 ? "No change" : `${dir > 0 ? "+" : "−"}${KIT.util.nf(Math.abs(delta))}${deltaUnit === "%" ? "%" : deltaUnit ? " " + deltaUnit : ""}`;
+    const dtxt = !has ? "" : dir === 0 ? KIT.t("kpi.noChange") : `${dir > 0 ? "+" : "−"}${KIT.util.nf(Math.abs(delta))}${deltaUnit === "%" ? "%" : deltaUnit ? " " + deltaUnit : ""}`;
     return html`<div class="kpi" data-kpi=${id}>
       <div class="kpi-l t-cap">${icon && html`<${Icon} n=${icon} s=${15} />`}<span>${label}</span></div>
       <div class="kpi-v"><b class="t-kpi">${value}</b>${unit && html`<span class="kpi-u">${unit}</span>`}</div>
       ${(has || note) && html`<div class="kpi-f">
-        ${has && html`<span class=${cx("kpi-d", good === true && "good", good === false && "bad")}>${dir !== 0 && html`<${Icon} n=${dir > 0 ? "up" : "down"} s=${14} />`}<span class="sr-only">${dir > 0 ? "Up" : dir < 0 ? "Down" : ""}${good === true ? ", good:" : good === false ? ", needs attention:" : ""}</span>${dtxt}</span>`}
+        ${has && html`<span class=${cx("kpi-d", good === true && "good", good === false && "bad")}>${dir !== 0 && html`<${Icon} n=${dir > 0 ? "up" : "down"} s=${14} />`}<span class="sr-only">${dir > 0 ? KIT.t("kpi.up") : dir < 0 ? KIT.t("kpi.down") : ""}${good === true ? KIT.t("kpi.good") : good === false ? KIT.t("kpi.bad") : ""}</span>${dtxt}</span>`}
         ${note && html`<span class="t-meta clamp1">${note}</span>`}
       </div>`}
     </div>`;
@@ -139,7 +140,7 @@
   /* ---------------- Headers and surfaces ---------------- */
   let infoSeq = 0;
   // An (i) button that discloses a longer explanation. text: a string or a list of paragraphs.
-  function InfoPopover({ text, label = "More information" }) {
+  function InfoPopover({ text, label }) {
     const [open, setOpen] = useState(false);
     const [pos, setPos] = useState(null);
     const btn = useRef(null);
@@ -174,7 +175,7 @@
       };
     }, [open]);
     const paras = [].concat(text);
-    return html`<span class="info"><button ref=${btn} type="button" class="info-btn" aria-label=${label} aria-expanded=${open ? "true" : "false"} aria-controls=${open ? id : undefined} onClick=${() => setOpen(!open)}><${Icon} n="info" s=${16} /></button>
+    return html`<span class="info"><button ref=${btn} type="button" class="info-btn" aria-label=${label || KIT.t("info.more")} aria-expanded=${open ? "true" : "false"} aria-controls=${open ? id : undefined} onClick=${() => setOpen(!open)}><${Icon} n="info" s=${16} /></button>
       ${open && html`<div class="info-pop" id=${id} ref=${pop} style=${pos ? { top: pos.top + "px", left: pos.left + "px", width: pos.width + "px" } : { visibility: "hidden" }}>${paras.map((p, i) => html`<p key=${i}>${p}</p>`)}</div>`}</span>`;
   }
 
@@ -251,7 +252,7 @@
     useTrap(ref, onClose);
     return html`<div class="scrim drawer-host" onMouseDown=${(e) => e.target === e.currentTarget && onClose && onClose()}>
       <aside class="sheet" role="dialog" aria-modal="true" aria-labelledby=${hid} ref=${ref}>
-        <div class="sheet-h"><h2 id=${hid} class="t-h2 grow">${title}</h2><${Button} kind="ghost" size="sm" icon="x" label="Close" onClick=${onClose} /></div>
+        <div class="sheet-h"><h2 id=${hid} class="t-h2 grow">${title}</h2><${Button} kind="ghost" size="sm" icon="x" label=${KIT.t("close")} onClick=${onClose} /></div>
         <div class="sheet-b">${children}</div>
         ${footer && html`<div class="sheet-f">${footer}</div>`}
       </aside>
@@ -305,7 +306,7 @@
     return html`<div class="toasts" role="status" aria-live="polite">${A.toasts.map((t) => html`<div key=${t.id} class="toast">
       ${t.icon && html`<${Icon} n=${t.icon} s=${18} cls="t-ic" />`}<span class="grow">${t.msg}</span>
       ${t.action && html`<button type="button" class="btn sm" onClick=${() => { t.action.run(); A.dismiss(t.id); }}>${t.action.label}</button>`}
-      <button type="button" class="btn sm icon" aria-label="Dismiss" onClick=${() => A.dismiss(t.id)}><${Icon} n="x" s=${15} /></button>
+      <button type="button" class="btn sm icon" aria-label=${KIT.t("dismiss")} onClick=${() => A.dismiss(t.id)}><${Icon} n="x" s=${15} /></button>
     </div>`)}</div>`;
   }
 
@@ -314,8 +315,8 @@
   function Placeholder() {
     const A = useApp();
     const reg = KIT.screens[A.screen] || {};
-    return html`<${PageHeader} eyebrow=${reg.code} title=${reg.name || "Screen"} />
-      <${Card}><${EmptyState} icon="construct" title="Being designed">${reg.code} · ${reg.name} · ${reg.rel}<//><//>`;
+    return html`<${PageHeader} eyebrow=${reg.code} title=${reg.name || KIT.t("screen")} />
+      <${Card}><${EmptyState} icon="construct" title=${KIT.t("placeholder.title")}>${reg.code} · ${reg.name} · ${reg.rel}<//><//>`;
   }
 
   // Shown instead of a screen whose roles exclude the current role: never the screen content.
@@ -326,18 +327,18 @@
     const home = KIT.homeOf(A.role);
     const allowed = (reg.roles || []).map(KIT.roleName).join(", ");
     return html`<div class="denied" data-denied=${A.screen}>
-      <${EmptyState} icon="lock" title=${"Not available for " + who}
-        action=${home && html`<${Button} kind="primary" icon="home" onClick=${() => A.go(home)}>Go to ${who} home<//>`}>
-        ${reg.name ? `${reg.name} (${reg.code}) is for ${allowed}.` : ""}
+      <${EmptyState} icon="lock" title=${KIT.t("denied.title", { who })}
+        action=${home && html`<${Button} kind="primary" icon="home" onClick=${() => A.go(home)}>${KIT.t("denied.home", { who })}<//>`}>
+        ${reg.name ? KIT.t("denied.text", { name: reg.name, code: reg.code, allowed }) : ""}
       <//>
     </div>`;
   }
 
   function NotFound() {
     const A = useApp();
-    return html`<${EmptyState} icon="search" title="No such screen"
-      action=${html`<${Button} icon="home" onClick=${A.openPicker}>Back to the start<//>`}>
-      ${"Nothing is registered as " + A.screen + "."}
+    return html`<${EmptyState} icon="search" title=${KIT.t("notfound.title")}
+      action=${html`<${Button} icon="home" onClick=${A.openPicker}>${KIT.t("notfound.back")}<//>`}>
+      ${KIT.t("notfound.text", { id: A.screen })}
     <//>`;
   }
 

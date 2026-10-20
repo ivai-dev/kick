@@ -100,7 +100,7 @@
     </div>`;
   }
   function ChartEmpty({ height = 200 }) {
-    return html`<div class=${"ch-empty h-" + (height >= 240 ? "lg" : height >= 160 ? "md" : "sm")} role="img" aria-label="No data yet"><${Icon} n="chart" s=${20} /><span>No data yet</span></div>`;
+    return html`<div class=${"ch-empty h-" + (height >= 240 ? "lg" : height >= 160 ? "md" : "sm")} role="img" aria-label=${KIT.t("chart.noData")}><${Icon} n="chart" s=${20} /><span>${KIT.t("chart.noData")}</span></div>`;
   }
   function Legend({ items, line }) {
     return html`<div class="ch-legend">${items.map((s) => html`<span key=${s.name}><i class=${cx(line ? "ln" : "ch-sw", tn(s.tone))}></i>${s.name}</span>`)}</div>`;
@@ -132,7 +132,7 @@
 
   // Vertical columns. data: [{ label, value, tip? }]. highlight: indices drawn at full strength
   // (the rest muted); highlightLast = highlight the latest column.
-  function BarChart({ data = [], height = 200, unit = "", highlightLast, highlight, refLine, tone = "primary", label = "Column chart", dec = 1 }) {
+  function BarChart({ data = [], height = 200, unit = "", highlightLast, highlight, refLine, tone = "primary", label = KIT.t("chart.column"), dec = 1 }) {
     const [ref, w] = useWidth();
     const n = data.length;
     const M = useMarks(n);
@@ -149,7 +149,7 @@
     const labelled = hi ? (hi.length <= 3 && band >= 30 ? hi : [hi[hi.length - 1]]) : [];
     const every = thin(data.map((d) => d.label), band);
     const maxI = vals.indexOf(Math.max(...vals));
-    const summary = `${label}: ${n} columns from ${data[0].label} to ${data[n - 1].label}; highest ${data[maxI].label} ${withUnit(vals[maxI], unit, dec)}; latest ${withUnit(vals[n - 1], unit, dec)}.`;
+    const summary = KIT.t("chart.barSummary", { label, n, first: data[0].label, last: data[n - 1].label, maxLabel: data[maxI].label, maxValue: withUnit(vals[maxI], unit, dec), lastValue: withUnit(vals[n - 1], unit, dec) });
     const a = M.act;
     return html`<figure class="ch" ref=${ref} aria-label=${summary}>
       <div class="ch-plot"><svg width=${w} height=${height} viewBox=${`0 0 ${w} ${height}`} role="group">
@@ -161,13 +161,13 @@
         <${XLabels} labels=${data.map((d) => d.label)} xs=${xc} y=${height - 8} every=${every} />
         ${data.map((d, i) => html`<rect key=${"h" + i} x=${pl + band * i} y=${pt} width=${band} height=${ph} ...${M.props(i, `${d.tip || d.label}: ${withUnit(d.value, unit, dec)}`)} />`)}
       </svg>
-      ${a != null && html`<${ChartTip} w=${w} x=${xc(a)} y=${Math.max(pt, y(vals[a]) - 4)} title=${data[a].tip || data[a].label} rows=${[{ name: data[a].name || "Value", value: withUnit(data[a].value, unit, dec), tone: on(a) ? tone : null }]} />`}</div>
+      ${a != null && html`<${ChartTip} w=${w} x=${xc(a)} y=${Math.max(pt, y(vals[a]) - 4)} title=${data[a].tip || data[a].label} rows=${[{ name: data[a].name || KIT.t("chart.value"), value: withUnit(data[a].value, unit, dec), tone: on(a) ? tone : null }]} />`}</div>
     </figure>`;
   }
 
   // Lines over shared x labels. series: [{ name, values, tone }]. One series gets a light area
   // wash and an end label; two or more get a legend. min: y floor (default 0).
-  function LineChart({ labels = [], series = [], height = 200, unit = "", refLine, min = 0, label = "Line chart", dec = 1, tips }) {
+  function LineChart({ labels = [], series = [], height = 200, unit = "", refLine, min = 0, label = KIT.t("chart.line"), dec = 1, tips }) {
     const [ref, w] = useWidth();
     const n = labels.length;
     const M = useMarks(n);
@@ -186,7 +186,7 @@
     const a = M.act;
     const tipOf = (i) => (tips && tips[i]) || labels[i];
     const s0 = series[0], last0 = s0.values[n - 1];
-    const summary = `${label}: ${series.map((s) => `${s.name} from ${withUnit(s.values[0], unit, dec)} (${labels[0]}) to ${withUnit(s.values[n - 1], unit, dec)} (${labels[n - 1]})`).join("; ")}.`;
+    const summary = `${label}: ${series.map((s) => KIT.t("chart.lineSeries", { name: s.name, from: withUnit(s.values[0], unit, dec), firstLabel: labels[0], to: withUnit(s.values[n - 1], unit, dec), lastLabel: labels[n - 1] })).join("; ")}.`;
     const hitW = n > 1 ? step : pw;
     return html`<figure class="ch" ref=${ref} aria-label=${summary}>
       ${!one && html`<${Legend} items=${series} line />`}
@@ -209,7 +209,7 @@
   }
 
   // Ring of parts with a legend list (name, value, share). center: { value, label }.
-  function Donut({ parts = [], size = 160, center, label = "Donut chart", unit = "" }) {
+  function Donut({ parts = [], size = 160, center, label = KIT.t("chart.donut"), unit = "" }) {
     const n = parts.length;
     const M = useMarks(n);
     const total = parts.reduce((s, p) => s + (p.value || 0), 0);

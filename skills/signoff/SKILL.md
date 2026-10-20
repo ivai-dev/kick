@@ -46,6 +46,8 @@ Prepares the customer review workshop on the full-product prototype and records 
    - **Decisions the customer must take:** a table of ID (the `Q<n>` the decision answers), Decision, Options, Recommended, Deadline.
    - **Open questions due:** questions from `open-questions.md` whose needed-by date falls before or soon after the workshop.
    - **Scope-cut order if dates are fixed:** the `cut_order` of `plan.yaml` with the effort each cut frees, as `kickoff schedule` reports it.
+
+   The prototype and any screenshots in the pack (from `kickoff proto check --shots`) show the real product chrome and the customer's language, with no screen codes in the product UI and no "differs from the product" note (the fidelity rule of `kickoff:prototype`). If they do not, fix the prototype first.
 4. Commit `docs: sign-off workshop pack`. Sending the pack or the prototype link to the customer is publishing: ask the lead first.
 
 ### After the workshop

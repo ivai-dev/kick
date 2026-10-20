@@ -1,11 +1,11 @@
-"""kickoff proto new | check | lint | bundle"""
+"""kickoff proto new | update | check | lint | bundle"""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 from ..model import load_project, resolve_root
-from ..proto import BrowserNotFound, bundle, check, lint, new_prototype
+from ..proto import BrowserNotFound, bundle, check, lint, new_prototype, update_prototype
 
 
 def register(sub) -> None:
@@ -16,9 +16,18 @@ def register(sub) -> None:
     a.add_argument("--force", action="store_true", help="overwrite an existing prototype")
     a.set_defaults(func=run_new)
 
+    a = actions.add_parser("update", help="bring the kit core up to the installed kit; project files are kept")
+    a.add_argument("--dry", action="store_true", help="list the files that would change, write nothing")
+    a.set_defaults(func=run_update)
+
     a = actions.add_parser("check", help="open every screen in a headless browser (exit 4 without Edge or Chrome)")
-    a.add_argument("routes", nargs="*", help="screen ids to check (default: all, plus the scenarios)")
-    a.add_argument("--shots", type=Path, default=None, help="folder for screenshots of the light and dark dumps")
+    a.add_argument(
+        "routes",
+        nargs="*",
+        help="routes to check: a screen id or code, optionally with a role and ?parameters, e.g. "
+        "'sc-08-guest?kiosk=1&id=tt03' (default: every screen, plus the scenarios)",
+    )
+    a.add_argument("--shots", type=Path, default=None, help="folder for screenshots of the light, dark and 390 px dumps")
     a.add_argument("--jobs", type=int, default=4, help="parallel browser launches (default 4)")
     a.set_defaults(func=run_check)
 
@@ -35,6 +44,18 @@ def run_new(args) -> int:
     for path in new_prototype(root, load_project(root), force=args.force):
         print("wrote", path.relative_to(root))
     print("next: replace the Placeholder stubs in js/screens.js, then kickoff proto check")
+    return 0
+
+
+def run_update(args) -> int:
+    root = resolve_root(args.root)
+    changes = update_prototype(root, load_project(root), dry=args.dry)
+    for path, status in changes:
+        print(f"{'would update' if args.dry else status}: {path}")
+    if not changes:
+        print("kit core up to date")
+    elif not args.dry:
+        print("next: kickoff proto check")
     return 0
 
 

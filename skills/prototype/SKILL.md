@@ -5,26 +5,28 @@ description: Use when building or updating the clickable full-product prototype 
 
 # Prototype
 
-Builds the clickable prototype of the full product: every role, platform and release, with a scope layer that shows the MVP line and guided demo scenarios for the sign-off workshop. It is built on the kickoff prototype kit (no build step), checked with `kickoff proto check` and `kickoff proto lint`, and published as a private Artifact or a single HTML file.
+Builds the clickable prototype of the full product: every role, platform and release, with a scope layer that shows the MVP line and guided demo scenarios for the sign-off workshop. It is built on the kickoff prototype kit (no build step), checked with `kickoff proto check` and `kickoff proto lint`, reviewed from several viewpoints, and published as a private Artifact or a single HTML file.
+
+**Fidelity rule:** the prototype shows exactly what the product will show: its chrome, navigation and wording, in the customer's language. Customer feedback on anything else has no value. When the kit cannot show something, use the site shell, a bare screen or route parameters, or extend the kit in project files; never ship a note that says the prototype differs from the product.
 
 ## When to use
 
 - After `kickoff:ux-design`, to build the first prototype for the customer review.
-- Again when the ux-spec changed (new screens, new rules) or before a workshop. Changes the customer asked for go through `kickoff:feedback`, which calls back into the prototype in chain order.
+- Again when the ux-spec changed (new screens, new rules), when the plugin ships a newer kit, or before a workshop. Changes the customer asked for go through `kickoff:feedback`, which calls back into the prototype in chain order.
 
 ## Preconditions
 
 - `kickoff can prototype` exits 0 (ux-design done, C2 approved).
-- `ux-spec.md` exists at `proto.ux_spec` (default `<docs_root>/05-design/ux-spec.md`) with its screen inventory.
+- `ux-spec.md` exists at `proto.ux_spec` (default `<docs_root>/05-design/ux-spec.md`) with its screen inventory and a shell per role.
 - Edge or Chrome is installed for `kickoff proto check` (or `KICKOFF_BROWSER` / `proto.browser` in `project.yaml` points to one).
 - The `ui-ux-pro-max` skill is available.
 
 ## Inputs
 
-- `ux-spec.md` and `<docs_root>/05-design/design-system.md`.
-- `.kickoff/features.yaml` (features per screen, releases) and `.kickoff/project.yaml` (`proto.dir`, default `<docs_root>/05-design/prototype`; `proto.forbidden`; lint thresholds `proto.max_font_sizes`, `proto.max_weight_600`, `proto.max_inline_styles`).
-- The kit guide `README.md` inside the prototype folder after `kickoff proto new`: `KIT.register`, `KIT.ui`, `KIT.charts`, hash routes, scenarios.
-- `references/screen-checklist.md` in this skill's folder.
+- `ux-spec.md` (Roles and IA with shell and home shape, Copy guide) and `<docs_root>/05-design/design-system.md` (Craft rules).
+- `.kickoff/features.yaml` (features per screen, releases) and `.kickoff/project.yaml` (`languages.ui`; `proto.dir`, default `<docs_root>/05-design/prototype`; `proto.forbidden`; lint thresholds `proto.max_font_sizes`, `proto.max_weight_600`, `proto.max_inline_styles`).
+- The kit guide `README.md` inside the prototype folder after `kickoff proto new`: `KIT.register`, `KIT.ui`, `KIT.charts`, `KIT.t`, shells, hash routes and parameters, scenarios.
+- `references/screen-checklist.md` and `references/design-review.md` in this skill's folder; `../ux-design/references/content-and-craft.md` and `../ux-design/references/guidance-library.md`.
 - Working methods: `../using-kickoff/references/methods.md`. Conventions: `../using-kickoff/references/conventions.md`.
 
 ## Steps
@@ -34,42 +36,48 @@ Builds the clickable prototype of the full product: every role, platform and rel
 
 > **Interview:** one question per message; 2–4 options with a recommendation when a choice exists; restate the answer in one line; stop when the output template is filled.
 
-3. **Scaffold:** `kickoff proto new`. It copies the kit into `proto.dir` and writes `js/config.js` (roles, homes, releases, platforms from the ux-spec), `js/data.js`, `js/screens.js` (one `KIT.ui.Placeholder` stub per screen) and `js/scenarios.js`. It refuses when `index.html` already exists. When updating an existing prototype, skip this step and register new screens by hand. Never run `kickoff proto new --force` on a built prototype without the lead's yes: it overwrites the kit files and all four project files.
+3. **Scaffold:** `kickoff proto new`. It copies the kit into `proto.dir` and writes `js/config.js` (roles with `shell: "app"`, homes, releases, platforms from the ux-spec; `locale` and `lang` from `languages.ui`), `js/data.js`, `js/screens.js` (one `KIT.ui.Placeholder` stub per screen) and `js/scenarios.js`, and sets `--cap-case: none` in the tokens block for Vietnamese. It refuses when `index.html` already exists. When updating an existing prototype, skip this step and register new screens by hand. When the plugin ships a newer kit, run `kickoff proto update --dry` (it lists what would change), then `kickoff proto update`: it copies the kit core over the project's copies and refreshes `index.html` outside the title, tokens and modules blocks, and never touches project modules. Never run `kickoff proto new --force` on a built prototype: it overwrites the kit files and all four project files.
 4. **Queries per screen group with `ui-ux-pro-max`:** invoke the skill and run `--stack react` (the kit is Preact with htm, the nearest stack) and `--domain` queries (`ux`, `chart`, `typography`, `color`) for each group's concerns: tables, forms, dashboards, phone lists. Retry an empty search once; never copy output you have not checked.
 5. **Build plan:** save `<docs_root>/08-task-plans/YYYY-MM-DD-prototype.md` using the Build plan method and show it to the lead. Tasks, in order:
-   1. shell: the design-system tokens copied into `index.html` between `/* kickoff:tokens:begin */` and `/* kickoff:tokens:end */` (keep the token names), the `<title>`, `js/config.js` (role names and homes), and the synthetic data model in `js/data.js`;
-   2. one task per screen group: a module `js/<area>.js` that registers the group's screens;
+   1. shell: the design-system tokens and craft rules copied into `index.html` between `/* kickoff:tokens:begin */` and `/* kickoff:tokens:end */` (keep the token names), the `<title>`, `js/config.js` (role names, homes, shells, `site`, `tabs`, `locale`, `lang`), shared pieces in a project module (for example `js/common.js`: guidance devices, format helpers), and the synthetic data model in `js/data.js`;
+   2. one task per screen group: a module `js/<area>.js` that registers the group's screens and their device views;
    3. scenarios: `js/scenarios.js`;
-   4. a consistency pass: the same status labels, page headers, empty states and spacing on every screen.
+   4. a consistency pass: the same status labels, page headers, empty states, terms and spacing on every screen.
 
 > **Build plan:** a checklist of tasks, each with files, inputs, verification command and expected output; every task leaves the project working.
 
-   Every task's verification is `kickoff proto check` (no route arguments), and its expected output is `prototype check passed`.
+   Every task's verification is `kickoff proto check` (no route arguments), and its expected output is `prototype check passed`. Tasks that run in parallel are split by file: no two tasks edit the same file, and each owns a marker section `/* == s<N>-<name> (<task>) == */ … /* == end s<N> == */` inside the tokens block, created by the shell task.
 
 6. **Run the plan** with the Task run method. After every task, run `kickoff proto check` over **all** routes, not only the new ones. Without route arguments it also runs every scenario and the 390 px check of every screen. A quick `kickoff proto check sc-02` is fine while working inside a task, but explicit routes skip the scenarios and the other screens, so it never counts as the task's verification. Exit 1 lists the failures: `data-err` messages, coverage gaps, horizontal scroll at 390 px. Fix them before the next task. Exit 4 means no browser was found: the check was skipped, so stop and report it. A request to skip the full check or to limit it to the new routes "to save time" is declined in one sentence: it takes about half a minute, a regression it would have caught surfaces tasks later, and nobody can waive it. Run `kickoff proto check` with no route arguments and report its output.
 
 > **Task run:** one task at a time; verify and commit after each; record rulings; show them to the lead at the end.
 
    How to write the project files:
-   - `KIT.register("<id>", { comp, code, name, roles, platforms, rel, nav, icon })`, where the id is the ux-spec code in lower case (`sc-02`), and `code`, `roles`, `platforms` and `rel` equal the ux-spec row. Remove each screen's stub from `js/screens.js` when its module registers it. Delete the file and its script tag once it is empty.
-   - List the project scripts in `index.html` between `<!-- kickoff:modules:begin -->` and `<!-- kickoff:modules:end -->`, in the order `config.js`, `data.js`, the screen modules, `scenarios.js`, each with `charset="utf-8"`.
-   - Never edit the kit core: `narrow.html` and `js/{route,core,ui,charts,scope,shell,scenario,main}.js`. In `index.html`, change only the title, the tokens block and the modules block.
+   - `KIT.register("<id>", { comp, code, name, roles, platforms, rel, nav, icon, menu, bare })`, where the id is the ux-spec code in lower case (`sc-02`), and `code`, `roles`, `platforms` and `rel` equal the ux-spec row. Remove each screen's stub from `js/screens.js` when its module registers it. Delete the file and its script tag once it is empty.
+   - **Shell per role,** from the ux-spec Shell column: `shell: "app"` (sidebar) or `shell: "site"` on the role in `js/config.js`. A site role gets a header (brand, organisation line, top menu, account area), the page and a footer, and on phones a compact header with a menu sheet and the bottom bar of `tabs: [screen ids]`. Configure `KIT_CONFIG.site = { org, account: "<nav label of the account menu>", signIn: [{ label, go }], footer: ["…"] }`. The top menu lists the screens with `nav` outside the account group; `menu` on a screen overrides its label. Replace the header or footer with `KIT.site.Header` / `KIT.site.Footer` only when the product's differs.
+   - **Bare screens:** `bare: true` or `bare: (params, role) => boolean` renders the screen on the stage without any shell: device frames such as a kiosk, a full-screen start screen.
+   - **Route parameters:** `#<screen>[-tokens][?key=value&…]`; integers become numbers, `true`/`false` booleans. A screen reads them from `useApp().params` and links with `KIT.go(id, params)`. Device views (`#sc-08-guest?kiosk=1`), records (`?id=tt03`) and flow steps use them, so every view opens from a link, appears in the screen index and can be checked.
+   - **Language:** `locale` (number and date formats) and `lang` (`en` or `vi`: the kit's own words in the product area and the prototype chrome, through `KIT.t(key, vars)`) in `js/config.js`; `KIT_CONFIG.strings = { "<key>": "<text>" }` overrides single kit strings. Format numbers with `KIT.util.nf` and dates and units with one shared helper, never by hand. All copy follows the ux-spec Copy guide.
+   - List the project scripts in `index.html` between `<!-- kickoff:modules:begin -->` and `<!-- kickoff:modules:end -->`, in the order `config.js`, `data.js`, shared modules, the screen modules, `scenarios.js`, each with `charset="utf-8"`.
+   - Never edit the kit core: `narrow.html` and `js/{route,core,ui,charts,scope,shell,scenario,main}.js`. In `index.html`, change only the title, the tokens block and the modules block. A kit gap is reported to the plugin maintainers and arrives through `kickoff proto update`; until then, extend in project files.
    - Use `KIT.ui` components, `KIT.charts`, the type-scale classes and token colours. No inline font sizes, no raw hex colours.
    - Wrap the parts of later releases in `Rel({ r: "<release>" })`, so the `-tags` and `-mvp` views show the MVP line.
-   - `js/data.js` holds synthetic data only (`KIT.D`), in `languages.ui`: invented names, organisations and addresses, and no development infrastructure.
+   - `js/data.js` holds synthetic data only (`KIT.D`), in `languages.ui`: invented names, organisations and addresses, and no development infrastructure. Derive every count from the data; never type a number that a list beside it contradicts.
    - Scenarios: `KIT.SCENARIOS = [{ id, name, role, platform, steps: [{ text, go: ["<screen id>"], expect: "<selector>" }] }]`; each runs at `#scn-<id>`.
    - Write every file with the file tools, never with heredocs.
 
-7. **Lint:** `kickoff proto lint` prints the metrics (font sizes, font-weight 600, inline styles, raw hex) and then the failures: thresholds exceeded, raw hex colours in scripts, and text that matches `proto.forbidden`. Fix the screens with scale classes and tokens; never raise a threshold without the lead's yes.
-8. **Pre-delivery review:** walk `references/screen-checklist.md` and the pre-delivery checklist in `ui-ux-pro-max`'s `references/pro-rules.md`, screen group by screen group. For screenshots, run `kickoff proto check --shots <folder>` with a git-ignored folder. Fix what fails and run `kickoff proto check` again.
-9. **Publish.** If the Artifact tool is available, publish `index.html` as a private Artifact with every `js/*.js` file passed through `files` at the same relative path (`js/config.js`, …). Republish to the same URL for every new version. Otherwise run `kickoff proto bundle` and share the single file `<proto.dir>/dist/prototype.html` (not committed: add `dist/` to `.gitignore` if it is missing). Sharing beyond the lead is publishing: ask the lead first.
-10. **Record** the Artifact link (or the bundle path) and the version in `.kickoff/state.yaml` with the Edit tool, `prototype: { artifact: "<link or path>", version: <n> }`. The version goes up by one with every publish. Change no other key there; phases and gates change only through the CLI.
-11. **Verify** (section below), then `kickoff phase done prototype` and commit `feat(prototype): full-product prototype v<n>`. List the rulings from `<docs_root>/08-task-plans/<plan>-rulings.md` to the lead and ask which ones to revisit.
+7. **Lint:** `kickoff proto lint` prints the metrics (font sizes, font-weight 600, inline styles, raw hex) and then the failures: thresholds exceeded, raw hex colours in scripts, text that matches `proto.forbidden`, and a non-English `languages.ui` without a `locale` in `config.js`. Fix the screens with scale classes and tokens; never raise a threshold without the lead's yes.
+8. **Pre-delivery review:** walk `references/screen-checklist.md` and the pre-delivery checklist in `ui-ux-pro-max`'s `references/pro-rules.md`, screen group by screen group. For screenshots, run `kickoff proto check --shots <folder>` with a git-ignored folder (light, dark and 390 px per screen). Fix what fails and run `kickoff proto check` again.
+9. **Design review loop,** after the first full build and before the sign-off workshop, following `references/design-review.md`: a shared screenshot set (with parameter routes for device views), a brief file, 4–5 viewpoint reviewers (one per audience or role group, a craft and micro-detail auditor, an IA and guidance designer) who research with cited sources and rank findings per screen P1–P3, a cross-review round, and one integrator plan (principles, decisions for the lead with recommendations, shared library, per-screen changes, navigation per role, craft rules, data fixes, work packages by file). The lead decides the open decisions; log each as `D<n>`. Then build in work packages, the shared library first, each package ending with `kickoff proto check` over all routes.
+10. **Publish.** If the Artifact tool is available, publish `index.html` as a private Artifact with every `js/*.js` file passed through `files` at the same relative path (`js/config.js`, …). Republish to the same URL for every new version. In a new session, a publish to that URL is refused until the session has read it: read the artifact and its published files, compare each file's hash with the committed file of the recorded version (`git hash-object <saved file>` against `git rev-parse <commit>:<path>`), and stop and ask the lead when a published file matches no commit; then republish. Otherwise run `kickoff proto bundle` and share the single file `<proto.dir>/dist/prototype.html` (not committed: add `dist/` to `.gitignore` if it is missing). Sharing beyond the lead is publishing: ask the lead first.
+11. **Record** the Artifact link (or the bundle path) and the version in `.kickoff/state.yaml` with the Edit tool, `prototype: { artifact: "<link or path>", version: <n> }`. The version goes up by one with every publish. Change no other key there; phases and gates change only through the CLI.
+12. **Verify** (section below), then `kickoff phase done prototype` and commit `feat(prototype): full-product prototype v<n>`. List the rulings from `<docs_root>/08-task-plans/<plan>-rulings.md` to the lead and ask which ones to revisit.
 
 ## Outputs
 
-- `<proto.dir>/index.html`, `js/config.js`, `js/data.js`, `js/<area>.js` modules, `js/scenarios.js` (kit core files unchanged)
+- `<proto.dir>/index.html`, `js/config.js`, `js/data.js`, shared and `js/<area>.js` modules, `js/scenarios.js` (kit core files unchanged)
 - `<docs_root>/08-task-plans/YYYY-MM-DD-prototype.md` (build plan, tasks ticked) and `<docs_root>/08-task-plans/YYYY-MM-DD-prototype-rulings.md`
+- The design review folder (brief, reports, cross-reviews, integrator plan; git-ignored or in the task plans as the lead prefers) and the lead's decisions as `D<n>`
 - A private Artifact link or `<proto.dir>/dist/prototype.html`, recorded in `.kickoff/state.yaml` `prototype`
 - `.kickoff/state.yaml`: `phases.prototype: done`, set by `kickoff phase done prototype` (not by hand); the top-level `prototype` object (artifact, version) is a different key
 
@@ -78,14 +86,15 @@ Builds the clickable prototype of the full product: every role, platform and rel
 1. `kickoff proto check` (all routes and scenarios) exits 0 and prints `prototype check passed`. Exit 4 is a skipped check, not a pass, and the phase is not done.
 2. `kickoff proto lint` exits 0.
 3. Every item of `references/screen-checklist.md` and of the `pro-rules.md` pre-delivery checklist is ticked or has a ruling.
-4. `.kickoff/state.yaml` has `prototype.artifact` and `prototype.version` for this publish, and `kickoff validate` reports `0 errors`.
-5. Search `js/` with each pattern of `rules.forbidden_phrases` in `project.yaml`: no match.
+4. The design review's P1 findings are fixed or carry a lead decision.
+5. `.kickoff/state.yaml` has `prototype.artifact` and `prototype.version` for this publish, and `kickoff validate` reports `0 errors`.
+6. Search `js/` with each pattern of `rules.forbidden_phrases` in `project.yaml`: no match.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
 
 ## Lessons
 
-Rows 4–11 of the lessons table (`../using-kickoff/references/lessons.md`), plus row 3:
+Rows 3–11 and 14–21 of the lessons table (`../using-kickoff/references/lessons.md`):
 
 - Render errors did not surface in headless checks: every `data-err` that `kickoff proto check` reports is a failure.
 - Headless "narrow" screenshots clamped around 520 px: check phone width only through `kickoff proto check` (the 390 px `narrow.html` iframe), never by resizing a headless window.
@@ -96,6 +105,12 @@ Rows 4–11 of the lessons table (`../using-kickoff/references/lessons.md`), plu
 - A development VPN name and IP range appeared in product UI: keep `js/data.js` synthetic and run `kickoff proto lint`, which flags `proto.forbidden` patterns.
 - Dense, heavy text overwhelmed the reviewer: scale classes and tokens only; `kickoff proto lint` counts font sizes, weight 600 and inline styles.
 - A sidebar filter that reloaded a near-identical page confused the reviewer: navigation goes to distinct pages, and filters stay in-page.
+- The team wrote "the prototype differs from the product" because the kit had only a sidebar: use the site shell and bare screens; follow the fidelity rule.
+- Kiosk views could not be opened from a link or checked: device views are route parameters, checked with `kickoff proto check "sc-08-guest?kiosk=1"`.
+- English kit strings and en-US numbers ("+7.1%" next to "2.304") appeared in a Vietnamese UI, and uppercase labels crowded diacritics: set `locale` and `lang`, and `--cap-case: none` for Vietnamese.
+- A kit fix could reach an existing prototype only through `proto new --force`: use `kickoff proto update`.
+- Screen codes, look-alike KPI rows and text explaining system mechanics reached the customer: walk the screen checklist and run the design review loop.
+- Republishing from a new session was refused: read the published files and compare their hashes with git before overwriting.
 
 ## Handoff
 
