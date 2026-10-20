@@ -232,6 +232,17 @@ await ev(`[...document.querySelectorAll('#g-list .pg-n')].find((b)=>b.textConten
 check("paging keeps the selection and focuses the caption", (await active()).startsWith("g-list-caption") && (await ev(`document.querySelectorAll('[data-kit="BulkBar"]').length`)) === 1, await active());
 check("empty cells show a dash", await ev(`!!document.querySelector('#g-list td .empty-v')`));
 
+// 15. Routes: forward starts at the top with focus on the h1; Back restores the scroll and focuses the opener.
+await ev(`KIT._api.go("kit-overlays", {})`); await sleep(900);
+await ev(`document.querySelector('#g-list tbody tr:nth-child(3) .tbl-link').scrollIntoView({block:"center"})`); await sleep(200);
+const before = await ev(`document.getElementById("kit-content").scrollTop`);
+await ev(`document.querySelector('#g-list tbody tr:nth-child(3) .tbl-link').focus()`);
+await key("Enter"); await sleep(900);
+check("forward route: scroll 0, focus on the h1", (await ev(`document.getElementById("kit-content").scrollTop`)) === 0 && (await ev(`document.activeElement && document.activeElement.hasAttribute("data-kit-h1")`)), [await active(), await ev(`document.getElementById("kit-content").scrollTop`), await ev("JSON.stringify(KIT._api.S.params)+KIT._api.S._navKey+KIT._api.S._dir")]);
+await ev("KIT._api.back()"); await sleep(900);
+const after = await ev(`document.getElementById("kit-content").scrollTop`);
+check("Back restores the scroll and focuses the opener", Math.abs(after - before) < 4 && (await ev(`!!(document.activeElement && document.activeElement.closest(".tbl-link"))`)), { before, after, active: await active() });
+
 check("no script errors", logs.length === 0, logs);
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} checks passed`);

@@ -1083,9 +1083,30 @@ g.ch-anim .ch-line, g.ch-anim .ch-area, g.ch-anim .ch-seg { animation: kit-in va
 @keyframes kit-step-b { from { opacity: 0; transform: translateX(calc(-1 * var(--shift-2))); } }
 @keyframes kit-grow { from { transform: scaleY(0); } }
 @keyframes kit-spin { to { transform: rotate(360deg); } }
+@keyframes kit-vt-out { to { opacity: 0; } }
+@keyframes kit-vt-in { from { opacity: 0; transform: translateX(var(--vt-dx, 0)); } }
 [data-state="closing"] { animation: kit-out var(--dur-2) var(--ease-exit) forwards; pointer-events: none; }
+/* Route motion: the shell parts are captured by name and stay still; only the content region (the root
+   snapshot) cross-fades, with a short shift for forward and back. */
+.proto { view-transition-name: kit-keep-proto; } .side { view-transition-name: kit-keep-side; }
+.topbar { view-transition-name: kit-keep-top; } .site-h { view-transition-name: kit-keep-site-h; }
+.site-tabs, .m-nav { view-transition-name: kit-keep-tabs; } .m-top { view-transition-name: kit-keep-m-top; }
+::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none; }
+::view-transition-old(root) { animation: var(--dur-2) var(--ease-exit) both kit-vt-out; }
+::view-transition-new(root) { animation: var(--vt-dur) var(--ease-enter) both kit-vt-in; }
+:root[data-nav="forward"]::view-transition-new(root) { --vt-dx: var(--shift-2); }
+:root[data-nav="back"]::view-transition-new(root) { --vt-dx: calc(-1 * var(--shift-2)); }
+:root[data-nav] :is(.page, .site-page, .m-content, .bare-page, .frame-body) { animation: none; }
+/* Fallback without View Transitions: the screen region enters by itself. */
+.nav-f { animation: kit-step-f var(--vt-dur) var(--ease-enter); }
+.nav-b { animation: kit-step-b var(--vt-dur) var(--ease-enter); }
+.nav-l { animation: kit-in var(--vt-dur) var(--ease-enter); }
 @media (prefers-reduced-motion: reduce) {
   .ch-anim *, [data-loop] { animation: none !important; }
+  ::view-transition-group(*) { animation-duration: 0s !important; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 100ms; }
+  @keyframes kit-vt-in { from { opacity: 0; } }
+  .nav-f, .nav-b, .nav-l { animation: kit-in 100ms var(--ease-linear); }
   html { scroll-behavior: auto; }
   .kit-in .stage { transition: none; }
 }

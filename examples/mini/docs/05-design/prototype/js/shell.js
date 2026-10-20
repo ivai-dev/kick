@@ -179,17 +179,42 @@
   }
 
   // The current screen, behind the role guard and the release lens.
-  function ScreenBody({ wrap, density }) {
+  // Every shell's screen region: role guard, release lens, the screen; after each route the scroll goes to
+  // the top (forward, lateral) or back to where the screen was left (back), focus goes to the page h1 (or,
+  // on Back, to the element that opened the detail) and document.title names the screen. Without View
+  // Transitions (or with reduced motion) the region plays a short CSS entrance instead.
+  let firstScreen = true;
+  function ScreenBody({ wrap, density, id }) {
     const A = useApp();
     const reg = KIT.screens[A.screen];
+    const navKey = A.S._navKey || 0;
+    const dir = A.S._dir;
+    useLayoutEffect(() => {
+      document.title = t("app.screenTitle", { screen: reg ? reg.name : "", product: A.config.product });
+      if (dir === "replace") return;
+      const sc = document.getElementById("kit-content");
+      const back = dir === "back";
+      if (sc) sc.scrollTop = back ? A.S._restore || 0 : 0;
+      const first = firstScreen;
+      firstScreen = false;
+      if (first && !/^#[a-z0-9]/i.test(location.hash)) return;
+      let target = back && A.S._from ? document.querySelector(`[data-kit-key="${CSS.escape(A.S._from)}"]`) : null;
+      if (!target) {
+        target = document.querySelector("[data-kit-h1]") || document.querySelector("#kit-content h1, main h1, .m-content h1");
+        if (target && !target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+      }
+      if (target && !document.querySelector("wa-dialog[open], wa-drawer[open]")) target.focus({ preventScroll: true });
+    }, [A.screen, navKey]);
     let body;
     if (!reg) body = html`<${NotFound} />`;
     else if (!reg.roles.includes(A.role)) body = html`<${Denied} />`;
     else {
       const Comp = typeof reg.comp === "function" ? reg.comp : Placeholder;
-      body = html`<${ScreenRel} r=${reg.rel}><${Comp} key=${A.screen + ":" + (A.S._navKey || 0)} /><//>`;
+      body = html`<${ScreenRel} r=${reg.rel}><${Comp} key=${A.screen + ":" + navKey} /><//>`;
     }
-    return html`<div class=${wrap} data-screen=${A.screen} data-density=${density}>${body}</div>`;
+    const fallback = navKey > 0 && dir !== "replace" && (!document.startViewTransition || KIT.util.reduced());
+    const anim = fallback ? (dir === "forward" ? "nav-f" : dir === "back" ? "nav-b" : "nav-l") : null;
+    return html`<div key=${fallback ? "k" + navKey : "k"} id=${id} class=${cx(wrap, anim)} data-screen=${A.screen} data-page=${reg && wrap === "page" ? reg.page || "data" : undefined} data-density=${density}>${body}</div>`;
   }
 
   function DesktopShell() {
@@ -307,7 +332,6 @@
     const A = useApp();
     const ref = useRef(null);
     // Each screen opens at the top of the page, like a page load.
-    useLayoutEffect(() => { if (ref.current) ref.current.scrollTop = 0; }, [A.screen, JSON.stringify(A.params)]);
     const Header = KIT.site.Header || SiteHeader;
     const Footer = KIT.site.Footer || SiteFooter;
     const tabs = A.narrow && (KIT.roleDef(A.role).tabs || []).length > 1;
@@ -379,7 +403,7 @@
         <h1 class="t-h2 clamp1 grow">${reg ? reg.name : A.config.product}</h1>
         <${ThemeButton} />
       </header>
-      <${ScreenBody} wrap="m-content" />
+      <${ScreenBody} wrap="m-content" id="kit-content" />
       ${tabs.length > 1 && html`<nav class="m-nav" aria-label=${t("nav.main")}>${tabs.map((s) => html`<button type="button" key=${s.id} aria-current=${A.screen === s.id ? "page" : undefined} onClick=${() => A.go(s.id)}>
         <${Icon} n=${s.icon || "file"} s=${20} /><span class="clamp1">${s.name}</span></button>`)}</nav>`}
     </div>`;

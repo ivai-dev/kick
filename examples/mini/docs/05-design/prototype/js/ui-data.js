@@ -35,7 +35,7 @@
         if (!store.get("shortcuts", true)) return;
         const k = e.shiftKey && e.key.length > 1 ? "Shift+" + e.key : e.key.length === 1 ? e.key.toLowerCase() : e.key;
         const fn = keysRef.current[k] || keysRef.current[e.key];
-        if (fn) { e.preventDefault(); fn(e); }
+        if (fn && fn(e) !== false) e.preventDefault(); // a handler returns false to keep the native action
       };
       el.addEventListener("keydown", down);
       return () => el.removeEventListener("keydown", down);
@@ -156,10 +156,11 @@
     const keys = shortcuts ? {
       ArrowDown: () => focusRow(Math.min(view.length - 1, active + 1)), j: () => focusRow(Math.min(view.length - 1, active + 1)),
       ArrowUp: () => focusRow(Math.max(0, active - 1)), k: () => focusRow(Math.max(0, active - 1)),
-      " ": () => multi && active >= 0 && toggleKey(keyOf(view[active], active)), x: () => multi && active >= 0 && toggleKey(keyOf(view[active], active)),
+      " ": (e) => { if (e.target.closest("input, button, a")) return false; if (multi && active >= 0) toggleKey(keyOf(view[active], active)); },
+      x: () => multi && active >= 0 && toggleKey(keyOf(view[active], active)),
       "Shift+ArrowDown": () => { if (multi && active < view.length - 1) { const k = keyOf(view[active + 1], active + 1); if (!sel.includes(k)) setSel([...sel, k]); focusRow(active + 1); } },
       "Shift+ArrowUp": () => { if (multi && active > 0) { const k = keyOf(view[active - 1], active - 1); if (!sel.includes(k)) setSel([...sel, k]); focusRow(active - 1); } },
-      Enter: () => { if (active >= 0) { const l = linkOf(view[active]); if (l) follow(l); else if (open) open(view[active]); } },
+      Enter: (e) => { if (e.target.closest("a, button, input")) return false; if (active >= 0) { const l = linkOf(view[active]); if (l) follow(l); else if (open) open(view[active]); } },
       Escape: () => { if (active >= 0) setActive(-1); else if (sel.length) setSel([], false); },
     } : null;
     const colMenu = columnsMenu && html`<${MenuButton} label=${t("dt.columns")} icon="columns" size="sm" items=${columns.filter((c, i) => i > 0).map((c) => ({
