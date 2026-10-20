@@ -20,7 +20,9 @@
   const root = document.documentElement;
 
   const cfg = KIT.config();
-  const parse = KIT.makeParser({ roles: cfg.roles.map((r) => r.id), platforms: cfg.platforms });
+  KIT.applyDocConfig(); // <html lang data-lang data-density>, KIT_CONFIG.fonts
+  const L = KIT.logic;
+  const parse =KIT.makeParser({ roles: cfg.roles.map((r) => r.id), platforms: cfg.platforms });
   // A hash of one token (#dark, #mvp) opens the start page with that theme or lens.
   function readHash() {
     const r = parse(location.hash);
@@ -82,14 +84,32 @@
     const [S, setS] = useState(initialState);
     const set = useCallback((patch) => setS((s) => ({ ...s, ...(typeof patch === "function" ? patch(s) : patch) })), []);
     const [narrow, setNarrow] = useState(isNarrow);
+    const [wc, setWc] = useState(() => L.windowClass(window.innerWidth));
+    const coarseMq = useMemo(() => { try { return matchMedia("(pointer: coarse)"); } catch (e) { return null; } }, []);
+    const [coarse, setCoarse] = useState(() => !!(coarseMq && coarseMq.matches));
+    const [densUser, setDensUser] = useState({}); // role -> "compact" | "comfortable" | null (this session)
     const [resolved, setResolved] = useState("light");
     const sRef = useRef(S);
     sRef.current = S;
 
+    // Window size: the 760 px shell switch and the window class (rAF-throttled).
     useEffect(() => {
-      const r = () => setNarrow(isNarrow());
+      let raf = 0;
+      const r = () => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          setNarrow(isNarrow());
+          setWc(L.windowClass(window.innerWidth));
+        });
+      };
       window.addEventListener("resize", r);
-      return () => window.removeEventListener("resize", r);
+      const c = () => setCoarse(!!(coarseMq && coarseMq.matches));
+      coarseMq && coarseMq.addEventListener && coarseMq.addEventListener("change", c);
+      return () => {
+        window.removeEventListener("resize", r);
+        coarseMq && coarseMq.removeEventListener && coarseMq.removeEventListener("change", c);
+      };
     }, []);
 
     // Theme: an explicit choice stamps data-theme; "system" follows prefers-color-scheme.
@@ -229,10 +249,28 @@
     }, []);
 
     const reg = KIT.screens[S.screen];
+    const layout = layoutOf(S, narrow);
+    const site = KIT.roleDef(S.role).shell === "site";
+    const user = S.role in densUser ? densUser[S.role] : store.get("density-" + S.role, null);
+    const density = L.resolveDensity({
+      shell: site ? "site" : "app", layout, narrow, coarse, user: site ? null : user,
+      roleDensity: KIT.roleDef(S.role).density, screenDensity: reg && reg.density, config: cfg.density,
+    });
+    // <html data-density> (top-layer overlays and toasts read it) and <html data-wc>.
+    useLayoutEffect(() => {
+      root.dataset.density = S.screen == null ? "compact" : density;
+      root.dataset.wc = wc;
+    }, [density, wc, S.screen]);
+    api.setDensity = (d) => {
+      const v = d === "compact" || d === "comfortable" ? d : null;
+      store.set("density-" + sRef.current.role, v);
+      setDensUser((m) => ({ ...m, [sRef.current.role]: v }));
+    };
     const ctx = {
       ...api, S,
       config: cfg, role: S.role, theme: S.theme, resolved, lens: S.lens, platform: S.platform,
-      params: S.params, screen: S.screen, screenDef: reg || null, narrow, layout: layoutOf(S, narrow),
+      params: S.params, screen: S.screen, screenDef: reg || null, narrow, layout,
+      density, densityUser: site ? null : user, wc, coarse,
       toasts: S.toasts, scenario: S.scenario, sidebar: S.sidebar, drawer: S.drawer, canBack: S.hist.length > 0,
     };
     return html`<${Ctx.Provider} value=${ctx}>

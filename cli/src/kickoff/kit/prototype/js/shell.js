@@ -62,7 +62,7 @@
     const idxRef = useRef(null);
     const cur = KIT.screens[A.screen];
     const list = Object.values(KIT.screens);
-    return html`<div class="proto" role="region" aria-label=${t("proto.controls")}>
+    return html`<div class="proto" role="region" aria-label=${t("proto.controls")} data-density="compact">
       <span class="proto-tag hide-sm"><b>${t("proto.tag")}</b></span>
       <${Button} kind="ghost" size="sm" icon="home" label=${t("proto.start")} onClick=${A.openPicker} />
       <label class="proto-role"><span class="pb-lbl t-meta">${t("proto.role")}</span>
@@ -90,7 +90,7 @@
     const A = useApp();
     const cfg = A.config;
     const scenarios = KIT.SCENARIOS || [];
-    return html`<div class="launch"><div class="launch-in">
+    return html`<div class="launch" data-density="compact"><div class="launch-in">
       <header class="launch-hero">
         <div class="lh-brand"><span class="mark"><${Icon} n="layers" s=${18} /></span><span class="t-h2">${cfg.product}</span><span class="proto-tag"><b>${t("proto.tag")}</b></span></div>
         <h1 class="t-h1">${t("start.title")}</h1>
@@ -179,7 +179,7 @@
   }
 
   // The current screen, behind the role guard and the release lens.
-  function ScreenBody({ wrap }) {
+  function ScreenBody({ wrap, density }) {
     const A = useApp();
     const reg = KIT.screens[A.screen];
     let body;
@@ -189,7 +189,7 @@
       const Comp = typeof reg.comp === "function" ? reg.comp : Placeholder;
       body = html`<${ScreenRel} r=${reg.rel}><${Comp} key=${A.screen + JSON.stringify(A.params)} /><//>`;
     }
-    return html`<div class=${wrap} data-screen=${A.screen}>${body}</div>`;
+    return html`<div class=${wrap} data-screen=${A.screen} data-density=${density}>${body}</div>`;
   }
 
   function DesktopShell() {
@@ -201,7 +201,7 @@
       document.addEventListener("keydown", key);
       return () => document.removeEventListener("keydown", key);
     }, [drawer]);
-    return html`<div class=${cx("shell", !A.sidebar && "collapsed", drawer && "drawer")}>
+    return html`<div class=${cx("shell", !A.sidebar && "collapsed", drawer && "drawer")} data-density=${A.density}>
       <${Sidebar} />
       ${drawer && html`<div class="drawer-scrim" aria-hidden="true" onClick=${() => A.setDrawer(false)}></div>`}
       <div class="main">
@@ -311,7 +311,7 @@
     const Header = KIT.site.Header || SiteHeader;
     const Footer = KIT.site.Footer || SiteFooter;
     const tabs = A.narrow && (KIT.roleDef(A.role).tabs || []).length > 1;
-    return html`<div class=${cx("site", tabs && "has-tabs")} data-shell="site">
+    return html`<div class=${cx("site", tabs && "has-tabs")} data-shell="site" data-density=${A.density}>
       <div class="site-scroll" ref=${ref} id="kit-content">
         <${Header} />
         <main class="site-main"><${ScreenBody} wrap="site-page" /></main>
@@ -372,7 +372,7 @@
     const A = useApp();
     const reg = KIT.screens[A.screen];
     const tabs = navItems(A.role, "phone");
-    return html`<div class="m-app">
+    return html`<div class="m-app" data-density=${A.density}>
       <div class="m-status" aria-hidden="true"></div>
       <header class="m-top">
         ${A.canBack ? html`<${Button} kind="ghost" icon="back" label=${t("back")} onClick=${A.back} />` : html`<span class="m-top-sp"></span>`}
@@ -412,7 +412,7 @@
     if (A.layout === "phone-native") return html`<div class="stage"><div class="phone-screen native"><${MobileApp} /></div></div>`;
     if (A.layout === "phone-frame") return html`<${PhoneStage} />`;
     if (KIT.isBare(A.screen, A.params, A.role) && KIT.canOpen(A.screen, A.role)) {
-      return html`<div class="stage bare-stage" data-shell="bare"><div class="bare-scroll" id="kit-content"><${ScreenBody} wrap="bare-page" /></div></div>`;
+      return html`<div class="stage bare-stage" data-shell="bare"><div class="bare-scroll" id="kit-content"><${ScreenBody} wrap="bare-page" density=${A.density} /></div></div>`;
     }
     if (A.layout === "windows") return html`<div class="stage"><${WinFrame}><${DesktopShell} /><//></div>`;
     if (isSite(A.role)) return html`<div class="stage"><${SiteShell} /></div>`;

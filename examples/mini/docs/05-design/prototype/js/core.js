@@ -47,6 +47,7 @@
     const releases = Array.isArray(c.releases) && c.releases.length ? c.releases.map(String) : ["MVP"];
     const platforms = Array.isArray(c.platforms) && c.platforms.length ? c.platforms.filter((p) => PLATFORMS.includes(p)) : ["web"];
     const locale = c.locale || "en-US";
+    const L = KIT.logic || {};
     return {
       product: c.product || "Prototype",
       roles,
@@ -57,7 +58,33 @@
       lang: c.lang || String(locale).slice(0, 2).toLowerCase(),
       strings: c.strings || {},
       site: c.site || {},
+      // density: the default density per shell ({ app, site, phone, windows }); roles[].density overrides.
+      density: Object.assign({}, L.DENSITY_DEFAULTS || {}, c.density || {}),
+      // fonts: Google Fonts css2 URLs; the first replaces the kit's Inter link, the others are added.
+      fonts: Array.isArray(c.fonts) ? c.fonts.filter((u) => typeof u === "string") : [],
+      // audit: runtime audit thresholds (change only with the project lead's yes).
+      audit: Object.assign({}, L.AUDIT_DEFAULTS || {}, c.audit || {}),
     };
+  }
+  // Document attributes from the configuration, before the first render (main.js calls it once):
+  // <html lang data-lang data-density> and the font links of KIT_CONFIG.fonts.
+  function applyDocConfig() {
+    const cfg = config();
+    root.lang = cfg.lang;
+    root.dataset.lang = cfg.lang;
+    if (!root.dataset.density) root.dataset.density = cfg.density.app || "compact";
+    const fonts = cfg.fonts.filter((u) => /^https:\/\/fonts\.googleapis\.com\/css2\?/.test(u));
+    if (fonts.length) {
+      const link = document.getElementById("kit-fonts");
+      if (link) link.href = fonts[0];
+      for (const href of fonts.slice(1)) {
+        if (document.querySelector(`link[href="${CSS.escape(href)}"]`)) continue;
+        const l = document.createElement("link");
+        l.rel = "stylesheet";
+        l.href = href;
+        document.head.appendChild(l);
+      }
+    }
   }
   const roleDef = (id) => config().roles.find((r) => r.id === id) || {};
 
@@ -232,7 +259,7 @@
   Object.assign(KIT, {
     lib,
     h, render, Component, Fragment, hooks, html,
-    Ctx, useApp, register, screens, config, configProblems, homeOf, canOpen, roleName, roleDef, isBare, t,
+    Ctx, useApp, register, screens, config, configProblems, homeOf, canOpen, roleName, roleDef, isBare, t, applyDocConfig,
     stampErr, PLATFORMS,
     D: KIT.D || null, // sample data, set by js/data.js
     ui: KIT.ui || {},
