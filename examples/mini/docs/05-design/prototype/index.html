@@ -4,7 +4,9 @@
 <meta name="description" content="Clickable prototype of the full product: every role, platform and release, with sample data only.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link id="kit-fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.14.0/dist-cdn/styles/themes/default.css">
 <style>
 /* Design prototype only. The product bundles its own fonts and assets. */
 
@@ -281,6 +283,52 @@
 @media (prefers-reduced-motion: reduce) {
   :root, [data-density] { --shift-1: 0px; --shift-2: 0px; --dur-3: 150ms; --dur-4: 150ms; --dur-5: 150ms; --vt-dur: 100ms; }
 }
+
+/* ---------- Token bridge: kit tokens -> UI library tokens ---------- */
+/* Unlayered, so it beats the library's @layer wa-theme whatever the specificity; values are references, so the
+   light and dark themes and the density flow through. Projects never write library tags or tokens. */
+:root {
+  --wa-font-family-body: var(--font-ui); --wa-font-family-heading: var(--font-ui); --wa-font-family-code: var(--font-mono);
+  --wa-font-weight-heading: var(--fw-semibold); --wa-font-weight-action: var(--fw-medium);
+  --wa-line-height-normal: 1.5;
+  --wa-color-surface-default: var(--surface); --wa-color-surface-raised: var(--surface); --wa-color-surface-lowered: var(--surface-2);
+  --wa-color-surface-border: var(--line);
+  --wa-color-text-normal: var(--ink); --wa-color-text-quiet: var(--ink-3); --wa-color-text-link: var(--primary-ink);
+  --wa-color-brand-fill-loud: var(--primary); --wa-color-brand-on-loud: var(--on-primary);
+  --wa-color-brand-fill-quiet: var(--primary-soft); --wa-color-brand-on-quiet: var(--primary-ink);
+  --wa-color-danger-fill-loud: var(--danger); --wa-color-danger-on-quiet: var(--danger-ink);
+  --wa-color-focus: var(--ring); --wa-color-overlay-modal: var(--scrim);
+  --wa-shadow-l: var(--shadow-3); --wa-shadow-m: var(--shadow-2);
+  --wa-panel-border-radius: var(--dialog-r, var(--r-lg)); --wa-border-radius-m: var(--r-md); --wa-border-radius-l: var(--r-lg);
+  --wa-transition-normal: var(--dur-3); --wa-transition-fast: var(--dur-1); --wa-transition-easing: var(--ease-standard);
+  --wa-tooltip-background-color: var(--ink); --wa-tooltip-content-color: var(--bg);
+  --wa-tooltip-font-size: var(--tip-fs); --wa-tooltip-border-radius: var(--r-md);
+  --wa-space-scale: var(--wa-scale, 1);
+}
+:where([data-density="compact"]) { --wa-scale: .75; }  :where([data-density="touch"]) { --wa-scale: 1.25; }
+:where([data-density="kiosk"]) { --wa-scale: 1.5; }
+wa-dialog { --spacing: var(--overlay-p); --show-duration: var(--dur-3); --hide-duration: var(--dur-2); }
+wa-dialog[data-size="s"] { --width: 400px; } wa-dialog[data-size="m"] { --width: 560px; }
+wa-dialog[data-size="l"] { --width: 880px; } wa-dialog[data-size="full"] { --width: calc(100vw - 32px); }
+wa-drawer { --spacing: var(--overlay-p); --size: var(--l-panel-m); --show-duration: var(--dur-4); --hide-duration: var(--dur-3); }
+wa-drawer[data-size="l"] { --size: var(--l-panel-l); }
+wa-drawer[placement="start"] { --size: min(304px, 86vw); }
+wa-drawer[placement="bottom"] { --size: auto; --show-duration: var(--dur-4); }
+[data-density="kiosk"] wa-drawer[placement="bottom"] { --show-duration: var(--dur-5); }
+wa-dropdown, wa-popover { --show-duration: var(--dur-3); --hide-duration: var(--dur-2); }
+wa-toast-item { --show-duration: var(--dur-3); --hide-duration: var(--dur-2); }
+wa-dialog::part(title), wa-drawer::part(title) { font: var(--t-title-l); }
+wa-dialog::part(header), wa-drawer::part(header) { min-height: var(--card-head-h); }
+wa-drawer::part(header) { border-bottom: 1px solid var(--line); }
+wa-dialog::part(footer), wa-drawer::part(footer) { gap: var(--sp-3); }
+wa-drawer::part(footer) { border-top: 1px solid var(--line); background: var(--surface-2); }
+wa-dialog::part(body), wa-drawer::part(body) { font: var(--t-body); }
+wa-dropdown-item { font: var(--t-body); min-height: var(--menu-item-h); }
+wa-dropdown-item[data-unavailable] { color: var(--ink-3); }
+wa-tab-group { --indicator-color: var(--primary); --track-color: var(--line); }
+wa-tab { font: var(--t-label); }
+:is(wa-dialog, wa-drawer, wa-dropdown, wa-dropdown-item, wa-tooltip, wa-popover, wa-popup, wa-toast, wa-toast-item,
+  wa-tab-group, wa-tab, wa-tab-panel, wa-radio-group, wa-radio):not(:defined) { visibility: hidden; }
 
 /* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -850,6 +898,14 @@ g.ch-anim .ch-line, g.ch-anim .ch-area, g.ch-anim .ch-seg { animation: kit-in va
 <script src="https://cdn.jsdelivr.net/npm/preact@10.24.3/dist/preact.umd.js" charset="utf-8"></script>
 <script src="https://cdn.jsdelivr.net/npm/preact@10.24.3/hooks/dist/hooks.umd.js" charset="utf-8"></script>
 <script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js" charset="utf-8"></script>
+<script type="module" charset="utf-8">
+  // Web Awesome 3.14.0 (MIT), the kit's behaviour foundation. Projects never use <wa-*> directly.
+  const W = "https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.14.0/dist-cdn/components/";
+  const TAGS = ["dialog", "drawer", "dropdown", "dropdown-item", "tooltip", "popover", "popup", "toast", "toast-item",
+    "tab-group", "tab", "tab-panel", "radio-group", "radio"];
+  window.KIT_LIB = Promise.all(TAGS.map((t) => import(W + t + "/" + t + ".js")))
+    .then(() => Promise.all(TAGS.map((t) => customElements.whenDefined("wa-" + t))));
+</script>
 <script src="js/route.js" charset="utf-8"></script>
 <script src="js/logic.js" charset="utf-8"></script>
 <script src="js/core.js" charset="utf-8"></script>

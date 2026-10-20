@@ -97,9 +97,15 @@
     useLayoutEffect(() => {
       const mq = matchMedia("(prefers-color-scheme: dark)");
       const apply = () => {
+        // One frame without transitions around the change (no colour animation on a theme switch).
+        root.setAttribute("data-theme-switching", "");
         if (S.theme === "system") root.removeAttribute("data-theme");
         else root.setAttribute("data-theme", S.theme);
-        setResolved(S.theme === "system" ? (mq.matches ? "dark" : "light") : S.theme);
+        const dark = S.theme === "system" ? mq.matches : S.theme === "dark";
+        root.classList.toggle("wa-dark", dark);
+        root.classList.toggle("wa-light", !dark);
+        setResolved(dark ? "dark" : "light");
+        requestAnimationFrame(() => requestAnimationFrame(() => root.removeAttribute("data-theme-switching")));
       };
       apply();
       mq.addEventListener && mq.addEventListener("change", apply);
@@ -189,12 +195,25 @@
       const problem = KIT.configProblems();
       if (problem) KIT.stampErr(problem);
       const first = readHash();
-      if (first.scenario) KIT.scenario.run(api, first.scenario);
-      else if (first.screen && !KIT.screens[first.screen]) KIT.stampErr("route: no screen " + first.screen);
+      if (first.screen && !KIT.screens[first.screen]) KIT.stampErr("route: no screen " + first.screen);
       root.dataset.screens = Object.values(KIT.screens).map((s) => `${s.id}|${s.code}|${s.roles.join("+")}`).join(";");
       root.dataset.scenarios = (KIT.SCENARIOS || []).map((s) => s.id).join(",");
-      root.classList.add("kit-in");
-      root.dataset.ready = "1";
+      // Ready after the UI library (≤ 4.5 s, inside the 5 s budget of proto check) and the fonts (≤ 800 ms).
+      // The module loader is deferred, so wait for the end of parsing before reading window.KIT_LIB.
+      const parsed = new Promise((r) => (document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r, { once: true }) : r()));
+      const libReady = parsed.then(() => (window.KIT_LIB
+        ? Promise.race([window.KIT_LIB, new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 4500))])
+        : Promise.reject(new Error("loader missing"))));
+      const fontsReady = Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise((r) => setTimeout(r, 800))]);
+      Promise.all([libReady, fontsReady]).then(() => {
+        root.classList.add("kit-in"); // the stage fades in over --dur-2
+        if (KIT.audit && KIT.audit.afterReady) KIT.audit.afterReady();
+        root.dataset.ready = "1";
+        if (first.scenario) KIT.scenario.run(api, first.scenario); // scenarios start after ready
+      }, (e) => {
+        root.classList.add("kit-in");
+        KIT.stampErr("ui library: " + ((e && e.message) || e));
+      });
       const onHash = () => {
         const r = readHash();
         set((s) => fromRoute(s, r));

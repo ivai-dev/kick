@@ -150,6 +150,18 @@ def test_kit_loads_inter_variable():
     assert "Inter:opsz,wght@14..32,400..700" in link and "display=swap" in link
 
 
+def test_kit_pins_web_awesome():
+    page = (KIT_DIR / "index.html").read_text(encoding="utf-8")
+    core = (KIT_DIR / "js" / "core.js").read_text(encoding="utf-8")
+    version = re.search(r'name: "@awesome\.me/webawesome", version: "([\d.]+)"', core).group(1)
+    assert version == "3.14.0"
+    urls = re.findall(r"https://cdn\.jsdelivr\.net/npm/@awesome\.me/webawesome@([^/\"']+)/", page)
+    assert len(urls) >= 2 and set(urls) == {version}
+    for banned in ("webawesome.css", "native.css", "autoloader", "webawesome-pro", "kit.webawesome.com"):
+        assert banned not in page, banned
+    assert "window.KIT_LIB" in page
+
+
 def test_kit_has_foundation_tokens():
     css = kit_css()
     for mode in ("compact", "comfortable", "touch", "kiosk"):

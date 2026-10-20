@@ -222,7 +222,15 @@
   const Ctx = createContext(null);
   const useApp = () => hooks.useContext(Ctx);
 
+  // The UI library behind KIT.ui (index.html loads it; every URL there carries this version).
+  const lib = {
+    name: "@awesome.me/webawesome", version: "3.14.0",
+    tags: ["dialog", "drawer", "dropdown", "dropdown-item", "tooltip", "popover", "popup", "toast", "toast-item",
+      "tab-group", "tab", "tab-panel", "radio-group", "radio"],
+  };
+
   Object.assign(KIT, {
+    lib,
     h, render, Component, Fragment, hooks, html,
     Ctx, useApp, register, screens, config, configProblems, homeOf, canOpen, roleName, roleDef, isBare, t,
     stampErr, PLATFORMS,
