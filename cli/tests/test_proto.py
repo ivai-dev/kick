@@ -1,3 +1,4 @@
+import re
 import shutil
 from pathlib import Path
 
@@ -136,6 +137,29 @@ def test_cli_update_dry_lists_changes(tmp_path, capsys):
 def test_kit_ships_inside_the_package():
     assert (KIT_DIR / "index.html").is_file()
     assert KIT_DIR.resolve().is_relative_to(Path(kickoff.__file__).resolve().parent)
+
+
+def kit_css() -> str:
+    page = (KIT_DIR / "index.html").read_text(encoding="utf-8")
+    return page.split("<style>", 1)[1].split("</style>", 1)[0]
+
+
+def test_kit_loads_inter_variable():
+    page = (KIT_DIR / "index.html").read_text(encoding="utf-8")
+    link = next(line for line in page.splitlines() if 'id="kit-fonts"' in line)
+    assert "Inter:opsz,wght@14..32,400..700" in link and "display=swap" in link
+
+
+def test_kit_has_foundation_tokens():
+    css = kit_css()
+    for mode in ("compact", "comfortable", "touch", "kiosk"):
+        start = css.index(f'[data-density="{mode}"])')
+        block = css[start : css.index("}", start)]
+        for token in ("--ctl-h:", "--t-body:", "--row-h:", "--section-gap:"):
+            assert token in block, (mode, token)
+    assert css.index("/* kickoff:tokens:end */") < css.index(":where([data-density=\"compact\"])")
+    assert not re.search(r"font-weight\s*:\s*800", css)
+    assert not re.search(r"line-height\s*:\s*1\s*;", css)
 
 
 def test_mini_prototype_core_matches_the_kit():

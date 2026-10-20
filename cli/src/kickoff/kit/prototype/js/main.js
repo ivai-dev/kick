@@ -193,6 +193,7 @@
       else if (first.screen && !KIT.screens[first.screen]) KIT.stampErr("route: no screen " + first.screen);
       root.dataset.screens = Object.values(KIT.screens).map((s) => `${s.id}|${s.code}|${s.roles.join("+")}`).join(";");
       root.dataset.scenarios = (KIT.SCENARIOS || []).map((s) => s.id).join(",");
+      root.classList.add("kit-in");
       root.dataset.ready = "1";
       const onHash = () => {
         const r = readHash();
