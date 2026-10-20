@@ -54,6 +54,7 @@ window.KIT_CONFIG = {
   ],
   site: {
     org: "City Library",                     // line under the product name in the header
+    menu: ["sc-05", "sc-06"],                // top-menu screens in order (default: nav screens outside `account`)
     account: "My account",                   // nav label whose screens form the account menu
     accountLabel: "My account",              // text of the account button (default: the role name)
     signIn: [{ label: "Sign in", go: "sc-03" }, { label: "Register", go: "sc-04" }],   // shown to a visitor

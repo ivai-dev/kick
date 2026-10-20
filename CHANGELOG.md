@@ -2,6 +2,12 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.2.2] - 2026-10-20
+
+### Added
+
+- Kit: `KIT_CONFIG.site.menu` lists the top-menu screens of the site shell explicitly, so a public page can sit in the site menu without joining the app sidebars.
+
 ## [0.2.1] - 2026-10-20
 
 ### Added

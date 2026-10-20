@@ -212,7 +212,8 @@
   }
 
   /* ---------------- Site shell ---------------- */
-  // KIT_CONFIG.site = { org, account, accountLabel, signIn: [{ label, go }], signOut, footer: [lines] }
+  // KIT_CONFIG.site = { org, menu, account, accountLabel, signIn: [{ label, go }], signOut, footer: [lines] }
+  //   menu: screen ids of the top menu, in order (default: the role's nav screens outside the account group);
   //   org: the organisation line under the product name;
   //   account: the nav label whose screens form the account menu (not the top menu);
   //   accountLabel: the account button's text (default: the role name);
@@ -225,7 +226,10 @@
     const site = KIT.config().site || {};
     const all = navItems(role, "desk").filter((s) => s.menu !== false);
     const account = all.filter((s) => site.account && s.nav === site.account);
-    const top = all.filter((s) => !(site.account && s.nav === site.account));
+    // site.menu lists the top-menu screens explicitly (screens the role may open, in that order).
+    const top = Array.isArray(site.menu)
+      ? site.menu.filter((id) => KIT.canOpen(id, role)).map((id) => KIT.screens[id])
+      : all.filter((s) => !(site.account && s.nav === site.account));
     return { site, top, account };
   }
   const label = (s) => (typeof s.menu === "string" && s.menu) || s.name;
