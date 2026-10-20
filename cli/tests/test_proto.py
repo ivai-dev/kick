@@ -220,7 +220,7 @@ def test_check_site_shell_and_parameter_routes(tmp_path):
     config = root / "docs" / "05-design" / "prototype" / "js" / "config.js"
     text = config.read_text(encoding="utf-8")
     text = text.replace('{ id: "librarian", name: "Librarian", home: "sc-01" }', '{ id: "librarian", name: "Librarian", home: "sc-01", shell: "site", tabs: ["sc-01", "sc-02"] }')
-    text = text.replace("window.KIT_CONFIG = {", 'window.KIT_CONFIG = {\n  site: { org: "City Library", footer: ["Open every day"] },')
+    text = text.replace("window.KIT_CONFIG = {", 'window.KIT_CONFIG = {\n  site: { org: "City Library", menu: ["sc-02", "sc-01"], footer: ["Open every day"] },')
     config.write_text(text, encoding="utf-8")
     shots = tmp_path / "shots"
     assert check(root, load_project(root), routes=["sc-01", "sc-02-librarian?month=3"], shots=shots) == []
