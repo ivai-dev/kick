@@ -574,6 +574,13 @@
       return () => { alive = false; };
     }, [anchor, open, narrow]);
     useOwnEvent(ref, "wa-hide", () => { if (openRef.current) onClose && onClose("library"); });
+    // Focus returns to the trigger when the popover closes with focus inside it (or nowhere).
+    useOwnEvent(ref, "wa-after-hide", () => {
+      const a = typeof anchor === "string" ? document.getElementById(anchor) : anchor;
+      const act = deepActive();
+      const el = ref.current;
+      if (a && a.isConnected && (!act || act === document.body || (el && (el.contains(act) || (el.shadowRoot && el.shadowRoot.contains(act)))))) a.focus({ preventScroll: true });
+    });
     useEffect(() => {
       if (!open || !title) return;
       libReady("wa-popover").then(() => ref.current && ref.current.updateComplete).then(() => {

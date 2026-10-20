@@ -247,7 +247,7 @@
       const Comp = typeof reg.comp === "function" ? reg.comp : Placeholder;
       body = html`<${ScreenRel} r=${reg.rel}><${Comp} key=${A.screen + ":" + navKey} /><//>`;
     }
-    const fallback = navKey > 0 && dir !== "replace" && (!document.startViewTransition || KIT.util.reduced());
+    const fallback = navKey > 0 && dir !== "replace" && (!document.startViewTransition || KIT.util.reduced() || !KIT._frames);
     const anim = fallback ? (dir === "forward" ? "nav-f" : dir === "back" ? "nav-b" : "nav-l") : null;
     return html`<div key=${fallback ? "k" + navKey : "k"} id=${id} class=${cx(wrap, anim)} data-screen=${A.screen} data-page=${reg && wrap === "page" ? reg.page || "data" : undefined} data-density=${density}>${body}</div>`;
   }
@@ -432,7 +432,7 @@
       <div class="m-status" aria-hidden="true"></div>
       <header class="m-top">
         ${A.canBack ? html`<${IconButton} icon="back" label=${t("back")} onClick=${A.back} />` : html`<span class="m-top-sp"></span>`}
-        <span class="m-top-t clamp1 grow">${reg ? reg.name : A.config.product}</span>
+        <h1 class="m-top-t clamp1 grow" tabindex="-1" data-kit-h1="">${reg ? reg.name : A.config.product}</h1>
         <${ThemeButton} />
       </header>
       <${ScreenBody} wrap="m-content" id="kit-content" />

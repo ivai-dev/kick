@@ -1,7 +1,7 @@
-// audit.js — kit checks that run inside the page (KIT.audit): the overlay gallery route #kit-overlays (the
-// regression page test/overlays.html and the CDP script drive it). The runtime audit and the #kit-selftest
-// route are added in the next step. Internal routes are not in data-screens, the screen index or any menu.
-// Core file.
+// audit.js — kit checks that run inside the page (KIT.audit): the runtime audit A1–A18 (afterReady stamps
+// data-audit-fail / data-audit-warn), the self-test route #kit-selftest (S1–S8, stamps data-selftest), and
+// the overlay gallery #kit-overlays (the regression page test/overlays.html and test/cdp-overlays.mjs drive
+// it). Internal routes are not in data-screens, the screen index or any menu. Core file.
 (function () {
   "use strict";
   const { html, hooks, useApp } = KIT;
@@ -207,5 +207,312 @@
   }
   registerInternal("kit-overlays", Gallery, { name: "Kit overlays" });
 
-  KIT.audit = Object.assign(KIT.audit || {}, { Gallery, registerInternal });
+  /* ---------------- Runtime audit (A1–A18) ---------------- */
+  // Runs once per load after data-ready: checks the product area (#kit-content and the overlays open at that
+  // moment; not the prototype bar, start page, guide panel or Windows chrome) against the foundation rules and
+  // stamps <html data-audit-fail="…"> (errors) and data-audit-warn="…" (warnings), 400 characters each, items
+  // separated by "; ". Thresholds: KIT_CONFIG.audit (defaults KIT.logic.AUDIT_DEFAULTS).
+  const CHROME = ".proto, .launch, .guide, .win-title, .taskbar, [data-kit-audit=\"off\"]";
+  const CHART = ".ch, .barlist, .funnel";
+  const INTERACTIVE = "button, a[href], input:not([type=hidden]), select, textarea, [role=button], [role=tab], [role=menuitem], [role=option], [role=switch], [role=radio], [role=checkbox]";
+  const MIN_FS = { compact: 13, comfortable: 14, touch: 14, kiosk: 19 };
+  const MIN_FS_CHART = { compact: 12, comfortable: 13, touch: 13, kiosk: 19 };
+  const MIN_TARGET = { compact: 24, comfortable: 24, touch: 40, kiosk: 56 };
+  const short = (s) => String(s || "").replace(/\s+/g, " ").trim().slice(0, 24);
+  const densityOf = (el) => {
+    const d = el.closest && el.closest("[data-density]");
+    return (d && d.getAttribute("data-density")) || document.documentElement.dataset.density || "compact";
+  };
+  const visible = (el) => {
+    if (!el.getClientRects || !el.getClientRects().length) return false;
+    const cs = getComputedStyle(el);
+    if (cs.visibility === "hidden" || cs.display === "none") return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 1 && r.height > 1;
+  };
+  const ownText = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+  function roots() {
+    const list = [];
+    const c = document.getElementById("kit-content");
+    if (c) list.push(c);
+    document.querySelectorAll("wa-dialog[open], wa-drawer[open], wa-popover[open], wa-dropdown[open]").forEach((o) => {
+      if (!(c && c.contains(o))) list.push(o);
+    });
+    return list;
+  }
+  function accName(el) {
+    const label = el.getAttribute("aria-label");
+    if (label && label.trim()) return label.trim();
+    const lb = el.getAttribute("aria-labelledby");
+    if (lb) return lb.split(/\s+/).map((id) => (document.getElementById(id) || {}).textContent || "").join(" ").trim();
+    if (el.id) {
+      const l = document.querySelector(`label[for="${CSS.escape(el.id)}"]`);
+      if (l && l.textContent.trim()) return l.textContent.trim();
+    }
+    const wrap = el.closest("label");
+    if (wrap && wrap.textContent.trim()) return wrap.textContent.trim();
+    if (el.tagName === "INPUT" && (el.placeholder || el.value) && el.type !== "checkbox" && el.type !== "radio") return el.placeholder || el.value;
+    const txt = (el.textContent || "").trim();
+    if (txt) return txt;
+    const img = el.querySelector("img[alt], svg[aria-label]");
+    return img ? img.getAttribute("alt") || img.getAttribute("aria-label") : "";
+  }
+  function run(th) {
+    const fail = [], warn = [];
+    const add = (list, id, msg) => { if (!list.some((x) => x.startsWith(id + " ") && list.length > 6)) list.push(id + " " + msg); };
+    const rs = roots();
+    const all = [];
+    rs.forEach((r) => { all.push(r); r.querySelectorAll("*").forEach((e) => all.push(e)); });
+    const els = all.filter((e) => !(e.closest && e.closest(CHROME)) && !(e.closest && e.closest(".sr-only")));
+    const texts = els.filter((e) => ownText(e) && !/^(SCRIPT|STYLE|TITLE|OPTION)$/.test(e.tagName) && visible(e));
+    const sizes = new Set();
+    const lang = document.documentElement.lang;
+    const seen = {};
+    for (const e of texts) {
+      const cs = getComputedStyle(e);
+      const fs = parseFloat(cs.fontSize);
+      const inChart = !!e.closest(CHART);
+      const lh = cs.lineHeight === "normal" ? 1.2 * fs : parseFloat(cs.lineHeight);
+      const ratio = lh / fs;
+      const d = densityOf(e);
+      const tx = short(e.textContent);
+      const once = (k) => (seen[k] ? false : (seen[k] = true));
+      if (!inChart) sizes.add(Math.round(fs * 2) / 2);
+      if (parseInt(cs.fontWeight, 10) > 700 && once("A1" + cs.fontWeight)) add(fail, "A1", `weight ${cs.fontWeight} '${tx}'`);
+      if (ratio < th.minLh - 0.005 && once("A3" + fs + lh)) add(fail, "A3", `line-height ${lh}/${fs} '${tx}'`);
+      const lines = e.getBoundingClientRect().height / lh;
+      if (lines > 1.5 && ratio < th.minLhWrap - 0.005 && once("A4" + fs + lh)) add(/^H[1-3]$/.test(e.tagName) ? fail : warn, "A4", `wrapping ${lh}/${fs} '${tx}'`);
+      const clipped = cs.overflow === "hidden" || cs.overflowY === "hidden" || cs.overflowX === "hidden";
+      if (clipped && (cs.textOverflow === "ellipsis" || (cs.webkitLineClamp && cs.webkitLineClamp !== "none"))) {
+        const pad = parseFloat(cs.paddingTop) / fs;
+        if (ratio < th.minLhClip - 0.005 && pad < 0.1 && once("A5" + fs + lh)) add(fail, "A5", `clipped text ${lh}/${fs} '${tx}'`);
+      }
+      if (parseFloat(cs.letterSpacing) < 0 && once("A6ls")) add(fail, "A6", `negative letter-spacing '${tx}'`);
+      if (lang === "vi" && cs.textTransform === "uppercase" && once("A6up")) add(fail, "A6", `uppercase Vietnamese '${tx}'`);
+      const min = (inChart ? MIN_FS_CHART : MIN_FS)[d] || 13;
+      if (fs < min - 0.01 && once("A7" + fs + d)) add(fail, "A7", `${fs}px < ${min} (${d}) '${tx}'`);
+    }
+    if (sizes.size > th.maxSizes) add(fail, "A2", `${sizes.size} sizes > ${th.maxSizes} (${[...sizes].sort((a, b) => a - b).join(",")})`);
+    // A8 names, A9 roles, A10 targets.
+    const inter = els.filter((e) => e.matches && e.matches(INTERACTIVE) && visible(e));
+    for (const e of inter) {
+      const nm = accName(e);
+      if (!nm && !(e.tagName === "INPUT" && e.closest("label"))) add(fail, "A8", `no name: ${e.tagName.toLowerCase()}${e.className && typeof e.className === "string" ? "." + e.className.split(" ")[0] : ""}`);
+      if (e.tagName === "BUTTON" && e.hasAttribute("title") && !(e.textContent || "").trim()) add(fail, "A8", `title on icon button '${short(nm)}'`);
+      if (e.hasAttribute("aria-pressed") && e.hasAttribute("aria-expanded")) add(fail, "A9", `aria-pressed and aria-expanded '${short(nm)}'`);
+      // Targets: inline text links, inputs inside a label, and table checkboxes (their cell) are excluded.
+      if (e.tagName === "A" && getComputedStyle(e).display === "inline" && e.parentElement && ownText(e.parentElement)) continue;
+      if (e.tagName === "INPUT" && (e.closest("label") || e.closest("td.chk, th.chk") || e.classList.contains("sr-only"))) continue;
+      if (e.closest(CHART)) continue;
+      const z = e.currentCSSZoom || 1;
+      const r = e.getBoundingClientRect();
+      const w = r.width / z, h = r.height / z;
+      const d = densityOf(e);
+      const min = MIN_TARGET[d] || 24;
+      if (Math.min(w, h) < min - 0.5) add(fail, "A10", `${Math.round(w)}×${Math.round(h)} ${e.tagName.toLowerCase()} '${short(nm)}' (${d} ${min})`);
+      else if (d === "touch" && Math.min(w, h) < 44 - 0.5) add(warn, "A10", `${Math.round(w)}×${Math.round(h)} '${short(nm)}' (touch 44)`);
+    }
+    els.forEach((e) => { if (e.getAttribute && e.getAttribute("role") === "menu" && e.querySelector("a[href]")) add(fail, "A9", "role=menu with links"); });
+    // A11 one filled button per region, ≤ 2 in the viewport.
+    const filled = inter.filter((e) => e.matches(".btn.primary, .btn.act") && !e.matches("[aria-current]"));
+    const regionOf = (e) => e.closest(".page-h, .card-h, .ov-foot, .abar, .spanel-f, .card, .page, .site-page, .m-content");
+    const per = new Map();
+    filled.forEach((e) => { const r = regionOf(e); per.set(r, (per.get(r) || 0) + 1); });
+    for (const n of per.values()) if (n > 1) { add(warn, "A11", `${n} filled buttons in one region`); break; }
+    const inView = filled.filter((e) => { const r = e.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; });
+    if (inView.length > 2) add(warn, "A11", `${inView.length} filled buttons in view`);
+    // A12 one h1 per screen with tabindex -1.
+    const c = document.querySelector(".stage");
+    if (c && document.getElementById("kit-content")) {
+      const h1s = [...c.querySelectorAll("h1")].filter((h) => !h.closest(CHROME));
+      if (h1s.length !== 1) add(fail, "A12", `${h1s.length} h1`);
+      else if (h1s[0].getAttribute("tabindex") !== "-1") add(fail, "A12", "h1 without tabindex=-1");
+    }
+    // A13 layout shift.
+    if (shift > th.maxShift) add(warn, "A13", `layout shift ${shift.toFixed(3)}`);
+    // A14 clickable rows have a link or button in the first cell; A15 empty cells; A16 long lists page.
+    els.filter((e) => e.tagName === "TR").forEach((tr) => {
+      if ((tr.classList.contains("click") || tr.classList.contains("has-link") || tr.hasAttribute("onclick")) && !(tr.cells[0] && tr.cells[0].querySelector("a[href], button"))) add(fail, "A14", "clickable row without a link or button in its first cell");
+    });
+    const emptyTd = els.filter((e) => e.tagName === "TD" && !e.textContent.trim() && !e.children.length && !e.classList.contains("tbl-empty"));
+    if (emptyTd.length) add(warn, "A15", `${emptyTd.length} empty table cells (use "—")`);
+    els.filter((e) => e.tagName === "TBODY" && e.rows.length > 25).forEach((tb) => {
+      const box = tb.closest(".dt, .card, section") || tb.parentElement;
+      if (!box.querySelector('[data-kit="Pager"]')) add(warn, "A16", `${tb.rows.length} rows without paging`);
+    });
+    // A17 images and pictograms have a size; A18 duplicate ids.
+    els.filter((e) => e.tagName === "IMG" && visible(e)).forEach((img) => {
+      if (!img.getAttribute("width") && getComputedStyle(img).aspectRatio === "auto") add(warn, "A17", `image without size '${short(img.alt)}'`);
+      if (!img.hasAttribute("alt")) add(warn, "A17", "image without alt");
+    });
+    const ids = {};
+    document.querySelectorAll("[id]").forEach((e) => { ids[e.id] = (ids[e.id] || 0) + 1; });
+    const dup = Object.keys(ids).filter((k) => ids[k] > 1 && k);
+    if (dup.length) add(fail, "A18", `duplicate ids: ${dup.slice(0, 3).join(", ")}`);
+    return { fail, warn };
+  }
+  let shift = 0;
+  try {
+    new PerformanceObserver((list) => {
+      for (const e of list.getEntries()) if (!e.hadRecentInput) shift += e.value;
+    }).observe({ type: "layout-shift", buffered: true });
+  } catch (e) {
+    /* no layout-shift entries in this browser */
+  }
+  const cut = (items) => items.join("; ").slice(0, 400);
+  function afterReady() {
+    const root = document.documentElement;
+    try {
+      const th = KIT.config().audit;
+      const { fail, warn } = run(th);
+      if (fail.length) root.dataset.auditFail = cut(fail); else delete root.dataset.auditFail;
+      if (warn.length) root.dataset.auditWarn = cut(warn); else delete root.dataset.auditWarn;
+    } catch (e) {
+      root.dataset.auditWarn = "audit did not run: " + String((e && e.message) || e).slice(0, 120);
+    }
+    if (/^#kit-selftest(?:-|$)/.test(location.hash)) setTimeout(selftest, 50);
+  }
+
+  /* ---------------- Self-test (#kit-selftest, S1–S8) ---------------- */
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  async function until(fn, ms = 2000) {
+    const t0 = Date.now();
+    while (Date.now() - t0 < ms) {
+      try { if (fn()) return true; } catch (e) { /* not yet */ }
+      await wait(40);
+    }
+    return false;
+  }
+  const deep = () => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return a; };
+  let bed = null;
+  function Bed() {
+    const [s, setS] = useState({});
+    bed = { set: (p) => setS((o) => ({ ...o, ...p })) };
+    const open = (k) => !!s[k];
+    const close = (k) => () => bed.set({ [k]: false });
+    return html`<${U.PageHeader} title="Kit self-test" sentence="Internal route: checks the overlay set, toasts and routes." />
+      <div class="row wrap gap-8">
+        ${["dlg", "conf", "panel", "aside", "sheet", "pop", "menu", "gone"].map((k) => html`<button key=${k} type="button" class="btn" id=${"st-" + k} onClick=${() => bed.set({ [k]: true })}>${k}</button>`)}
+        ${!s.goneHidden && html`<button type="button" class="btn" id="st-opener-gone" onClick=${() => bed.set({ gone: true })}>opener</button>`}
+        <${U.MenuButton} id="st-menu-btn" label="Menu" items=${[{ label: "One" }, { label: "Two" }]} />
+      </div>
+      <div class="l-panel"><p class="grow">List</p><${U.SidePanel} modal=${false} open=${open("aside")} title="Aside" onClose=${close("aside")}><p>Detail</p><//></div>
+      <span data-st="Dialog"><${U.Dialog} open=${open("dlg")} title="Dialog" onClose=${close("dlg")}>
+        <${U.Field} id="st-f" label="Field"><input id="st-f" class="input" /><//>
+        <button type="button" class="btn" id="st-pop-in">Pop</button>
+        <${U.Popover} open=${open("popIn")} anchor="st-pop-in" title="Inner" onClose=${close("popIn")}><p>Inner popover</p><//><//></span>
+      <span data-st="ConfirmDialog"><${U.ConfirmDialog} open=${open("conf")} question="Delete it?" consequence="It cannot be restored." confirmLabel="Delete" onClose=${close("conf")} onConfirm=${close("conf")} /></span>
+      <span data-st="SidePanel"><${U.SidePanel} open=${open("panel")} title="Panel" onClose=${close("panel")}><${U.Field} id="st-p" label="Field"><input id="st-p" class="input" /><//><//></span>
+      <span data-st="BottomSheet"><${U.BottomSheet} open=${open("sheet")} title="Sheet" onClose=${close("sheet")}><p>Sheet</p><//></span>
+      <span data-st="Popover"><${U.Popover} open=${open("pop")} anchor="st-pop" title="Popover" onClose=${close("pop")}><button type="button" class="btn">Inside</button><//></span>
+      <span data-st="Gone"><${U.Dialog} open=${open("gone")} title="Gone" kind="passive" onClose=${close("gone")}><p>The opener is removed.</p><//></span>`;
+  }
+  function Page({ which }) {
+    return html`<${U.PageHeader} title=${"Self-test page " + which} />
+      ${Array.from({ length: 40 }, (_, i) => html`<p key=${i} class="t-body">Line ${i + 1}</p>`)}
+      <button type="button" class="btn" id=${"st-go-" + which} data-kit-key=${"st-" + which}>Go</button>`;
+  }
+  async function selftest() {
+    const root = document.documentElement;
+    const A = KIT._api;
+    const fail = (n, d) => { root.dataset.err = `selftest S${n}: ${d}`.slice(0, 200); root.dataset.selftest = "fail"; };
+    const el = (sel) => document.querySelector(sel);
+    const inside = (h) => { const a = deep(); return !!(a && (h.contains(a) || (h.shadowRoot && h.shadowRoot.contains(a)))); };
+    const steps = [["dlg", "Dialog", "#st-f"], ["conf", "ConfirmDialog", null], ["panel", "SidePanel", "#st-p"], ["sheet", "BottomSheet", null], ["pop", "Popover", null]];
+    try {
+      if (!(await until(() => bed && el("#st-dlg")))) return fail(1, "test bed did not render");
+      // S8: every library element is defined.
+      const undef = [...document.querySelectorAll("*")].filter((e) => e.localName.startsWith("wa-") && !customElements.get(e.localName));
+      if (undef.length) return fail(8, "undefined " + undef[0].localName);
+      for (const [k, kit] of steps) {
+        const opener = el("#st-" + k);
+        opener.focus();
+        bed.set({ [k]: true });
+        const h = () => el(`[data-st="${kit}"] [data-kit]`) || el(`[data-st="${kit}"] wa-dialog, [data-st="${kit}"] wa-drawer, [data-st="${kit}"] wa-popover`);
+        if (!(await until(() => h() && h().open && inside(h()), 2500))) return fail(1, `${kit}: focus not inside (${deep() && (deep().id || deep().localName)})`);
+        if (kit === "ConfirmDialog") {
+          const a = deep();
+          if (!a || !/cancel|hủy/i.test(a.textContent || "")) return fail(1, "ConfirmDialog: focus not on cancel");
+          await wait(100);
+          const d = h().shadowRoot && h().shadowRoot.querySelector('[part~="dialog"]');
+          if (!d || d.getAttribute("role") !== "alertdialog" || !d.getAttribute("aria-description")) return fail(5, "ConfirmDialog is not an alertdialog with a description");
+        }
+        bed.set({ [k]: false });
+        await wait(10);
+        if (!h() || !h().isConnected) return fail(3, `${kit}: removed before its exit`);
+        if (!(await until(() => !h().open, 2500))) return fail(3, `${kit}: still open after close`);
+        if (!(await until(() => deep() === opener, 2000))) return fail(2, `${kit}: focus did not return (${deep() && (deep().id || deep().localName)})`);
+      }
+      // S1 for the menu and the non-modal panel.
+      el("#st-menu-btn").focus();
+      el("#st-menu-btn").click();
+      if (!(await until(() => el("#st-menu-btn").closest("wa-dropdown").open, 2000))) return fail(1, "MenuButton: the menu did not open");
+      if (!(await until(() => deep() && deep().localName === "wa-dropdown-item", 600))) {
+        el("#st-menu-btn").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true }));
+        if (!(await until(() => deep() && deep().localName === "wa-dropdown-item", 1500))) return fail(1, `MenuButton: focus not on an item (${deep() && (deep().id || deep().localName)})`);
+      }
+      el("#st-menu-btn").closest("wa-dropdown").open = false;
+      await wait(300);
+      bed.set({ aside: true });
+      if (!(await until(() => el('[data-kit="SidePanel"][role="complementary"]'), 1500))) return fail(1, "non-modal SidePanel did not open");
+      bed.set({ aside: false });
+      await wait(400);
+      // S2 with the opener removed: focus goes to the page h1.
+      el("#st-opener-gone").focus();
+      bed.set({ gone: true });
+      const g = () => el('[data-st="Gone"] wa-dialog');
+      if (!(await until(() => g().open, 2000))) return fail(1, "Gone dialog did not open");
+      bed.set({ goneHidden: true });
+      await wait(100);
+      bed.set({ gone: false });
+      if (!(await until(() => deep() && deep().hasAttribute("data-kit-h1"), 2500))) return fail(2, `opener gone: focus on ${deep() && (deep().id || deep().localName)}, not the h1`);
+      // S4: a popover inside a modal: the first Escape closes only the popover.
+      bed.set({ dlg: true });
+      await until(() => el('[data-st="Dialog"] wa-dialog').open, 2000);
+      await wait(300);
+      bed.set({ popIn: true });
+      if (!(await until(() => [...document.querySelectorAll('[data-st="Dialog"] wa-popover')].some((p) => p.open), 2000))) return fail(4, "inner popover did not open");
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+      await wait(400);
+      if ([...document.querySelectorAll('[data-st="Dialog"] wa-popover')].some((p) => p.open)) return fail(4, "Escape did not close the popover");
+      if (!el('[data-st="Dialog"] wa-dialog').open) return fail(4, "Escape closed the dialog under the popover");
+      bed.set({ dlg: false, popIn: false });
+      await wait(500);
+      // S6: toasts.
+      A.toast("Self-test toast", { ms: 600 });
+      A.toast("Self-test action", { action: { label: "Undo", run: () => {} } });
+      await wait(1400);
+      const msgs = () => [...document.querySelectorAll("wa-toast-item")].map((x) => x.textContent);
+      if (msgs().some((m) => m.includes("Self-test toast"))) return fail(6, "plain toast still shown after its time");
+      await wait(10000);
+      if (!msgs().some((m) => m.includes("Self-test action"))) return fail(6, "action toast left before 10 s");
+      // S7: routes.
+      A.go("kit-selftest-a");
+      if (!(await until(() => el('[data-screen="kit-selftest-a"]'), 2000))) return fail(7, "page a did not open");
+      await wait(300);
+      const sc = () => document.getElementById("kit-content");
+      el("#st-go-a").focus({ preventScroll: true });
+      sc().scrollTop = 400;
+      await wait(50);
+      const left = sc().scrollTop;
+      A.go("kit-selftest-b");
+      if (!(await until(() => el('[data-screen="kit-selftest-b"]'), 2000))) return fail(7, "page b did not open");
+      await wait(400);
+      if (sc().scrollTop !== 0) return fail(7, "forward route kept the scroll " + sc().scrollTop);
+      if (!(deep() && deep().hasAttribute("data-kit-h1"))) return fail(7, "forward route: focus not on the h1");
+      A.back();
+      if (!(await until(() => el('[data-screen="kit-selftest-a"]'), 2000))) return fail(7, "back did not return");
+      await wait(400);
+      if (Math.abs(sc().scrollTop - left) > 2) return fail(7, `back did not restore the scroll (${sc().scrollTop} vs ${left})`);
+      if (!(deep() && deep().id === "st-go-a")) return fail(7, "back: focus not on the opener");
+      root.dataset.selftest = "pass";
+    } catch (e) {
+      fail(0, (e && e.message) || e);
+    }
+  }
+  registerInternal("kit-selftest", Bed, { name: "Kit self-test" });
+  registerInternal("kit-selftest-a", () => html`<${Page} which="a" />`, { name: "Self-test a" });
+  registerInternal("kit-selftest-b", () => html`<${Page} which="b" />`, { name: "Self-test b" });
+
+  KIT.audit = Object.assign(KIT.audit || {}, { Gallery, registerInternal, afterReady, run, selftest });
 })();

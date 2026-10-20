@@ -154,11 +154,15 @@
             return { _dir: dir, _navKey: (s._navKey || 0) + 1, _restore: null, _from: null, ...p };
           });
           if (a._vt) { try { a._vt.skipTransition(); } catch (e) { /* finished */ } }
-          if (!document.startViewTransition || KIT.util.reduced() || !root.dataset.ready || document.hidden) { run(); return; }
+          if (!document.startViewTransition || KIT.util.reduced() || !root.dataset.ready || document.hidden || !KIT._frames) { run(); return; }
           root.dataset.nav = dir;
           let vt;
+          let ran = false;
           try {
-            vt = document.startViewTransition(() => new Promise((res) => { run(); setTimeout(res, 0); }));
+            vt = document.startViewTransition(() => new Promise((res) => { ran = true; run(); setTimeout(res, 0); }));
+            // A page that renders no frames (headless dumps) never captures the old state; skip the transition so
+            // the update still happens.
+            setTimeout(() => { if (!ran) { try { vt.skipTransition(); } catch (e) { /* done */ } } }, 150);
           } catch (e) {
             delete root.dataset.nav;
             run();
@@ -280,6 +284,9 @@
       const fontsReady = Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise((r) => setTimeout(r, 800))]);
       Promise.all([libReady, fontsReady]).then(() => {
         if (KIT.ui._ && KIT.ui._.libLocalize) KIT.ui._.libLocalize();
+        // Frame probe: View Transitions need rendered frames (headless dumps render none).
+        KIT._frames = false;
+        requestAnimationFrame(() => requestAnimationFrame(() => { KIT._frames = true; }));
         root.classList.add("kit-in"); // the stage fades in over --dur-2
         if (KIT.audit && KIT.audit.afterReady) KIT.audit.afterReady();
         root.dataset.ready = "1";
