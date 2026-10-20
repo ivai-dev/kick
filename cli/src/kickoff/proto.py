@@ -611,11 +611,17 @@ def _cdp_selftest(exe: str, url: str, timeout: float = 60) -> str | None:
         try:
             port_file = Path(profile) / "DevToolsActivePort"
             deadline = time.time() + 20
-            while not (port_file.is_file() and port_file.read_text(encoding="utf-8").strip()) and time.time() < deadline:
-                time.sleep(0.1)
-            if not port_file.is_file():
+            port = 0
+            while not port and time.time() < deadline:
+                try:  # the browser may still be writing the file (Windows refuses the read meanwhile)
+                    first = port_file.read_text(encoding="utf-8").split()
+                    port = int(first[0]) if first else 0
+                except (OSError, ValueError):
+                    port = 0
+                if not port:
+                    time.sleep(0.1)
+            if not port:
                 return "the browser opened no debugging port"
-            port = int(port_file.read_text(encoding="utf-8").split()[0])
             pages = []
             while time.time() < deadline and not pages:
                 try:
