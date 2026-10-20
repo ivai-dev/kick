@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+import base64
 import html as html_lib
 import json
 import os
 import re
 import shutil
+import socket
+import struct
 import subprocess
 import sys
 import tempfile
+import time
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
@@ -32,8 +37,13 @@ LOCALES = {
     "en": "en-US", "vi": "vi-VN", "fr": "fr-FR", "de": "de-DE", "es": "es-ES", "it": "it-IT", "pt": "pt-PT", "nl": "nl-NL",
     "ja": "ja-JP", "ko": "ko-KR", "zh": "zh-CN", "th": "th-TH", "id": "id-ID", "ms": "ms-MY",
 }
-# Languages whose stacked diacritics make small uppercase labels hard to read: no small capitals.
+# Languages whose stacked diacritics make small uppercase labels hard to read: no small capitals (the kit
+# sets --cap-case: none for them from KIT_CONFIG.lang; kept for callers of 0.2).
 NO_SMALL_CAPS = frozenset({"vi"})
+# Kit core scripts (js/<name>.js); every other js/*.js file is a project module.
+KIT_CORE_JS = frozenset({"route", "logic", "core", "ui", "ui-form", "ui-data", "charts", "scope", "shell", "scenario", "audit", "main"})
+# Runtime audit thresholds (KIT.logic.AUDIT_DEFAULTS); a project changes them only with the lead's yes.
+AUDIT_DEFAULTS = {"maxSizes": 6, "minLh": 1.2, "minLhWrap": 1.34, "minLhClip": 1.5, "maxShift": 0.01}
 
 
 class ProtoError(KickoffError):
@@ -147,6 +157,8 @@ def _config_js(project: Project, rows: list[dict]) -> str:
         f"  releases: {json.dumps([r.id for r in project.releases], ensure_ascii=False)},",
         f"  platforms: {json.dumps(platforms)},",
         f"  defaultRole: {json.dumps(ordered[0] if ordered else None)},",
+        '  // density: { app: "compact", site: "comfortable", phone: "touch" },   // per shell; roles[].density overrides',
+        '  // fonts: ["https://fonts.googleapis.com/css2?family=…&display=swap"],   // replaces the kit\'s Inter link',
         "};",
         "",
     ]
@@ -203,13 +215,6 @@ def new_prototype(root: Path, project: Project, force: bool = False) -> list[Pat
         text,
         flags=re.DOTALL,
     )
-    if ui_language(project) in NO_SMALL_CAPS:
-        # Stacked diacritics: labels and table headers keep their letter case.
-        text = text.replace(
-            TOKENS_END,
-            ":root { --cap-case: none; --cap-spacing: 0; } /* no small capitals for this UI language */\n" + TOKENS_END,
-            1,
-        )
     _write(index, text)
     for name in ("config", "data", "screens", "scenarios"):
         path = dest / "js" / f"{name}.js"
@@ -272,6 +277,66 @@ def update_prototype(root: Path, project: Project, dry: bool = False) -> list[tu
         if not dry:
             _write(index, page)
     return changes
+
+
+def _project_modules(base: Path) -> list[tuple[str, str]]:
+    """(label, text) of the project's own scripts: js/*.js minus the kit core."""
+    out = []
+    for path in sorted((base / "js").glob("*.js")):
+        if path.stem not in KIT_CORE_JS:
+            out.append((f"js/{path.name}", path.read_text(encoding="utf-8")))
+    return out
+
+
+def migration_notes(root: Path, project: Project) -> list[str]:
+    """What a prototype built on kit 0.2 has to change for 0.3 (one line per finding); reads only."""
+    base = proto_dir(root, project)
+    index = base / "index.html"
+    if not index.is_file():
+        return []
+    page = index.read_text(encoding="utf-8")
+    tokens = _block(page, TOKENS_BEGIN, TOKENS_END) or ""
+    modules = _project_modules(base)
+    code = "\n".join(text for _, text in modules)
+    both = tokens + "\n" + code
+    notes: list[str] = []
+
+    def count(pattern: str, text: str, flags: int = 0) -> int:
+        return len(re.findall(pattern, text, flags))
+
+    if re.search(r"--fw-medium:\s*600", tokens) or re.search(r"--fw-bold:\s*700", tokens) or "--fw-heavy" in tokens:
+        notes.append("tokens: --fw-medium is 600 (kit meaning 500); use role tokens --t-* or --fw-semibold")
+    n = count(r"font-weight\s*:\s*(?:800|900)\b", both) + count(r"--fw-heavy\b", both)
+    if n:
+        notes.append(f"type: weight 800 in {n} rules; lint L1 fails until they move to 600/700")
+    n = count(r"line-height:\s*1\s*[;}]", both)
+    if n:
+        notes.append(f"type: {n} rules with line-height 1; lint L2")
+    for label, text in modules:
+        if "fonts.googleapis.com" in text:
+            notes.append(f"fonts: {label} loads a font at run time; move it to KIT_CONFIG.fonts")
+    n = sum(len(LINT_L13.findall(text)) for _, text in modules)
+    if n:
+        notes.append(f"overlays: {n} conditionally mounted overlays; pass open=")
+    n = sum(len(_handmade_overlays(text)) for _, text in modules)
+    if n:
+        notes.append(f'overlays: {n} hand-made overlays (role="dialog", scrim, keydown); move to KIT.ui')
+    if re.search(r"\.site-page\s+\.(?:btn|input|field)\b", tokens):
+        notes.append("density: public size overrides in the tokens block; the comfortable density replaces them")
+    if re.search(r"\.page\s*\{[^}]*max-width", both):
+        notes.append('layout: .page width override; register screens with page: "data" or "form"')
+    if re.search(r"transition:[^;]*width", both):
+        notes.append("motion: width transition; lint L14")
+    n = count(r"onRow=", code)
+    if n:
+        notes.append(f"tables: {n} onRow tables; they keep working, move to rowLink for links")
+    if re.search(r"\.toast\([^)]*action\s*:", code, re.DOTALL):
+        notes.append("toasts: action toasts no longer auto-dismiss (R-32)")
+    if re.search(r"\bt-body\b", code):
+        notes.append("type: .t-body is now the body role (14 px on staff screens); long paragraphs use .t-prose")
+    if "--act" not in tokens and re.search(r"""kind=\\?["']?act\b|kind:\s*["']act["']""", code):
+        notes.append("tokens: --act is missing; act buttons fall back to --primary")
+    return notes
 
 
 # ---------------------------------------------------------------- browser
@@ -418,7 +483,8 @@ def _route_spec(route: str, screens: list[dict]) -> dict | None:
     return {"id": screen["id"], "role": role, "query": query, "label": label}
 
 
-def _screen_task(browser: _Browser, base: Path, spec: dict, kind: str, shots: Path | None) -> str | None:
+def _screen_task(browser: _Browser, base: Path, spec: dict, kind: str, shots: Path | None) -> tuple[str | None, str | None]:
+    """(failure, warning) of one dump: errors, readiness, the runtime audit (data-audit-fail / -warn)."""
     route = spec["label"]
     query = f"?{spec['query']}" if spec["query"] else ""
     hash_ = f"{spec['id']}-{spec['role']}-{'light' if kind == 'narrow' else kind}{query}"
@@ -426,33 +492,35 @@ def _screen_task(browser: _Browser, base: Path, spec: dict, kind: str, shots: Pa
         if kind == "narrow":
             shot = shots / f"{route}-narrow.png" if shots else None
             attrs = browser.dump(
-                (base / "narrow.html").as_uri() + "#" + hash_, 6000, size=(600, 844), file_access=True, shot=shot
+                (base / "narrow.html").as_uri() + "#" + hash_, 7000, size=(600, 844), file_access=True, shot=shot
             )
             if _attr(attrs, "ok") == "narrow":
-                return None
-            return f"{route} narrow: {_attr(attrs, 'err') or '390 px check did not complete'}"
+                return None, None
+            return f"{route} narrow: {_attr(attrs, 'err') or '390 px check did not complete'}", None
         shot = shots / f"{route}-{kind}.png" if shots else None
         attrs = browser.dump((base / "index.html").as_uri() + "#" + hash_, 5000, shot=shot)
     except ProtoError as exc:
-        return f"{route} {kind}: {exc}"
+        return f"{route} {kind}: {exc}", None
     err = _attr(attrs, "err")
     if err:
-        return f"{route} {kind}: {err}"
+        return f"{route} {kind}: {err}", None
     if _attr(attrs, "ready") != "1":
-        return f"{route} {kind}: not ready"
-    return None
+        return f"{route} {kind}: not ready", None
+    audit = _attr(attrs, "audit-fail")
+    warn = _attr(attrs, "audit-warn")
+    return (f"{route} {kind}: audit {audit}" if audit else None), (f"{route} {kind}: {warn}" if warn else None)
 
 
 def _scenario_task(browser: _Browser, base: Path, sid: str) -> str | None:
     try:
-        attrs = browser.dump((base / "index.html").as_uri() + f"#scn-{sid}", 9000)
+        attrs = browser.dump((base / "index.html").as_uri() + f"#scn-{sid}", 10000)
         err = _attr(attrs, "err")
         if err:
             return f"scenario {sid}: {err}"
         if _attr(attrs, "scenario") != "done":
             return f"scenario {sid}: did not finish ({_attr(attrs, 'scenario') or 'not started'})"
         attrs = browser.dump(
-            (base / "narrow.html").as_uri() + f"#scn-{sid}-light", 12000, size=(600, 844), file_access=True
+            (base / "narrow.html").as_uri() + f"#scn-{sid}-light", 13000, size=(600, 844), file_access=True
         )
     except ProtoError as exc:
         return f"scenario {sid}: {exc}"
@@ -461,18 +529,165 @@ def _scenario_task(browser: _Browser, base: Path, sid: str) -> str | None:
     return None
 
 
+# ---------------------------------------------------------------- self-test (Chrome DevTools Protocol)
+# The self-test opens and closes overlays and changes routes, which needs rendered frames: a --dump-dom run
+# renders none (no animation frames, CSS animations never end). So it runs in a headless browser driven over
+# the DevTools Protocol, with a small screencast that keeps frames coming. Standard library only.
+class _WebSocket:
+    def __init__(self, url: str, timeout: float = 10):
+        match = re.match(r"ws://([^/:]+):(\d+)(/.*)", url)
+        if not match:
+            raise ProtoError(f"bad debugging address {url}")
+        host, port, path = match.group(1), int(match.group(2)), match.group(3)
+        self.sock = socket.create_connection((host, port), timeout=timeout)
+        key = base64.b64encode(os.urandom(16)).decode()
+        request = (f"GET {path} HTTP/1.1\r\nHost: {host}:{port}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n"
+                   f"Sec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n\r\n")
+        self.sock.sendall(request.encode())
+        head = b""
+        while b"\r\n\r\n" not in head:
+            chunk = self.sock.recv(4096)
+            if not chunk:
+                raise ProtoError("debugging session closed during the handshake")
+            head += chunk
+        if b" 101 " not in head.split(b"\r\n", 1)[0]:
+            raise ProtoError("debugging session refused the connection")
+        self.buf = head.split(b"\r\n\r\n", 1)[1]
+
+    def _read(self, n: int) -> bytes:
+        while len(self.buf) < n:
+            chunk = self.sock.recv(65536)
+            if not chunk:
+                raise ProtoError("debugging session closed")
+            self.buf += chunk
+        out, self.buf = self.buf[:n], self.buf[n:]
+        return out
+
+    def send(self, text: str) -> None:
+        data = text.encode()
+        mask = os.urandom(4)
+        n = len(data)
+        head = bytes([0x81]) + (bytes([0x80 | n]) if n < 126 else bytes([0x80 | 126]) + struct.pack(">H", n) if n < 65536 else bytes([0x80 | 127]) + struct.pack(">Q", n))
+        self.sock.sendall(head + mask + bytes(b ^ mask[i % 4] for i, b in enumerate(data)))
+
+    def recv(self) -> str | None:
+        payload = b""
+        while True:
+            b1, b2 = self._read(2)
+            n = b2 & 0x7F
+            if n == 126:
+                n = struct.unpack(">H", self._read(2))[0]
+            elif n == 127:
+                n = struct.unpack(">Q", self._read(8))[0]
+            data = self._read(n)
+            opcode = b1 & 0x0F
+            if opcode == 8:
+                raise ProtoError("debugging session closed")
+            if opcode in (9, 10):
+                continue
+            payload += data
+            if b1 & 0x80:
+                return payload.decode("utf-8", errors="replace")
+
+    def close(self) -> None:
+        try:
+            self.sock.close()
+        except OSError:
+            pass
+
+
+def _cdp_selftest(exe: str, url: str, timeout: float = 60) -> str | None:
+    """Run #kit-selftest in a rendering headless browser; None on pass, else the failure text."""
+    with tempfile.TemporaryDirectory(prefix="kickoff-selftest-", ignore_cleanup_errors=True) as profile:
+        cmd = [exe, "--headless=new", "--disable-gpu", "--hide-scrollbars", f"--user-data-dir={profile}",
+               "--remote-debugging-port=0", "--window-size=1440,900", "about:blank"]
+        if sys.platform.startswith("linux"):
+            cmd.append("--no-sandbox")
+        try:
+            proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except OSError as exc:
+            return f"cannot start the browser: {exc}"
+        ws = None
+        try:
+            port_file = Path(profile) / "DevToolsActivePort"
+            deadline = time.time() + 20
+            port = 0
+            while not port and time.time() < deadline:
+                try:  # the browser may still be writing the file (Windows refuses the read meanwhile)
+                    first = port_file.read_text(encoding="utf-8").split()
+                    port = int(first[0]) if first else 0
+                except (OSError, ValueError):
+                    port = 0
+                if not port:
+                    time.sleep(0.1)
+            if not port:
+                return "the browser opened no debugging port"
+            pages = []
+            while time.time() < deadline and not pages:
+                try:
+                    with urllib.request.urlopen(f"http://127.0.0.1:{port}/json/list", timeout=5) as resp:  # noqa: S310 (local debugging port)
+                        pages = [p for p in json.loads(resp.read().decode()) if p.get("type") == "page"]
+                except OSError:
+                    time.sleep(0.2)
+            if not pages:
+                return "no page in the debugging session"
+            ws = _WebSocket(pages[0]["webSocketDebuggerUrl"])
+            seq = [0]
+
+            def call(method: str, params: dict | None = None) -> dict:
+                seq[0] += 1
+                mine = seq[0]
+                ws.send(json.dumps({"id": mine, "method": method, "params": params or {}}))
+                while True:
+                    msg = json.loads(ws.recv() or "{}")
+                    if msg.get("method") == "Page.screencastFrame":
+                        seq[0] += 1
+                        ws.send(json.dumps({"id": seq[0], "method": "Page.screencastFrameAck", "params": {"sessionId": msg["params"]["sessionId"]}}))
+                    if msg.get("id") == mine:
+                        return msg.get("result") or {}
+
+            call("Page.enable")
+            call("Emulation.setFocusEmulationEnabled", {"enabled": True})
+            call("Page.startScreencast", {"format": "jpeg", "quality": 5, "maxWidth": 320, "maxHeight": 200, "everyNthFrame": 1})
+            call("Page.navigate", {"url": url})
+            end = time.time() + timeout
+            expr = "JSON.stringify([document.documentElement.dataset.selftest||'', document.documentElement.dataset.err||''])"
+            while time.time() < end:
+                time.sleep(0.5)
+                result = call("Runtime.evaluate", {"expression": expr, "returnByValue": True})
+                state, err = json.loads(((result.get("result") or {}).get("value")) or '["", ""]')
+                if state == "pass":
+                    return None
+                if state == "fail" or err:
+                    return err or "failed"
+            return "did not finish"
+        except (OSError, ValueError, ProtoError) as exc:
+            return f"debugging session failed ({exc})"
+        finally:
+            if ws:
+                ws.close()
+            proc.kill()
+            try:
+                proc.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                pass
+
+
 def check(
     root: Path,
     project: Project,
     routes: list[str] | None = None,
     shots: Path | None = None,
     jobs: int = 4,
+    warnings: list[str] | None = None,
 ) -> list[str]:
     """Open the prototype in a headless browser. Returns failures (empty = pass).
 
     `routes` limits the per-screen dumps to those routes: a screen id or code, optionally with a role
-    token and ?parameters ("sc-08-guest?kiosk=1"); `[]` means coverage only. Scenarios run only when
-    `routes` is None. With `shots`, every dump also writes a screenshot (light, dark and 390 px).
+    token and ?parameters ("sc-08-guest?kiosk=1"); `[]` means coverage only. Scenarios and the kit
+    self-test run only when `routes` is None. With `shots`, every dump also writes a screenshot (light, dark
+    and 390 px). Every dump also reads the runtime audit: data-audit-fail is a failure, data-audit-warn is
+    appended to `warnings` when a list is given.
     """
     exe = find_browser(project)
     if exe is None:
@@ -512,18 +727,57 @@ def check(
                 specs.append(spec)
     tasks = [(s, kind) for s in specs for kind in (*THEMES, "narrow")]
     with ThreadPoolExecutor(max_workers=max(1, jobs)) as pool:
+        selftest = pool.submit(_cdp_selftest, exe, (base / "index.html").as_uri() + "#kit-selftest-light") if routes is None else None
         screen_results = list(pool.map(lambda t: _screen_task(browser, base, t[0], t[1], shots), tasks))
         scenario_results = (
             list(pool.map(lambda sid: _scenario_task(browser, base, sid), scenarios)) if routes is None else []
         )
-    failures += [r for r in screen_results if r]
+        selftest_result = selftest.result() if selftest else None
+    failures += [r[0] for r in screen_results if r[0]]
     failures += [r for r in scenario_results if r]
+    if selftest_result:
+        failures.append(f"selftest: {selftest_result}")
+    if warnings is not None:
+        warnings += [r[1] for r in screen_results if r[1]]
     return failures
 
 
 # ---------------------------------------------------------------- lint
 HEX_RE = re.compile(r"#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})(?![\w-])")
 STRING_RE = re.compile(r"\"(?:[^\"\\\n]|\\.)*\"|'(?:[^'\\\n]|\\.)*'|`[^`\n]*`")
+
+# Foundation rules (kit 0.3 spec §10.2). A line containing "kit:allow <rule-id>" is exempt from that rule.
+LINT_L1 = [re.compile(p, re.M) for p in (
+    r"font-weight\s*:\s*(?:800|900)\b", r"--fw-[\w-]+\s*:\s*(?:800|900)\b",
+    r"(?:^|[;{\s])font\s*:\s*(?:800|900)\b", r"--t-[\w-]+\s*:\s*(?:800|900)\b")]
+LINT_L2 = re.compile(r"line-height\s*:\s*(?:0?\.\d+|1(?:\.[01]\d*)?)\s*(?:!important)?\s*[;}]", re.M)
+LINT_L3 = re.compile(r"letter-spacing\s*:\s*-", re.M)
+LINT_L5 = re.compile(r"<wa-", re.M)
+LINT_L6 = [re.compile(r"<button\b[^>]*\btitle=", re.M), re.compile(r"\.(?:Button|IconButton)\}[^>]*\btitle=", re.M)]
+LINT_L7_OK = [re.compile(p) for p in (
+    r"^https://cdn\.jsdelivr\.net/npm/(?:@[\w.-]+/)?[\w.-]+@\d+\.\d+\.\d+/", r"^https://unpkg\.com/(?:@[\w.-]+/)?[\w.-]+@\d+\.\d+\.\d+/",
+    r"^https://cdnjs\.cloudflare\.com/ajax/libs/[\w.-]+/\d+\.\d+\.\d+/", r"^https://fonts\.googleapis\.com/css2\?", r"^https://fonts\.gstatic\.com/")]
+LINT_L7_BAD = re.compile(r"webawesome-pro|kit\.webawesome\.com")
+LINT_L8 = re.compile(r"\.(?:btn|input|select|textarea|chip|pill)\b[^{]*\{[^}]*\b(?:min-)?height\s*:\s*\d+px")
+LINT_L9 = re.compile(r"\.(?:page|site-page)\b[^{]*\{[^}]*\bmax-width\b")
+LINT_L10 = re.compile(r"(?<![\w-])(?:gap|row-gap|column-gap|padding(?:-[a-z-]+)?|margin(?:-[a-z-]+)?)\s*:\s*([^;}\"'`]+)")
+SPACING_SCALE = {0, 1, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64}
+LINT_L11 = [re.compile(r"""role=\\?["']?(?:dialog|alertdialog)"""), re.compile(r"aria-modal"), re.compile(r"""class=\\?["']?scrim""")]
+LINT_L11_KEY = re.compile(r"""addEventListener\(\s*["']keydown["']""")
+LINT_L12 = re.compile(r"""\.(?:Drawer|SidePanel)\}[\s\S]{0,800}?kind=\\?["']?danger""")
+LINT_L13 = re.compile(r"&&\s*html\x60\s*<\$\{(?:U|KIT\.ui)\.(?:Dialog|ConfirmDialog|Confirm|SidePanel|Drawer|BottomSheet|Sheet|Popover)\}")
+LINT_L14_LAYOUT = re.compile(r"transition(?:-property)?\s*:[^;}]*\b(?:width|height|top|left|right|bottom|margin[\w-]*|padding[\w-]*)\b")
+LINT_L14_SPRING = re.compile(r"cubic-bezier\(\s*[\d.]+\s*,\s*([\d.]+)\s*,\s*[\d.]+\s*,\s*([\d.]+)\s*\)")
+LINT_L14_LONG = re.compile(r"(?:animation|transition)[^;}]*?\b(\d{3,4})ms")
+LINT_L15 = re.compile(r"<tr\b[^>]*\bonClick")
+LINT_L18 = [
+    (re.compile(r"""kind=\\?["']?soft|kind:\s*["']soft["']"""), 'kind "soft" (use secondary)'),
+    (re.compile(r"\.Menu\}"), "KIT.ui.Menu (use MenuButton)"),
+    (re.compile(r"\.Table\}[^>]*\bonRow="), "Table onRow (use DataTable rowLink or onOpen)"),
+    (re.compile(r"--ease-spring"), "--ease-spring (use --ease-enter)"),
+    (re.compile(r"--fw-heavy"), "--fw-heavy (no weight above 700)"),
+]
+MIGRATING = 'see kit README "Migrating to 0.3"'
 
 
 def _outside_tokens(text: str) -> str:
@@ -535,7 +789,33 @@ def _outside_tokens(text: str) -> str:
     return text[:start] + re.sub(r"[^\n]", "", block) + text[end + len(TOKENS_END) :]
 
 
-def lint(root: Path, project: Project) -> tuple[dict[str, int], list[str]]:
+def _handmade_overlays(text: str) -> list[int]:
+    """Offsets of hand-made overlay markers (L11): dialog roles, aria-modal, a scrim, an Escape keydown handler."""
+    hits = [m.start() for rx in LINT_L11 for m in rx.finditer(text)]
+    for m in LINT_L11_KEY.finditer(text):
+        if "Escape" in text[max(0, m.start() - 400) : m.end() + 400]:
+            hits.append(m.start())
+    return sorted(hits)
+
+
+def _line_of(text: str, pos: int) -> int:
+    return text.count("\n", 0, pos) + 1
+
+
+def _allowed(text: str, pos: int, rule: str) -> bool:
+    start = text.rfind("\n", 0, pos) + 1
+    end = text.find("\n", pos)
+    line = text[start : end if end != -1 else len(text)]
+    names = {rule, "lh"} if rule == "L2" else {rule}
+    return any(f"kit:allow {n}" in line for n in names)
+
+
+def lint(root: Path, project: Project) -> tuple[dict, list[str]]:
+    """Static checks of the prototype. Returns (metrics, failures); metrics["warnings"] lists the warnings.
+
+    Scope of the 0.3 rules: index.html (all of it for L1–L3, L7 and L14; the tokens block for L8–L10 and L18)
+    and the project modules (js/*.js minus the kit core) for every rule.
+    """
     base = proto_dir(root, project)
     cfg = project.proto
     max_sizes = int(cfg.get("max_font_sizes", 16))
@@ -545,10 +825,11 @@ def lint(root: Path, project: Project) -> tuple[dict[str, int], list[str]]:
 
     files: list[tuple[str, str, bool]] = []  # (label, text, is_js)
     index = base / "index.html"
-    if index.is_file():
-        files.append(("index.html", _outside_tokens(index.read_text(encoding="utf-8")), False))
-    for path in sorted((base / "js").glob("*.js")):
-        files.append((f"js/{path.name}", path.read_text(encoding="utf-8"), True))
+    page = index.read_text(encoding="utf-8") if index.is_file() else ""
+    if page:
+        files.append(("index.html", _outside_tokens(page), False))
+    for label, text in _project_modules(base):
+        files.append((label, text, True))
     if not files:
         raise ProtoError(f"no prototype in {base}; run: kickoff proto new")
 
@@ -571,18 +852,122 @@ def lint(root: Path, project: Project) -> tuple[dict[str, int], list[str]]:
                     detail.append(f"forbidden /{pattern}/ in {label}:{number}: {match.group(0)}")
 
     config_js = base / "js" / "config.js"
+    config_text = config_js.read_text(encoding="utf-8") if config_js.is_file() else ""
     if ui_language(project) != "en" and config_js.is_file():
-        if not re.search(r"\blocale\s*:", config_js.read_text(encoding="utf-8")):
+        if not re.search(r"\blocale\s*:", config_text):
             detail.append(
                 f"locale: languages.ui is {ui_language(project)} but js/config.js sets no locale; "
                 f'add locale: "{ui_locale(project)}" so numbers and dates use its separators'
             )
+
+    # ---- foundation rules (L1–L18)
+    errors: list[str] = []
+    warnings: list[str] = []
+    modules = _project_modules(base)
+    tokens = _block(page, TOKENS_BEGIN, TOKENS_END) or ""
+    tok_offset = page.find(TOKENS_BEGIN) if tokens else 0
+    tok_line = page.count("\n", 0, tok_offset)
+    vi = ui_language(project) == "vi"
+
+    def each(rx: re.Pattern, text: str, rule: str):
+        for m in rx.finditer(text):
+            if not _allowed(text, m.start(), rule):
+                yield m
+
+    css_sources = [("index.html", page, 0), *((label, text, 0) for label, text in modules)]
+    for label, text, _ in css_sources:
+        for rx in LINT_L1:
+            for m in each(rx, text, "L1"):
+                errors.append(f"weight 800+ in {label}:{_line_of(text, m.start())}; use 400–700 (700 only for display)")
+        for m in each(LINT_L2, text, "L2"):
+            errors.append(f"line-height below 1.2 in {label}:{_line_of(text, m.start())}; text boxes need ≥ 1.2 (clipped text ≥ 1.5)")
+        for m in each(LINT_L3, text, "L3"):
+            (errors if vi else warnings).append(f"negative letter-spacing in {label}:{_line_of(text, m.start())}")
+        for m in each(LINT_L14_LAYOUT, text, "L14"):
+            errors.append(f"layout transition in {label}:{_line_of(text, m.start())}")
+        for m in each(LINT_L14_SPRING, text, "L14"):
+            if float(m.group(1) or 0) > 1 or float(m.group(2) or 0) > 1:
+                errors.append(f"spring easing in {label}:{_line_of(text, m.start())}")
+        for m in each(LINT_L14_LONG, text, "L14"):
+            line_start = text.rfind("\n", 0, m.start()) + 1
+            line_end = text.find("\n", m.start())
+            if int(m.group(1)) > 300 and "--dur-tint" not in text[line_start : line_end if line_end != -1 else None]:
+                warnings.append(f"motion longer than 300 ms in {label}:{_line_of(text, m.start())}")
+
+    # Project-owned CSS: the tokens block and the modules.
+    owned = [("index.html", tokens, tok_line), *((label, text, 0) for label, text in modules)]
+    off_scale = 0
+    for label, text, shift in owned:
+        for m in each(LINT_L8, text, "L8"):
+            warnings.append(f"literal control height in {label}:{_line_of(text, m.start()) + shift}; use --ctl-h / --chip-h / --tag-h")
+        for m in each(LINT_L9, text, "L9"):
+            warnings.append(f'page width override in {label}:{_line_of(text, m.start()) + shift}; use page: "data" | "form"')
+        for m in each(LINT_L10, text, "L10"):
+            for px in re.findall(r"(-?\d+(?:\.\d+)?)px", m.group(1)):
+                if abs(float(px)) not in SPACING_SCALE:
+                    off_scale += 1
+        for rx, what in LINT_L18:
+            for m in each(rx, text, "L18"):
+                warnings.append(f"deprecated: {what} in {label}:{_line_of(text, m.start()) + shift}; {MIGRATING}")
+    if off_scale:
+        warnings.append(f"{off_scale} spacing values off the scale")
+
+    for label, text in modules:
+        for m in each(LINT_L5, text, "L5"):
+            errors.append(f"library element in {label}:{_line_of(text, m.start())}; use KIT.ui")
+        for rx in LINT_L6:
+            for m in each(rx, text, "L6"):
+                errors.append(f"title tooltip on a button in {label}:{_line_of(text, m.start())}; give the button a label (KIT.ui shows a Tip)")
+        for pos in _handmade_overlays(text):
+            if not _allowed(text, pos, "L11"):
+                errors.append(f"hand-made overlay in {label}:{_line_of(text, pos)}; use KIT.ui.Dialog / SidePanel / ConfirmDialog / Popover / MenuButton")
+        for m in each(LINT_L12, text, "L12"):
+            warnings.append(f"destructive action in a side panel in {label}:{_line_of(text, m.start())}; use ConfirmDialog")
+        for m in each(LINT_L13, text, "L13"):
+            errors.append(f"conditionally mounted overlay in {label}:{_line_of(text, m.start())}; pass open= so it can animate out")
+        for m in each(LINT_L15, text, "L15"):
+            errors.append(f"click handler on a table row in {label}:{_line_of(text, m.start())}; use DataTable rowLink")
+
+    # L7: exact CDN versions and allowed hosts.
+    urls: list[tuple[str, str]] = []
+    for m in re.finditer(r"<(?:script|link)\b[^>]*>", page):
+        tag = m.group(0)
+        if re.search(r"""rel=["']?preconnect""", tag):
+            continue
+        for u in re.findall(r"""\b(?:src|href)=["'](https?://[^"']+)["']""", tag):
+            urls.append(("index.html", u))
+    for label, text in [("index.html", page), *modules]:
+        for u in re.findall(r"""import\(\s*["'](https?://[^"']+)["']""", text):
+            urls.append((label, u))
+    fonts = re.search(r"\bfonts\s*:\s*\[([^\]]*)\]", config_text)
+    if fonts:
+        for u in re.findall(r"""["']([^"']+)["']""", fonts.group(1)):
+            if not u.startswith("https://fonts.googleapis.com/css2?"):
+                errors.append(f"unpinned or disallowed URL {u}")
+    for _label, u in urls:
+        if not any(rx.match(u) for rx in LINT_L7_OK):
+            errors.append(f"unpinned or disallowed URL {u}")
+    for label, text in [("index.html", page), *modules]:
+        for m in LINT_L7_BAD.finditer(text):
+            errors.append(f"unpinned or disallowed URL {m.group(0)} in {label}:{_line_of(text, m.start())}")
+
+    # L17: audit thresholds changed in config.js.
+    audit = re.search(r"\baudit\s*:\s*\{([^}]*)\}", config_text)
+    if audit:
+        changed = []
+        for key, value in re.findall(r"(\w+)\s*:\s*([\d.]+)", audit.group(1)):
+            if key in AUDIT_DEFAULTS and float(value) != float(AUDIT_DEFAULTS[key]):
+                changed.append(key)
+        if changed:
+            warnings.append(f"audit thresholds changed in js/config.js: {', '.join(changed)}; needs the lead's yes")
 
     metrics = {
         "font_sizes": len(sizes),
         "weight_600": weight_600,
         "inline_styles": inline,
         "raw_hex": sum(d.startswith("raw hex") for d in detail),
+        "off_scale_spacing": off_scale,
+        "warnings": warnings,
     }
     failures: list[str] = []
     if metrics["font_sizes"] > max_sizes:
@@ -592,6 +977,7 @@ def lint(root: Path, project: Project) -> tuple[dict[str, int], list[str]]:
     if inline > max_inline:
         failures.append(f"inline styles: {inline} (max {max_inline})")
     failures += detail
+    failures += errors
     return metrics, failures
 
 

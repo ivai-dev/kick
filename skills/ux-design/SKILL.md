@@ -24,7 +24,7 @@ Turns the approved feature map into the UX specification (roles, shell and home 
 - `<docs_root>/01-discovery/vision-scope.md`: users and roles, platforms, constraints; `open-questions.md` (Decision log).
 - `.kickoff/project.yaml`: `releases`, `languages.ui`, `proto.ux_spec` (default `<docs_root>/05-design/ux-spec.md`), `proto.forbidden`.
 - `templates/ux-spec.md` and `templates/design-system.md` in this skill's folder.
-- `references/content-and-craft.md` (copy review, craft rules, locale formats) and `references/guidance-library.md` (guidance devices, motion) in this skill's folder.
+- `references/content-and-craft.md` (copy review, craft rules, locale formats), `references/guidance-library.md` (guidance devices, motion), `references/foundation-rules.md` (density modes, type roles, layout, overlays and consequences, motion, card anatomy, form grid) and `references/data-at-volume.md` (volumes and list functions per entity, stress fixtures) in this skill's folder.
 - Working methods: `../using-kickoff/references/methods.md`. Conventions: `../using-kickoff/references/conventions.md`.
 
 ## Steps
@@ -34,7 +34,7 @@ Turns the approved feature map into the UX specification (roles, shell and home 
 
 > **Interview:** one question per message; 2–4 options with a recommendation when a choice exists; restate the answer in one line; stop when the output template is filled.
 
-3. **Design direction with `ui-ux-pro-max`.** Invoke the `ui-ux-pro-max` skill and run its search with `--design-system` on "<product type> <audience> <keywords>" with `-p "<project name>"`, plus the sliders `--density 3` (the default, for calm and spacious UIs; raise it only when the lead asks for a dense console), `--variance` and `--motion` (low values, 2–3, for work tools). Do not pass `--persist`.
+3. **Design direction with `ui-ux-pro-max`.** Invoke the `ui-ux-pro-max` skill and run its search with `--design-system` on "<product type> <audience> <keywords>" with `-p "<project name>"`, plus the sliders `--density` per audience (2–3 for public and self-service screens, 4–5 for staff consoles that work through lists all day, the kiosk at 1–2), `--variance` and `--motion` (low values, 2–3, for work tools). Do not pass `--persist`.
 4. **Focused queries** as the screens need them: `--domain ux` (forms, tables, navigation, empty states), `--domain typography`, `--domain color` (check contrast in light and dark), `--domain chart` (one query per kind of data shown). If a search returns nothing, retry once with a narrower query. If it is still empty, keep the defaults below and say so. Never write output you have not checked into the files.
 5. **Roles and IA per role.** For each product role (an id of lowercase letters and digits, since it appears in prototype URLs), write:
    - **Shell:** `site` for public and self-service audiences (a header with a top menu and an account area, a footer; on phones a compact header and a bottom tab bar of 3–5 screens), `app` for work tools (a sidebar). Pick the shell the product will have: the prototype draws exactly this one.
@@ -68,7 +68,15 @@ Turns the approved feature map into the UX specification (roles, shell and home 
    - copy, sample data and fixtures are in `languages.ui`, with invented names only.
 
    The **Copy guide** holds: voice and tone per audience (form of address, verbs, words to avoid, one example each); the term table, one name per thing; "only what the user needs now" (no text that explains system mechanics, such as "free", "not stored", timers or how checks work; a fact appears when its event happens); punctuation; letter case; number, date and unit formats from the UI locale. Take the values from `references/content-and-craft.md`.
-10. **Write `<docs_root>/05-design/design-system.md`** from `templates/design-system.md`, sections: Principles, Tokens (light and dark), Type scale, Spacing, Motion, Status vocabulary, Components, Charts, Scope layer, Density and copy, Craft rules, Accessibility. Use the kit's token names so the prototype can copy the values into its tokens block. The calm-density defaults are a type scale of 12/13/14/16/18/22/28 px, weights 400 body, 500 labels and 600 headings and KPI numbers only, line height 1.6, a 4 px spacing grid and 32 px between sections. **Craft rules** set the type scale per surface (at most 5 sizes per screen), weights, letter case (`--cap-case: none` for languages with stacked diacritics such as Vietnamese), spacing rhythm, and chip, button and icon rules (`references/content-and-craft.md`). Motion follows `references/guidance-library.md`, with a reduced-motion fallback for every motion. State that the product bundles its fonts and assets; the prototype's CDN use does not relax that.
+10. **Write `<docs_root>/05-design/design-system.md`** from `templates/design-system.md`, sections: Principles, Tokens (light and dark), Type scale, Spacing, Motion, Status vocabulary, Components, Charts, Scope layer, Density and copy, Craft rules, Accessibility. Use the kit's token names so the prototype can copy the values into its tokens block. Write it from `references/foundation-rules.md`:
+   - **Density modes** per audience: compact for staff consoles (32 px controls), comfortable for public desktop (40), touch for phones and coarse pointers (48), kiosk (64 in its layout px); the shell decides, never the component.
+   - **Type roles per mode** (display, headline, title-l, title, body, prose, body-s, label, button, meta, caption, figure, figure-l, value, code); weights 400/500/600/700, 700 only for display, never 800; at most 6 sizes per screen. Line height for languages with stacked diacritics (Vietnamese): ≥ 1.2 on any text box, ≥ 1.34 where titles wrap, ≥ 1.5 for paragraphs and clipped text; re-measure when the font changes.
+   - **Layout:** window classes, content widths, page types (`data` fluid to 1600 px, `form` to 1200, left-anchored on staff screens; 1200 px centred public container), the one-box rule.
+   - **Overlays and consequences:** the overlay decision table (one surface per task) and the consequence matrix (confirm only what destroys, locks out, publishes or overwrites; undo for the rest; a notice to another person held 10 s).
+   - **Motion:** tokens (100–300 ms, three curves, shifts per mode) and the patterns (route, master-detail, reveal, toast), reduced motion keeping dissolves.
+   - **Data at volume:** each list's expected volume and its functions (total, search, filter, sort, paging, bulk, export, URL state) from `references/data-at-volume.md`.
+
+   **Craft rules** set the type scale per density mode (at most 6 sizes per screen), weights, letter case (`--cap-case: none` for languages with stacked diacritics such as Vietnamese), spacing rhythm, and chip, button and icon rules (`references/content-and-craft.md`). Motion follows `references/guidance-library.md`, with a reduced-motion fallback for every motion. State that the product bundles its fonts and assets; the prototype's CDN use does not relax that.
 11. **Regenerate and validate:** `kickoff docs` (it regenerates the feature map; screens are not rendered there, they live in `features.yaml` and the ux-spec inventory), then `kickoff validate`.
 12. **Verify** (section below), then `kickoff phase done ux-design` and commit `docs: UX specification and design system`.
 
@@ -98,7 +106,10 @@ Turns the approved feature map into the UX specification (roles, shell and home 
 
 - Every role saw the chair's home below 760 px: define a home screen per role here, so the prototype routes each role to its own home at every width.
 - A role token in the URL let an admin open meeting content: list the roles of every screen, so the prototype's role guard applies.
-- Dense, heavy text overwhelmed the reviewer: keep the calm-density defaults (density 3, three weights, one short sentence per header).
+- Dense, heavy text overwhelmed the reviewer: density modes per audience and the quiet type rules, one short sentence per header.
+- Screens felt heavy and sticky: bold everywhere, a rounded font at 800, touch sizes on desktop: density modes per audience and the quiet type rules (lessons row 22).
+- The same task used a drawer, a dialog and a sheet: the overlay decision table (lessons row 23).
+- Screens designed for 15 rows could not hold thousands: write each list's volume and functions into the design system and the screen briefs (lessons row 25).
 - A sidebar filter that reloaded a near-identical page confused the reviewer: navigation goes to a distinct page; filters stay in-page.
 - The product's public pages had a top menu, but the prototype showed a sidebar and the team wrote a "differs from the product" note: give every role its shell here (lessons row 14).
 - Every home opened with a look-alike row of KPI tiles, and users did not know what to read or do first: each role gets a home shape matched to its job, and the anti-flooding rules apply to every screen (lessons row 20).

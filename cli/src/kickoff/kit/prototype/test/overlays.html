@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kit overlay regression</title>
+<!--
+  Manual regression page for the overlay set: it shows the kit's internal gallery route
+  (../index.html#kit-overlays) with the real ui.js, ui-form.js and ui-data.js. Walk the checks in
+  test/README.md after a UI-library upgrade; test/cdp-overlays.mjs runs most of them headless.
+-->
+<style>
+  html, body { margin: 0; height: 100%; font: 14px/20px system-ui, sans-serif; background: #eef1f4; }
+  header { display: flex; gap: 16px; align-items: center; padding: 8px 16px; }
+  iframe { display: block; width: 100%; height: calc(100% - 40px); border: 0; background: white; }
+</style>
+<header><b>Kit overlay regression</b><a href="../index.html#kit-overlays" target="_blank" rel="noopener">Open the gallery on its own</a><a href="README.md">Checks</a></header>
+<iframe src="../index.html#kit-overlays" title="Kit overlay gallery"></iframe>

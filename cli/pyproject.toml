@@ -1,6 +1,6 @@
 [project]
 name = "kickoff"
-version = "0.2.2"
+version = "0.3.0"
 description = "CLI for the kickoff Claude Code plugin"
 requires-python = ">=3.11"
 dependencies = ["pyyaml>=6.0", "openpyxl>=3.1", "jsonschema>=4.20"]

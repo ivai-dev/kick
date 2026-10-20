@@ -76,17 +76,17 @@ One to three sentences on rules and consequences, opened from an (i) next to the
 
 ## Motion
 
-Motion explains a change; nothing moves on its own. Durations: fast 120 ms, base 200 ms, slow 320 ms, one easing curve.
+Motion explains a change; nothing moves on its own. Durations are the motion tokens of `foundation-rules.md` (100 · 150 · 200 · 250 · 300 ms, 300 the cap) with three curves (standard, enter, exit); only the changed region moves.
 
 | What | Motion | Duration | Reduced motion | Not |
 | --- | --- | --- | --- | --- |
-| A status is reached (track or map node) | The new node fills once, on the first view after the change | 320 ms | Static node | On revisits, on lists |
+| A status is reached (track or map node) | The new node fills once, on the first view after the change | 250 ms | Static node | On revisits, on lists |
 | Decide and advance (approval queues) | The decided row collapses; the next panel slides in 8 px | 200 + 200 ms | Instant swap; the toast carries the message | — |
 | Landing from a notice | The target row's tint fades out | 1.6 s, once | A static left rule for 5 s | More than one row |
 | Step bar | The segment fills | 200 ms | Instant | — |
-| Drawer, sheet, menu, toast | Slide or fade | 200–320 ms | Instant | — |
-| Page change in a work tool | Fade only | 120–200 ms | None | Rising or sliding pages on every click |
-| Charts | Grow on first render; crossfade on filter change | 520 ms / 120 ms | Static | Homes |
+| Side panel, sheet, menu, toast | Slide or fade in, faster out | 200–250 in · 150–200 out | Dissolve ≤ 150 ms | Spring or overshoot |
+| Page change in a work tool | Fade of the content region only | 150 ms | Dissolve 100 ms | Rising or sliding pages on every click |
+| Charts | Grow once per chart per session; morph on data change | 300 ms / 200 ms | Static | Replaying on every visit |
 | Attract loop on a shared device's start screen | A slow hint that stops at the first touch | loop | Static | Any other screen |
 
 Never: count-up numbers, skeleton shimmer, pulsing badges, bouncing icons, confetti, carousels, or anything that moves for more than 5 s without a way to pause it (WCAG 2.2.2). With the reduced-motion setting every transition is instant and every cue is static.

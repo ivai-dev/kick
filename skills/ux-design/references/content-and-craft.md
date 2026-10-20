@@ -46,26 +46,26 @@ Copy these sections into the design-system **Craft rules** with the project's va
 
 ### 2.1 Type scale per surface
 
-Name sizes by role, not by pixel, and give each surface its own column:
+Name sizes by role, not by pixel, and give each density mode its own column (size/line-height · weight; the full role table is in `foundation-rules.md`):
 
-| Role | Work tool | Public web | Phone | Device read from a distance (kiosk) |
+| Role | compact (work tool) | comfortable (public web) | touch (phone) | kiosk (read from a distance) |
 | --- | --- | --- | --- | --- |
-| Display (one per screen) | — | 48 / 800 | 32 / 800 | 96 / 800 |
-| Headline (page title, hero) | 22 / 600 | 32 / 800 | 26 / 800 | 52 / 800 |
-| Figure (count, price) | 28 / 600 | 22 card, 36 detail | 22 card, 32 detail | 32 card, 52 detail |
-| Title (card, section) | 16 card, 18 section / 600 | 19 / 700 | 19 / 700 | 24 / 700 |
-| Body | 14 tables, 16 text / 400 | 16 / 400 | 16 / 400 | 21 / 400 |
-| Label (field, chip, button) | 14 / 500 | 15 / 700 | 16 / 700 | 19 / 700 |
-| Meta (the minimum) | 13 / 400 | 14 / 600 | 14 / 600 | 18 / 600 |
+| Display (one per screen) | — | 40/52 · 700 | 32/40 · 700 | 80/104 · 700 |
+| Headline (page title, hero) | 22/30 · 600 | 28/38 · 600 | 24/32 · 600 | 44/60 · 700 |
+| Figure-l (stat value, detail price) | 28/36 · 600 | 32/40 · 600 | 28/36 · 600 | 44/56 · 600 |
+| Title (card, section) | 14/20 card, 16/24 section · 600 | 18/26, 20/28 · 600 | 18/26 · 600 | 24/32 · 600 |
+| Body | 14/20 · 400 | 16/24 · 400 | 16/24 · 400 | 21/32 · 400 |
+| Label (field, chip) / button | 14/20 · 500 | 16/24 · 500 / 600 | 16/24 · 500 / 600 | 21/30 · 600 |
+| Meta (the minimum) | 13/18 · 400 | 14/20 · 400 | 14/20 · 400 | 19/28 · 400 |
 
-- At most **5 sizes per screen** and 3 per component; one display size per screen.
+- At most **6 sizes per screen** (5 typical) and 3 per component; one display size per screen.
 - No words below the meta minimum. Languages with stacked diacritics (Vietnamese) need 13 px or more.
-- Line height 1.5–1.6 for body, 1.25 for headings, at least 1.15 wherever stacked marks can occur; 1 only for single-line numerals.
+- Line height ≥ 1.2 on any text box, ≥ 1.34 where titles wrap, ≥ 1.5 for paragraphs and clipped text; 1.0 only for a digits-only figure with an explicit lint allowance.
 
 ### 2.2 Weights
 
-- At most three weights per surface: body (400), labels (500 or 600), headings and figures (600 or 700).
-- The heaviest weight (700–800) only at 19 px and above, and only where the surface is meant to be bold (public pages, devices). Work tools stay at 600 for headings.
+- Weights 400 · 500 · 600 · 700; 700 only for display (and the kiosk headline); never 800. At most two weights inside one component.
+- Hierarchy comes from de-emphasis (colour and size), not from more weight: page titles 600, buttons 500 on staff screens and 600 on public ones.
 - Inline emphasis uses the label or heading weight, never a fourth one.
 
 ### 2.3 Letter case

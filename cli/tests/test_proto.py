@@ -1,3 +1,4 @@
+import re
 import shutil
 from pathlib import Path
 
@@ -64,7 +65,9 @@ def test_new_prototype_writes_locale_language_and_shell(tmp_path):
     config = (proto / "js" / "config.js").read_text(encoding="utf-8")
     assert 'locale: "vi-VN"' in config and 'lang: "vi"' in config and 'shell: "app"' in config
     tokens = (proto / "index.html").read_text(encoding="utf-8").split("/* kickoff:tokens:begin */")[1].split("/* kickoff:tokens:end */")[0]
-    assert "--cap-case: none" in tokens
+    # The kit sets --cap-case: none for vi itself (data-lang), so nothing is written into the tokens block.
+    assert "--cap-case" not in tokens
+    assert ':where(:root[data-lang="vi"]) { --cap-case: none' in (proto / "index.html").read_text(encoding="utf-8")
 
 
 def test_update_prototype_refreshes_core_and_keeps_project_files(tmp_path):
@@ -91,6 +94,82 @@ def test_update_prototype_refreshes_core_and_keeps_project_files(tmp_path):
     assert after.split("<!-- kickoff:modules:begin -->")[1] == page.split("<!-- kickoff:modules:begin -->")[1]
     assert (proto / "js" / "screens.js").read_bytes() == screens_before
     assert update_prototype(root, load_project(root)) == []
+
+
+def test_new_prototype_copies_logic_and_audit(tmp_path):
+    root = copy_mini(tmp_path)
+    written = new_prototype(root, load_project(root))
+    proto = root / "docs" / "05-design" / "prototype"
+    for name in ("js/logic.js", "js/audit.js", "js/ui-form.js", "js/ui-data.js", "test/logic.test.js"):
+        assert (proto / name) in written, name
+    page = (proto / "index.html").read_text(encoding="utf-8")
+    assert page.index('src="js/logic.js"') < page.index('src="js/core.js"')
+    assert page.index('src="js/audit.js"') < page.index('src="js/main.js"')
+
+
+def test_new_prototype_config_mentions_density(tmp_path):
+    root = copy_mini(tmp_path)
+    new_prototype(root, load_project(root))
+    config = (root / "docs" / "05-design" / "prototype" / "js" / "config.js").read_text(encoding="utf-8")
+    assert '// density: { app: "compact", site: "comfortable", phone: "touch" },' in config
+    assert '// fonts: ["https://fonts.googleapis.com/css2?family=' in config
+
+
+def old_page(proto):
+    """The mini page as a 0.2 project had it: the kit head is replaced by an older one."""
+    page = (proto / "index.html").read_text(encoding="utf-8")
+    head = page.split("<style>", 1)[0]
+    old_head = head.replace('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3.14.0/dist-cdn/styles/themes/default.css">\n', "")
+    return page.replace(head, old_head, 1)
+
+
+def test_update_adds_head_and_keeps_tokens(tmp_path):
+    root = tmp_path / "mini"
+    shutil.copytree(MINI, root)
+    proto = root / "docs" / "05-design" / "prototype"
+    index = proto / "index.html"
+    page = re.sub(r'<script type="module".*?</script>\n', "", old_page(proto), count=1, flags=re.DOTALL)
+    assert "window.KIT_LIB" not in page
+    index.write_text(page.replace("/* kickoff:tokens:end */", ":root { --proj: 1; }\n/* kickoff:tokens:end */"), encoding="utf-8")
+    before = index.read_text(encoding="utf-8")
+    update_prototype(root, load_project(root))
+    after = index.read_text(encoding="utf-8")
+    assert "window.KIT_LIB =" in after and "webawesome@3.14.0/dist-cdn/styles/themes/default.css" in after
+    block = lambda text, a, b: text.split(a)[1].split(b)[0]  # noqa: E731
+    assert block(after, "/* kickoff:tokens:begin */", "/* kickoff:tokens:end */") == block(before, "/* kickoff:tokens:begin */", "/* kickoff:tokens:end */")
+    assert block(after, "<!-- kickoff:modules:begin -->", "<!-- kickoff:modules:end -->") == block(before, "<!-- kickoff:modules:begin -->", "<!-- kickoff:modules:end -->")
+
+
+def test_update_reports_migration_notes(tmp_path, capsys):
+    from kickoff.cli import main
+
+    root = tmp_path / "mini"
+    shutil.copytree(MINI, root)
+    proto = root / "docs" / "05-design" / "prototype"
+    index = proto / "index.html"
+    index.write_text(index.read_text(encoding="utf-8").replace(
+        "/* kickoff:tokens:end */", ":root { --fw-medium: 600; }\n.x { font-weight: 800; }\n/* kickoff:tokens:end */"), encoding="utf-8")
+    screens = proto / "js" / "screens.js"
+    screens.write_text(screens.read_text(encoding="utf-8") + '\nconst Z = () => html`${open && html`<${U.Drawer} title="x" />`}<${U.Table} rows=${[]} onRow=${() => 0} />`;\n', encoding="utf-8")
+    (proto / "js" / "core.js").write_text("// stale\n", encoding="utf-8")
+    snapshot = {p: p.read_bytes() for p in proto.rglob("*") if p.is_file()}
+    assert main(["--root", str(root), "proto", "update", "--dry"]) == 0
+    out = capsys.readouterr().out
+    assert "would update: js/core.js" in out
+    for note in ("migration: tokens: --fw-medium is 600", "migration: type: weight 800 in 1 rules",
+                 "migration: overlays: 1 conditionally mounted overlays; pass open=", "migration: tables: 1 onRow tables"):
+        assert note in out, note
+    assert {p: p.read_bytes() for p in proto.rglob("*") if p.is_file()} == snapshot
+    assert main(["--root", str(root), "proto", "update"]) == 0
+    assert "next: kickoff proto check; kickoff proto lint (see migration notes)" in capsys.readouterr().out
+
+
+def test_bundle_keeps_module_loader(tmp_path):
+    out = bundle(MINI, load_project(MINI), tmp_path / "prototype.html")
+    text = out.read_text(encoding="utf-8")
+    assert "window.KIT_LIB =" in text and '<script type="module"' in text
+    assert "function resolveDensity" in text  # js/logic.js inlined
+    assert 'src="js/' not in text
 
 
 def test_update_prototype_needs_a_prototype(tmp_path):
@@ -138,9 +217,44 @@ def test_kit_ships_inside_the_package():
     assert KIT_DIR.resolve().is_relative_to(Path(kickoff.__file__).resolve().parent)
 
 
+def kit_css() -> str:
+    page = (KIT_DIR / "index.html").read_text(encoding="utf-8")
+    return page.split("<style>", 1)[1].split("</style>", 1)[0]
+
+
+def test_kit_loads_inter_variable():
+    page = (KIT_DIR / "index.html").read_text(encoding="utf-8")
+    link = next(line for line in page.splitlines() if 'id="kit-fonts"' in line)
+    assert "Inter:opsz,wght@14..32,400..700" in link and "display=swap" in link
+
+
+def test_kit_pins_web_awesome():
+    page = (KIT_DIR / "index.html").read_text(encoding="utf-8")
+    core = (KIT_DIR / "js" / "core.js").read_text(encoding="utf-8")
+    version = re.search(r'name: "@awesome\.me/webawesome", version: "([\d.]+)"', core).group(1)
+    assert version == "3.14.0"
+    urls = re.findall(r"https://cdn\.jsdelivr\.net/npm/@awesome\.me/webawesome@([^/\"']+)/", page)
+    assert len(urls) >= 2 and set(urls) == {version}
+    for banned in ("webawesome.css", "native.css", "autoloader", "webawesome-pro", "kit.webawesome.com"):
+        assert banned not in page, banned
+    assert "window.KIT_LIB" in page
+
+
+def test_kit_has_foundation_tokens():
+    css = kit_css()
+    for mode in ("compact", "comfortable", "touch", "kiosk"):
+        start = css.index(f'[data-density="{mode}"])')
+        block = css[start : css.index("}", start)]
+        for token in ("--ctl-h:", "--t-body:", "--row-h:", "--section-gap:"):
+            assert token in block, (mode, token)
+    assert css.index("/* kickoff:tokens:end */") < css.index(":where([data-density=\"compact\"])")
+    assert not re.search(r"font-weight\s*:\s*800", css)
+    assert not re.search(r"line-height\s*:\s*1\s*;", css)
+
+
 def test_mini_prototype_core_matches_the_kit():
     proto = MINI / "docs" / "05-design" / "prototype"
-    names = ("route", "core", "ui", "charts", "scope", "shell", "scenario", "main")
+    names = ("route", "logic", "core", "ui", "ui-form", "ui-data", "charts", "scope", "shell", "scenario", "audit", "main")
     for name in ["narrow.html", *(f"js/{n}.js" for n in names)]:
         assert (proto / name).read_bytes() == (KIT_DIR / name).read_bytes(), name
 
@@ -239,3 +353,37 @@ def test_check_reports_coverage_gap(tmp_path):
     spec.write_text(spec.read_text(encoding="utf-8") + "| SC-09 | Missing | admin | web | R2 |\n", encoding="utf-8")
     failures = check(root, load_project(root), routes=[])
     assert "coverage: SC-09 in ux-spec but not registered" in failures
+
+
+@pytest.mark.browser
+@browser
+def test_check_reports_audit_failure(tmp_path):
+    root = tmp_path / "mini"
+    shutil.copytree(MINI, root)
+    index = root / "docs" / "05-design" / "prototype" / "index.html"
+    index.write_text(index.read_text(encoding="utf-8").replace("/* kickoff:tokens:end */", ".page-h h1 { font-weight: 800 !important; }\n/* kickoff:tokens:end */"), encoding="utf-8")
+    warnings = []
+    failures = check(root, load_project(root), routes=["sc-02"], warnings=warnings)
+    assert any(f.startswith("sc-02 light: audit A1") for f in failures), failures
+
+
+@pytest.mark.browser
+@browser
+def test_check_selftest_runs():
+    from kickoff.proto import _cdp_selftest, proto_dir
+
+    url = (proto_dir(MINI, load_project(MINI)) / "index.html").as_uri() + "#kit-selftest-light"
+    assert _cdp_selftest(BROWSER, url) is None
+
+
+@pytest.mark.browser
+@browser
+def test_check_reports_library_failure(tmp_path):
+    root = tmp_path / "mini"
+    shutil.copytree(MINI, root)
+    index = root / "docs" / "05-design" / "prototype" / "index.html"
+    text = index.read_text(encoding="utf-8")
+    loader = re.search(r'<script type="module".*?</script>', text, re.DOTALL).group(0)
+    index.write_text(text.replace(loader, loader.replace("webawesome@3.14.0", "webawesome@3.14.999")), encoding="utf-8")
+    failures = check(root, load_project(root), routes=[])
+    assert failures and failures[0].startswith("index: not ready (ui library:"), failures

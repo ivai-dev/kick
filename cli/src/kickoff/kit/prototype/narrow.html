@@ -7,9 +7,10 @@
   390 x 844 iframe, so the page inside gets a true 390 px viewport.
   Usage: narrow.html#<route> (the hash is passed to the prototype unchanged). Needs
   --allow-file-access-from-files when opened from disk.
-  After a wait (8 s for a #scn- route, which runs a guided scenario; 3 s otherwise) it sets on
-  its own <html>:
-    data-err="<message>"  the prototype set data-err, a scenario did not finish, or the page
+  After a wait (8 s for a #scn- route, which runs a guided scenario; 4 s otherwise, the UI library
+  loads first) it sets on its own <html>:
+    data-err="<message>"  the prototype set data-err, a scenario did not finish, the runtime audit
+                          failed at 390 px ("audit: …", touch sizes apply), or the page
                           (or a scroll container inside it) is wider than 390 px;
     data-ok="narrow"      otherwise.
   Tables scroll inside their own .table-wrap and are not counted.
@@ -57,6 +58,10 @@
       report("narrow: prototype not ready");
       return;
     }
+    if (html.dataset.auditFail) {
+      report("audit: " + html.dataset.auditFail);
+      return;
+    }
     if (scenario && html.dataset.scenario !== "done") {
       report("narrow: scenario did not finish (" + (html.dataset.scenario || "not started") + ")");
       return;
@@ -77,5 +82,5 @@
       return;
     }
     document.documentElement.dataset.ok = "narrow";
-  }, scenario ? 8000 : 3000);
+  }, scenario ? 8000 : 4000);
 </script>
