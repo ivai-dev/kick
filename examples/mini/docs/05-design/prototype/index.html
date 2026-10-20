@@ -777,7 +777,9 @@ a.lr-t:hover { text-decoration: underline; }
 .tbl .tbl-open { appearance: none; background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; text-align: inherit; cursor: pointer; }
 .tbl .tbl-open:hover, .tbl a.tbl-link:hover { text-decoration: underline; }
 .tbl a.tbl-link { color: inherit; text-decoration: none; font-weight: var(--fw-semibold); }
-.tbl .tbl-sort { display: inline-flex; align-items: center; gap: var(--sp-1); appearance: none; background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; }
+/* The first-cell link or button is a standalone target: at least --min-target in both directions (A10). */
+.tbl a.tbl-link, .tbl .tbl-open { display: inline-flex; align-items: center; min-height: var(--min-target); min-width: var(--min-target); vertical-align: middle; }
+.tbl .tbl-sort { display: inline-flex; align-items: center; gap: var(--sp-1); min-height: var(--min-target); appearance: none; background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; }
 .tbl .tbl-sort[data-dir] { color: var(--ink); }
 .tbl th.chk, .tbl td.chk { width: 40px; padding-inline: 0; text-align: center; }
 .tbl th.chk input, .tbl td.chk input { width: var(--check); height: var(--check); accent-color: var(--primary); margin: 0; }
@@ -919,6 +921,8 @@ wa-toast[data-place="frame"] { --width: auto; inset: auto calc(var(--tr) + 12px)
 .toast-act { margin-inline-start: auto; }
 a.lnk { color: var(--primary-ink); text-decoration: underline; text-underline-offset: 3px; }
 a.lnk-back, a.lnk-more { text-decoration: none; font: var(--t-label); }
+/* Standalone links (back, "see all", change links of a SummaryList) get the density's minimum target (A10). */
+a.lnk-back, a.lnk-more, .sl-a > a.lnk { display: inline-flex; align-items: center; width: fit-content; min-height: var(--min-target); }
 a.lnk-back:hover, a.lnk-more:hover { text-decoration: underline; }
 .kit-scope { display: contents; }
 .frame-scroll { height: 100%; overflow-y: auto; overflow-x: hidden; }

@@ -231,6 +231,34 @@
     return r.width > 1 && r.height > 1;
   };
   const ownText = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+  // WCAG 2.5.8 inline exception: a link in a sentence, i.e. an inline box whose block container holds other
+  // words besides the link ("Xem <a>điều khoản</a> trước khi gửi."). A link alone in a cell, a heading or a
+  // list item is not in a sentence.
+  function inSentence(e) {
+    if (getComputedStyle(e).display !== "inline") return false;
+    let b = e.parentElement;
+    while (b && getComputedStyle(b).display === "inline") b = b.parentElement;
+    if (!b) return false;
+    const sp = (s) => String(s || "").replace(/\s+/g, " ").trim();
+    return /[\p{L}\p{N}]/u.test(sp(b.textContent).replace(sp(e.textContent), ""));
+  }
+  // A stretched link (EntityCard and ListRow titles: an absolutely positioned ::after over the card or row)
+  // is hit over that overlay, so its target is the overlay's box, not the text. Null for other links.
+  function stretchedBox(e) {
+    const a = getComputedStyle(e, "::after");
+    if (!a || a.position !== "absolute" || !a.content || a.content === "none" || a.content === "normal") return null;
+    let p = e.parentElement;
+    while (p && p !== document.documentElement) {
+      const cs = getComputedStyle(p);
+      if (cs.position !== "static" || cs.transform !== "none") break;
+      p = p.parentElement;
+    }
+    if (!p || p === document.documentElement) return null;
+    const r = p.getBoundingClientRect();
+    const z = p.currentCSSZoom || 1;
+    const px = (v) => (/px$/.test(v) ? parseFloat(v) : 0);
+    return { w: r.width / z - px(a.left) - px(a.right), h: r.height / z - px(a.top) - px(a.bottom) };
+  }
   function roots() {
     const list = [];
     const c = document.getElementById("kit-content");
@@ -300,13 +328,15 @@
       if (!nm && !(e.tagName === "INPUT" && e.closest("label"))) add(fail, "A8", `no name: ${e.tagName.toLowerCase()}${e.className && typeof e.className === "string" ? "." + e.className.split(" ")[0] : ""}`);
       if (e.tagName === "BUTTON" && e.hasAttribute("title") && !(e.textContent || "").trim()) add(fail, "A8", `title on icon button '${short(nm)}'`);
       if (e.hasAttribute("aria-pressed") && e.hasAttribute("aria-expanded")) add(fail, "A9", `aria-pressed and aria-expanded '${short(nm)}'`);
-      // Targets: inline text links, inputs inside a label, and table checkboxes (their cell) are excluded.
-      if (e.tagName === "A" && getComputedStyle(e).display === "inline" && e.parentElement && ownText(e.parentElement)) continue;
+      // Targets: links in a sentence (WCAG 2.5.8 inline exception), inputs inside a label, and table
+      // checkboxes (their cell) are excluded; a stretched link is measured over its overlay.
+      if (e.tagName === "A" && inSentence(e)) continue;
       if (e.tagName === "INPUT" && (e.closest("label") || e.closest("td.chk, th.chk") || e.classList.contains("sr-only"))) continue;
       if (e.closest(CHART)) continue;
       const z = e.currentCSSZoom || 1;
       const r = e.getBoundingClientRect();
-      const w = r.width / z, h = r.height / z;
+      const box = e.tagName === "A" ? stretchedBox(e) : null;
+      const w = box ? box.w : r.width / z, h = box ? box.h : r.height / z;
       const d = densityOf(e);
       const min = MIN_TARGET[d] || 24;
       if (Math.min(w, h) < min - 0.5) add(fail, "A10", `${Math.round(w)}×${Math.round(h)} ${e.tagName.toLowerCase()} '${short(nm)}' (${d} ${min})`);
