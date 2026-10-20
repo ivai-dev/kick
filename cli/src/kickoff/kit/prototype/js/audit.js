@@ -133,6 +133,14 @@
           <${U.StatTile} id="g-k2" label="Đã tuyển" value="31" unit="/40 người" context="Mục tiêu tháng 10" go="kit-overlays" />
         </div>
         <${U.Meter} label="Đã tuyển" value=${31} max=${40} />
+        <div class="g12">
+          <div class="c-6"><${U.ChartCard} title="Hồ sơ theo tháng" sub="Tháng 5–10/2026" takeaway="Tháng 10 có nhiều hồ sơ nhất." source="Dữ liệu mẫu" downloads=${true} height=${200}
+            chart=${html`<${KIT.charts.BarChart} id="g-series" label="Hồ sơ" labels=${["T5", "T6", "T7", "T8", "T9", "T10"]} layout="stack"
+              series=${[{ name: "Trực tuyến", values: [30, 41, 29, 37, 46, 52] }, { name: "Tại quầy", values: [12, 9, 14, 11, 8, 10] }]} />`}
+            table=${{ columns: [{ key: "m", label: "Tháng" }, { key: "v", label: "Hồ sơ", num: true }], rows: [{ id: 1, m: "T9", v: 54 }, { id: 2, m: "T10", v: 62 }] }} /></div>
+          <div class="c-6 col gap-12"><${KIT.charts.BarList} rows=${[{ label: "Thợ may", value: 120 }, { label: "Kế toán", value: 48 }, { label: "Lái xe", value: 77 }]} unit="việc" />
+            <${KIT.charts.Funnel} stages=${[{ label: "Xem tin", value: 1240 }, { label: "Nộp hồ sơ", value: 310 }, { label: "Phỏng vấn", value: 92 }, { label: "Trúng tuyển", value: 31 }]} /></div>
+        </div>
         <div class="grid-2">
           <${U.EntityCard} go="kit-overlays" params=${{ id: "v1" }} title="Nhân viên kinh doanh thiết bị y tế khu vực các xã ven biển phía Nam tỉnh Cà Mau, ưu tiên có kinh nghiệm"
             subtitle="Công ty TNHH Thiết bị Y tế Phương Nam Ánh Dương Toàn Cầu chi nhánh Cà Mau" badge=${html`<${U.StatusChip} tone="info">Mới<//>`}

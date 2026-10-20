@@ -1083,6 +1083,17 @@ button.tb-btn:hover { background: var(--surface-3); color: var(--ink); }
 .ch-anim .ch-bar { transform-box: fill-box; transform-origin: 50% 100%; animation: kit-grow var(--dur-5) var(--ease-enter) backwards; }
 g.ch-anim .ch-line, g.ch-anim .ch-area, g.ch-anim .ch-seg { animation: kit-in var(--dur-5) var(--ease-enter) backwards; }
 
+.barlist, .funnel { width: 100%; border-collapse: collapse; font: var(--t-body); }
+.barlist th, .barlist td, .funnel th, .funnel td { padding: var(--sp-1h) var(--sp-2) var(--sp-1h) 0; text-align: left; font-weight: var(--fw-regular); vertical-align: middle; }
+.bl-l, .fn-l { width: 36%; }
+.bl-v, .fn-v { width: 1%; white-space: nowrap; text-align: right; font-weight: var(--fw-semibold); }
+.bl-track { display: block; height: 8px; border-radius: 4px; background: var(--surface-3); overflow: hidden; }
+.bl-bar { display: block; height: 100%; border-radius: inherit; background: var(--c, var(--primary)); }
+.fn-c { width: 1%; white-space: nowrap; }
+.chart-card { --card-head-h: var(--chart-head-h, var(--card-head-h)); }
+:where([data-density="comfortable"]) .chart-card { --chart-head-h: 64px; }
+.cc-body { display: flex; flex-direction: column; justify-content: center; }
+
 /* ---------- Motion ---------- */
 @keyframes kit-in { from { opacity: 0; } }
 @keyframes kit-out { to { opacity: 0; } }

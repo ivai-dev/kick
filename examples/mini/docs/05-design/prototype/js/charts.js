@@ -1,6 +1,9 @@
-// charts.js — SVG charts drawn with theme tokens only (KIT.charts): BarChart, LineChart, Donut.
-// Each chart measures its container and uses a viewBox equal to its pixel size, so text stays
-// at 12 px at every width; x labels are thinned (never overlapped) when the plot is narrow.
+// charts.js — SVG charts drawn with theme tokens only (KIT.charts): BarChart (single, grouped or stacked
+// series), LineChart, Donut, BarList (ranked rows), Funnel (one row per stage), and KIT.ui.ChartCard (a chart
+// with its table view, takeaway, source and downloads). Each chart measures its container and uses a viewBox
+// equal to its pixel size, so axis text keeps the caption role size at every width; x labels are thinned
+// (never overlapped) when the plot is narrow. The entrance plays once per chart id per session (≤ 300 ms);
+// later data changes morph (CSS `d` transitions).
 // One "nice" scale per chart drives both the axis and the marks. Marks are focusable with a
 // roving tabindex (Tab enters, arrow keys move, Escape hides the tooltip); hover and focus show
 // the same tooltip. Tones: primary, ok, warn, danger, accent, ink3 (CSS classes tn-*, which set
@@ -29,7 +32,13 @@
     const dec = step >= 1 && Number.isInteger(step) ? 0 : step >= 0.1 ? (Number.isInteger(step * 10) ? 1 : 2) : 2;
     return { min, max, step, ticks, dec };
   }
-  const textW = (s) => String(s).length * 7.2; // 12 px UI font, tabular digits
+  // Axis text width from the caption role size of the current density (chars × 0.6 × size).
+  let capSize = 12;
+  const readCap = () => {
+    const m = String(getComputedStyle(document.documentElement).getPropertyValue("--t-caption")).match(/(\d+(?:\.\d+)?)px/);
+    capSize = m ? parseFloat(m[1]) : 12;
+  };
+  const textW = (s) => String(s).length * 0.6 * capSize;
   // Show every k-th x label, counted back from the last (the latest period is always labelled).
   const thin = (labels, slot) => Math.max(1, Math.ceil((Math.max(...labels.map(textW)) + 8) / Math.max(1, slot)));
 
@@ -105,7 +114,18 @@
   function Legend({ items, line }) {
     return html`<div class="ch-legend">${items.map((s) => html`<span key=${s.name}><i class=${cx(line ? "ln" : "ch-sw", tn(s.tone))}></i>${s.name}</span>`)}</div>`;
   }
-  const anim = () => (reduced() ? "" : "ch-anim");
+  // Entrance once per chart per session: the first render of a chart id plays it; later renders, remounts
+  // and returns from the table view do not.
+  const seen = (KIT._seenCharts = KIT._seenCharts || new Set());
+  function useEntrance(id, animate) {
+    const r = useRef(null);
+    if (r.current === null) {
+      const key = id || "anon";
+      r.current = animate !== false && !reduced() && !seen.has(key);
+      seen.add(key);
+    }
+    return r.current ? "ch-anim" : "";
+  }
   const barPath = (x, y0, wd, h, r) => {
     if (!(h > 0.5)) return "";
     r = Math.min(r, wd / 2, h);
@@ -132,10 +152,16 @@
 
   // Vertical columns. data: [{ label, value, tip? }]. highlight: indices drawn at full strength
   // (the rest muted); highlightLast = highlight the latest column.
-  function BarChart({ data = [], height = 200, unit = "", highlightLast, highlight, refLine, tone = "primary", label = KIT.t("chart.column"), dec = 1 }) {
+  function BarChart(props) {
+    if (props.series && props.series.length) return html`<${SeriesBars} ...${props} />`;
+    return html`<${SingleBars} ...${props} />`;
+  }
+  function SingleBars({ data = [], height = 200, unit = "", highlightLast, highlight, refLine, tone = "primary", label = KIT.t("chart.column"), dec = 1, id, animate }) {
+    readCap();
     const [ref, w] = useWidth();
     const n = data.length;
     const M = useMarks(n);
+    const anim = useEntrance(id || label, animate);
     if (!n || data.every((d) => d.value == null)) return html`<${ChartEmpty} height=${height} />`;
     const vals = data.map((d) => d.value || 0);
     const sc = niceScale(0, Math.max(...vals, refLine ? refLine.value : 0));
@@ -155,7 +181,7 @@
       <div class="ch-plot"><svg width=${w} height=${height} viewBox=${`0 0 ${w} ${height}`} role="group">
         <${Axis} sc=${sc} y=${y} x0=${pl} x1=${w - pr} unit=${unit} />
         ${a != null && html`<rect class="ch-band" x=${pl + band * a} y=${pt} width=${band} height=${ph} rx="4" />`}
-        <g class=${cx(tn(tone), anim())}>${data.map((d, i) => html`<path key=${i} class=${cx("ch-bar", !on(i) && "mute")} d=${barPath(xc(i) - bw / 2, y(sc.min), bw, y(sc.min) - y(d.value || 0), 4)} />`)}</g>
+        <g class=${cx(tn(tone), anim)}>${data.map((d, i) => html`<path key=${d.label != null ? d.label : i} class=${cx("ch-bar", !on(i) && "mute")} d=${barPath(xc(i) - bw / 2, y(sc.min), bw, y(sc.min) - y(d.value || 0), 4)} />`)}</g>
         ${labelled.map((i) => html`<text key=${"v" + i} class="ch-val" x=${xc(i)} y=${y(vals[i]) - 7} text-anchor="middle" aria-hidden="true">${nf(vals[i], dec)}</text>`)}
         <${RefLine} refLine=${refLine} y=${y} x0=${pl} x1=${w - pr} unit=${unit} />
         <${XLabels} labels=${data.map((d) => d.label)} xs=${xc} y=${height - 8} every=${every} />
@@ -167,10 +193,12 @@
 
   // Lines over shared x labels. series: [{ name, values, tone }]. One series gets a light area
   // wash and an end label; two or more get a legend. min: y floor (default 0).
-  function LineChart({ labels = [], series = [], height = 200, unit = "", refLine, min = 0, label = KIT.t("chart.line"), dec = 1, tips }) {
+  function LineChart({ labels = [], series = [], height = 200, unit = "", refLine, min = 0, label = KIT.t("chart.line"), dec = 1, tips, id, animate }) {
+    readCap();
     const [ref, w] = useWidth();
     const n = labels.length;
     const M = useMarks(n);
+    const anim = useEntrance(id || label, animate);
     const all = series.flatMap((s) => s.values).filter((v) => v != null);
     if (!n || !all.length) return html`<${ChartEmpty} height=${height} />`;
     const sc = niceScale(min, Math.max(...all, refLine ? refLine.value : min));
@@ -194,7 +222,7 @@
         <${Axis} sc=${sc} y=${y} x0=${pl} x1=${w - pr} unit=${unit} />
         <${RefLine} refLine=${refLine} y=${y} x0=${pl} x1=${w - pr} unit=${unit} />
         ${a != null && html`<line class="ch-cross" x1=${xs(a)} x2=${xs(a)} y1=${pt} y2=${y(sc.min)} />`}
-        <g class=${anim()}>
+        <g class=${anim}>
           ${one && html`<path class=${cx("ch-area", tn(s0.tone))} d=${path(s0.values) + `L${xs(n - 1)},${y(sc.min)}L${xs(0)},${y(sc.min)}Z`} />`}
           ${series.map((s) => html`<path key=${s.name} class=${cx("ch-line", tn(s.tone))} d=${path(s.values)} />`)}
         </g>
@@ -209,9 +237,10 @@
   }
 
   // Ring of parts with a legend list (name, value, share). center: { value, label }.
-  function Donut({ parts = [], size = 160, center, label = KIT.t("chart.donut"), unit = "" }) {
+  function Donut({ parts = [], size = 160, center, label = KIT.t("chart.donut"), unit = "", id, animate }) {
     const n = parts.length;
     const M = useMarks(n);
+    const anim = useEntrance(id || label, animate);
     const total = parts.reduce((s, p) => s + (p.value || 0), 0);
     if (!n || !(total > 0)) return html`<${ChartEmpty} height=${size} />`;
     const c = size / 2, th = Math.max(14, Math.round(size * 0.14)), r = c - 2, r0 = r - th;
@@ -238,7 +267,7 @@
     return html`<figure class="ch ch-donut" aria-label=${summary}>
       <div class="ch-donut-plot" style=${{ width: size + "px", height: size + "px" }}>
         <svg width=${size} height=${size} viewBox=${`0 0 ${size} ${size}`} role="group">
-          <g class=${anim()}>${segs.map((s, i) => (s.value > 0 ? html`<path key=${i} d=${arc(s.a0, s.a1)} ...${M.props(i, `${s.name}: ${withUnit(s.value, unit)}, ${pct(s.value)}`, cx("ch-seg", tn(s.tone)))} />` : null))}</g>
+          <g class=${anim}>${segs.map((s, i) => (s.value > 0 ? html`<path key=${i} d=${arc(s.a0, s.a1)} ...${M.props(i, `${s.name}: ${withUnit(s.value, unit)}, ${pct(s.value)}`, cx("ch-seg", tn(s.tone)))} />` : null))}</g>
           ${center && html`<text class="ch-c-v" x=${c} y=${c - 2} text-anchor="middle" aria-hidden="true">${center.value}</text><text class="ch-c-l" x=${c} y=${c + 17} text-anchor="middle" aria-hidden="true">${center.label}</text>`}
         </svg>
         ${a != null && html`<${ChartTip} w=${size + 140} x=${mid[0]} y=${mid[1] - 8} title=${segs[a].name} rows=${[{ name: pct(segs[a].value), value: withUnit(segs[a].value, unit) }]} />`}
@@ -247,5 +276,110 @@
     </figure>`;
   }
 
-  Object.assign(KIT.charts, { BarChart, LineChart, Donut, ChartEmpty, Legend, niceScale });
+  // Grouped or stacked columns for 2–3 series over shared labels (never two measures drawn from 0 on top of
+  // each other). series: [{ name, values, tone }]; labels (or data[].label); layout "group" | "stack".
+  const SERIES_TONES = ["primary", "accent", "warn"];
+  function SeriesBars({ series, labels, data = [], height = 200, unit = "", refLine, label = KIT.t("chart.column"), dec = 1, id, animate, layout = "group" }) {
+    readCap();
+    const [ref, w] = useWidth();
+    const labs = labels || data.map((d) => d.label);
+    const n = labs.length;
+    const M = useMarks(n);
+    const anim = useEntrance(id || label, animate);
+    const stack = layout === "stack";
+    const totals = labs.map((_, i) => series.reduce((s, x) => s + (x.values[i] || 0), 0));
+    const all = stack ? totals : series.flatMap((s) => s.values.map((v) => v || 0));
+    if (!n || !all.some((v) => v > 0)) return html`<${ChartEmpty} height=${height} />`;
+    const sc = niceScale(0, Math.max(...all, refLine ? refLine.value : 0));
+    const pl = padLeft(sc, unit), pr = 8, pt = 22, pb = 26;
+    const pw = Math.max(40, w - pl - pr), ph = height - pt - pb;
+    const band = pw / n;
+    const y = (v) => pt + ph * (1 - (v - sc.min) / (sc.max - sc.min));
+    const xc = (i) => pl + band * i + band / 2;
+    const k = series.length;
+    const bw = stack ? Math.max(4, Math.min(28, band * 0.62)) : Math.max(3, Math.min(16, (band * 0.72) / k));
+    const every = thin(labs, band);
+    const a = M.act;
+    const toneOf = (s, j) => s.tone || SERIES_TONES[j % SERIES_TONES.length];
+    const summary = `${label} (${KIT.t(stack ? "chart.stacked" : "chart.grouped")}): ${series.map((s) => s.name + " " + s.values.map((v, i) => labs[i] + " " + withUnit(v, unit, dec)).join(", ")).join("; ")}.`;
+    return html`<figure class="ch" ref=${ref} aria-label=${summary}>
+      <${Legend} items=${series.map((s, j) => ({ ...s, tone: toneOf(s, j) }))} />
+      <div class="ch-plot"><svg width=${w} height=${height} viewBox=${`0 0 ${w} ${height}`} role="group">
+        <${Axis} sc=${sc} y=${y} x0=${pl} x1=${w - pr} unit=${unit} />
+        ${a != null && html`<rect class="ch-band" x=${pl + band * a} y=${pt} width=${band} height=${ph} rx="4" />`}
+        <g class=${anim}>${labs.map((l, i) => {
+          let acc = 0;
+          return html`<g key=${l}>${series.map((s, j) => {
+            const v = s.values[i] || 0;
+            let d;
+            if (stack) {
+              d = barPath(xc(i) - bw / 2, y(acc), bw, y(acc) - y(acc + v), j === k - 1 ? 3 : 0);
+              acc += v;
+            } else {
+              d = barPath(xc(i) - (bw * k) / 2 + j * bw + 0.5, y(sc.min), bw - 1, y(sc.min) - y(v), 3);
+            }
+            return html`<path key=${s.name} class=${cx("ch-bar", tn(toneOf(s, j)))} d=${d} />`;
+          })}</g>`;
+        })}</g>
+        <${RefLine} refLine=${refLine} y=${y} x0=${pl} x1=${w - pr} unit=${unit} />
+        <${XLabels} labels=${labs} xs=${xc} y=${height - 8} every=${every} />
+        ${labs.map((l, i) => html`<rect key=${"h" + i} x=${pl + band * i} y=${pt} width=${band} height=${ph} ...${M.props(i, `${l}: ${series.map((s) => s.name + " " + withUnit(s.values[i], unit, dec)).join(", ")}`)} />`)}
+      </svg>
+      ${a != null && html`<${ChartTip} w=${w} x=${xc(a)} y=${pt} title=${labs[a]} rows=${series.map((s, j) => ({ name: s.name, value: withUnit(s.values[a], unit, dec), tone: toneOf(s, j) }))} />`}</div>
+    </figure>`;
+  }
+
+  // Ranked rows with inline bars (table semantics): rows [{ label, value, sub }], top (show the first n),
+  // unit; onRow(row) makes each label a button.
+  function BarList({ rows = [], top, unit = "", onRow, label = KIT.t("chart.ranking"), dec = 1, tone = "primary" }) {
+    const list = rows.slice().sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, top || rows.length);
+    if (!list.length) return html`<${ChartEmpty} height=${120} />`;
+    const max = Math.max(...list.map((r) => r.value || 0), 1);
+    return html`<table class=${cx("barlist", tn(tone))} data-kit="BarList"><caption class="sr-only">${label}</caption>
+      <tbody>${list.map((r) => html`<tr key=${r.label}>
+        <th scope="row" class="bl-l">${onRow ? html`<button type="button" class="tbl-open" onClick=${() => onRow(r)}>${r.label}</button>` : r.label}${r.sub && html`<span class="t-meta"> · ${r.sub}</span>`}</th>
+        <td class="bl-b" aria-hidden="true"><span class="bl-track"><span class="bl-bar" style=${{ width: ((r.value || 0) / max) * 100 + "%" }}></span></span></td>
+        <td class="bl-v tnum">${withUnit(r.value, unit, dec)}</td></tr>`)}</tbody></table>`;
+  }
+
+  // One row per stage: name, value, a 0–100 % track of the share kept from the first stage, and the
+  // conversion from the previous stage. stages: [{ label, value }].
+  function Funnel({ stages = [], unit = "", label = KIT.t("chart.funnel"), tone = "primary" }) {
+    if (!stages.length || !(stages[0].value > 0)) return html`<${ChartEmpty} height=${120} />`;
+    const first = stages[0].value;
+    return html`<table class=${cx("funnel", tn(tone))} data-kit="Funnel"><caption class="sr-only">${label}</caption>
+      <tbody>${stages.map((s, i) => html`<tr key=${s.label}>
+        <th scope="row" class="fn-l">${s.label}</th>
+        <td class="fn-v tnum">${withUnit(s.value, unit, 0)}</td>
+        <td class="fn-b"><span class="bl-track"><span class="bl-bar" style=${{ width: (s.value / first) * 100 + "%" }}></span></span></td>
+        <td class="fn-c t-meta">${i === 0 ? "" : KIT.t("chart.kept", { pct: nf(stages[i - 1].value ? (s.value / stages[i - 1].value) * 100 : 0, 0) + "%" })}</td>
+      </tr>`)}</tbody></table>`;
+  }
+
+  // A chart with its table view: a fixed header (title, sub line; "Chart · Table" and "Download ▾" on the
+  // right, never wrapping), the takeaway sentence, a body of fixed height, the source line.
+  // table: a node or { columns, rows } (a DataTable); downloads: true (PNG and Excel) or [{ label, onClick }].
+  function ChartCard({ title, sub, takeaway, chart, table, source, downloads, height = 240, id }) {
+    const A = KIT.useApp();
+    const [view, setView] = useState("chart");
+    const U = KIT.ui;
+    const items = downloads === true
+      ? [{ label: KIT.t("chart.png"), onClick: () => A.toast(KIT.t("chart.png")) }, { label: KIT.t("chart.excel"), onClick: () => A.toast(KIT.t("chart.excel")) }]
+      : Array.isArray(downloads) ? downloads : null;
+    const tableEl = table && table.columns ? html`<${U.DataTable} columns=${table.columns} rows=${table.rows || []} caption=${title} narrow="scroll" stickyHeader=${false} />` : table;
+    const actions = html`${table && html`<${U.SegmentedControl} label=${KIT.t("chart.views")} size="sm" value=${view} onPick=${setView}
+        items=${[["chart", KIT.t("chart.view"), "chart"], ["table", KIT.t("chart.table"), "list"]]} iconsOnly />`}
+      ${items && html`<${U.MenuButton} label=${KIT.t("chart.download")} icon="download" size="sm" items=${items} />`}`;
+    return html`<section class="card chart-card" id=${id} aria-label=${typeof title === "string" ? title : undefined} data-kit="ChartCard">
+      <div class="card-h"><div class="ch-col"><h3 class="t-title clamp1">${title}</h3>${sub && html`<span class="t-meta clamp1">${sub}</span>`}</div><div class="ch-act">${actions}</div></div>
+      <div class="card-b">${takeaway && html`<p class="t-body cc-take">${takeaway}</p>`}
+        <div class="cc-body" style=${{ minHeight: height + "px" }}>${view === "table" && tableEl ? tableEl : chart}</div>
+        ${source && html`<p class="t-caption">${KIT.t("chart.source", { source })}</p>`}</div>
+    </section>`;
+  }
+
+  Object.assign(KIT.charts, { BarChart, LineChart, Donut, BarList, Funnel, ChartEmpty, Legend, niceScale });
+  KIT.ui.ChartCard = ChartCard;
+  KIT.ui.BarList = BarList;
+  KIT.ui.Funnel = Funnel;
 })();
