@@ -392,8 +392,13 @@
       "tab-group", "tab", "tab-panel", "radio-group", "radio"],
   };
 
+  // Device frames for bare screens (kiosk and others): KIT.frame("kiosk", KioskFrame) registers the
+  // project's frame component; screens name it with register(id, { bare, frame }).
+  const frames = (KIT.frames = KIT.frames || {});
+  const frame = (name, Comp) => { frames[name] = Comp; return Comp; };
+
   Object.assign(KIT, {
-    lib,
+    lib, frames, frame,
     h, render, Component, Fragment, hooks, html,
     Ctx, useApp, register, screens, config, configProblems, homeOf, canOpen, roleName, roleDef, isBare, t, applyDocConfig,
     stampErr, PLATFORMS,

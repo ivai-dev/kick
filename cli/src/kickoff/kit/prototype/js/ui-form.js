@@ -374,7 +374,7 @@
     const list = norm(items);
     const props = useRadio(list, value, (v) => onPick && onPick(v));
     return html`<div class=${cx("segc", size, cls)} role="radiogroup" aria-label=${label} data-kit="SegmentedControl">
-      ${list.map((x, i) => html`<button type="button" key=${String(x.value)} class="segc-o" aria-label=${iconsOnly ? x.label : undefined} ...${props(x, i)}>
+      ${list.map((x, i) => html`<button type="button" key=${String(x.value)} class="segc-o" aria-label=${x.label} ...${props(x, i)}>
         ${x.icon && html`<${Icon} n=${x.icon} s=${16} />`}${!iconsOnly && html`<span class="segc-l">${x.label}</span>`}</button>`)}
     </div>`;
   }

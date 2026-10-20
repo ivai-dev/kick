@@ -76,7 +76,7 @@
     const base = {
       screen: null, params: {}, role: cfg.defaultRole, platform: defaultPlatform(),
       theme: saved === "light" || saved === "dark" ? saved : "system", lens: "full",
-      hist: [], toasts: [], scenario: null, drawer: false, sidebar: window.innerWidth >= 1180,
+      hist: [], toasts: [], scenario: null, drawer: false, sidebar: store.get("sidebar", window.innerWidth >= 1200),
     };
     return { ...base, ...fromRoute(base, readHash()) };
   }
@@ -228,7 +228,7 @@
         },
         setLens(l) { set({ lens: l }); },
         setDrawer(v) { set({ drawer: !!v }); },
-        toggleSidebar() { set((s) => ({ sidebar: !s.sidebar })); },
+        toggleSidebar() { set((s) => { store.set("sidebar", !s.sidebar); return { sidebar: !s.sidebar }; }); },
         // toast(msg, { icon, tone, action: { label, run }, ms, key }) -> id. Timing (KIT.logic.toastMs): 5 s + 1 s per
         // 40 characters above 80; with an action it stays until closed; a toast with the same key replaces the
         // older one. No toasts on the kiosk (feedback changes the control that was used).

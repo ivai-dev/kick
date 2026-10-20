@@ -349,6 +349,8 @@ h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
 p { margin: 0; }
 ul, ol { margin: 0; padding: 0; }
 :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
+/* Programmatic focus targets (page h1 after a route, list captions, overlay bodies) show no ring. */
+:is(h1, h2, h3, caption, .ov-body)[tabindex="-1"]:focus { outline: none; }
 ::selection { background: var(--primary-soft); }
 b, strong { font-weight: var(--fw-semibold); }
 .ic { flex-shrink: 0; display: block; }
@@ -393,10 +395,12 @@ b, strong { font-weight: var(--fw-semibold); }
 .seg button { display: inline-flex; align-items: center; gap: var(--sp-1h); min-height: var(--ctl-h-sm); padding: 0 var(--sp-2); border: 0; border-radius: var(--r-sm); background: transparent; color: var(--ink-2); font: var(--t-label); white-space: nowrap; transition: background-color var(--dur-1), color var(--dur-1); }
 .seg button:hover { color: var(--ink); }
 .seg button[aria-pressed="true"], .seg button[aria-checked="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1); }
-@media (max-width: 1279.98px) { .proto .pb-l { display: none; } }
+@media (max-width: 1279.98px) { .proto .pb-l, .proto .segc-l { display: none; } }
 @media (min-width: 761px) and (max-width: 1100px) { .proto { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; } }
 .stage { height: calc(100% - var(--proto-h)); position: relative; overflow: hidden; opacity: 0; }
 .kit-in .stage { opacity: 1; transition: opacity var(--dur-2) var(--ease-enter); }
+wa-popover.pb-idx { --max-width: 420px; }
+wa-popover.pb-idx .pop { width: min(380px, 86vw); }
 .pb-idx-list { display: flex; flex-direction: column; gap: 2px; max-height: min(60vh, 520px); overflow-y: auto; margin: var(--sp-2) calc(-1 * var(--sp-2)) 0; padding: 0 var(--sp-2); }
 .pb-idx-opt { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--menu-item-h); padding: 0 var(--sp-2); border-radius: var(--r-sm); cursor: pointer; }
 .pb-idx-opt[aria-selected="true"] { background: var(--surface-3); }
@@ -1011,7 +1015,7 @@ button.tb-btn:hover { background: var(--surface-3); color: var(--ink); }
 .m-status { height: 36px; flex-shrink: 0; background: var(--surface); }
 .native .m-status { display: none; }
 .m-top { display: flex; align-items: center; gap: var(--sp-1); min-height: var(--topbar-h); padding: var(--sp-1) var(--sp-2); background: var(--surface); border-bottom: 1px solid var(--line); flex-shrink: 0; }
-.m-top h1 { font: var(--t-title-l); }
+.m-top h1, .m-top-t { font: var(--t-title-l); }
 .m-top-sp { width: var(--sp-2); flex-shrink: 0; }
 .m-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: var(--page-pt) var(--page-px) var(--sp-10); display: flex; flex-direction: column; gap: var(--section-gap); }
 .m-content > * { flex-shrink: 0; }
@@ -1130,7 +1134,7 @@ g.ch-anim .ch-line, g.ch-anim .ch-area, g.ch-anim .ch-seg { animation: kit-in va
 .site-acc { display: flex; align-items: center; gap: var(--sp-2); }
 .site-me { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--ctl-h); padding: 0 var(--sp-2) 0 var(--sp-1); border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font: var(--t-label); max-width: 240px; }
 @media (hover: hover) { .site-me:hover { background: var(--surface-3); } }
-.site-acc-nav { display: flex; flex-direction: column; gap: 2px; min-width: 220px; }
+.site-acc-nav ul { list-style: none; display: flex; flex-direction: column; gap: 2px; min-width: 220px; }
 .site-acc-nav a { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--menu-item-h); padding: 0 var(--sp-2); border-radius: var(--r-sm); color: var(--ink); font: var(--t-body); text-decoration: none; }
 .site-acc-nav a:hover { background: var(--surface-3); }
 .site-acc-nav a[aria-current="page"] { color: var(--primary-ink); font-weight: var(--fw-medium); }
@@ -1152,9 +1156,6 @@ g.ch-anim .ch-line, g.ch-anim .ch-area, g.ch-anim .ch-seg { animation: kit-in va
 
 /* ---------- Narrow screens (below 760 px) ---------- */
 @media (max-width: 760px) {
-  .shell > .side { position: fixed; z-index: 56; top: var(--proto-h); bottom: 0; left: 0; height: auto; width: min(304px, 86vw); transform: translateX(-104%); visibility: hidden; box-shadow: var(--shadow-3); }
-  .shell.drawer > .side { transform: none; visibility: visible; }
-  .drawer-scrim { position: fixed; inset: var(--proto-h) 0 0 0; z-index: 55; background: var(--scrim); }
   .topbar { padding: 0 var(--sp-2); }
   .launch-in { padding: var(--sp-6) var(--sp-4) var(--sp-10); gap: var(--sp-6); }
   .site-h-in { gap: var(--sp-2); }
