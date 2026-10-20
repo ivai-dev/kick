@@ -526,10 +526,11 @@ fieldset.field { border: 0; margin: 0; padding: 0; min-width: 0; }
 .per-grid.q { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .per-grid .chip { justify-content: center; }
 .segc { display: inline-flex; padding: 2px; gap: 2px; background: var(--surface-3); border-radius: var(--ctl-r); flex-shrink: 0; }
-.segc-o { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-1h); min-height: calc(var(--ctl-h-sm) - 4px); padding: 0 var(--sp-3); border: 0; border-radius: calc(var(--ctl-r) - 2px); background: transparent; color: var(--ink-2); font: var(--t-label); white-space: nowrap; cursor: pointer; transition: background-color var(--dur-1), color var(--dur-1); }
+.segc-o { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-1h); min-height: max(calc(var(--ctl-h-sm) - 4px), var(--min-target)); min-width: var(--min-target); padding: 0 var(--sp-3); border: 0; border-radius: calc(var(--ctl-r) - 2px); background: transparent; color: var(--ink-2); font: var(--t-label); white-space: nowrap; cursor: pointer; transition: background-color var(--dur-1), color var(--dur-1); }
 .segc-o:hover { color: var(--ink); }
 .segc-o[aria-checked="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1); }
-.segc.sm .segc-o { min-height: 24px; padding: 0 var(--sp-2); }
+/* Small segments (the Chart · Table switch) keep the density's minimum target: 24 · 24 · 40 · 56 (A10). */
+.segc.sm .segc-o { min-height: var(--min-target); padding: 0 var(--sp-2); }
 .choice { display: flex; flex-direction: column; gap: var(--label-gap); min-width: 0; }
 .choice .field-l { font: var(--t-label); color: var(--ink); }
 .choice-g { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
@@ -547,9 +548,13 @@ fieldset.field { border: 0; margin: 0; padding: 0; min-width: 0; }
 .choice-li { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--check-row); cursor: pointer; font: var(--t-body); }
 .choice-g [aria-disabled="true"] { color: var(--ink-3); cursor: not-allowed; }
 .switch { display: flex; align-items: flex-start; gap: var(--sp-3); }
-.sw { position: relative; flex-shrink: 0; width: 40px; height: 24px; margin-top: 2px; padding: 0; border: 0; border-radius: 999px; background: var(--line-strong); transition: background-color var(--dur-1); }
-[data-density="compact"] .sw { width: 32px; height: 20px; }
-.sw-k { position: absolute; top: 2px; left: 2px; width: calc(24px - 4px); height: calc(24px - 4px); border-radius: 50%; background: var(--surface); box-shadow: var(--shadow-1); transition: transform var(--dur-1) var(--ease-standard); }
+/* The track keeps its size; transparent padding (background-clip) brings the button to the density's minimum
+   target (compact 36×24, touch 56×40, kiosk 72×56) without moving the track against the label line (A10). */
+.sw { --sw-w: 40px; --sw-h: 24px; --sw-pad: max(0px, calc((var(--min-target) - var(--sw-h)) / 2));
+  position: relative; flex-shrink: 0; box-sizing: content-box; width: var(--sw-w); height: var(--sw-h); padding: var(--sw-pad);
+  margin-block: calc(2px - var(--sw-pad)) calc(-1 * var(--sw-pad)); border: 0; border-radius: 999px; background: var(--line-strong); background-clip: content-box; transition: background-color var(--dur-1); }
+[data-density="compact"] .sw { --sw-w: 32px; --sw-h: 20px; }
+.sw-k { position: absolute; top: calc(var(--sw-pad) + 2px); left: calc(var(--sw-pad) + 2px); width: calc(24px - 4px); height: calc(24px - 4px); border-radius: 50%; background: var(--surface); box-shadow: var(--shadow-1); transition: transform var(--dur-1) var(--ease-standard); }
 [data-density="compact"] .sw-k { width: 16px; height: 16px; }
 .sw[aria-checked="true"] { background: var(--primary); }
 .sw[aria-checked="true"] .sw-k { transform: translateX(16px); }
@@ -777,7 +782,9 @@ a.lr-t:hover { text-decoration: underline; }
 .tbl .tbl-open { appearance: none; background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; text-align: inherit; cursor: pointer; }
 .tbl .tbl-open:hover, .tbl a.tbl-link:hover { text-decoration: underline; }
 .tbl a.tbl-link { color: inherit; text-decoration: none; font-weight: var(--fw-semibold); }
-.tbl .tbl-sort { display: inline-flex; align-items: center; gap: var(--sp-1); appearance: none; background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; }
+/* The first-cell link or button is a standalone target: at least --min-target in both directions (A10). */
+.tbl a.tbl-link, .tbl .tbl-open { display: inline-flex; align-items: center; min-height: var(--min-target); min-width: var(--min-target); vertical-align: middle; }
+.tbl .tbl-sort { display: inline-flex; align-items: center; gap: var(--sp-1); min-height: var(--min-target); appearance: none; background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; }
 .tbl .tbl-sort[data-dir] { color: var(--ink); }
 .tbl th.chk, .tbl td.chk { width: 40px; padding-inline: 0; text-align: center; }
 .tbl th.chk input, .tbl td.chk input { width: var(--check); height: var(--check); accent-color: var(--primary); margin: 0; }
@@ -873,7 +880,8 @@ a.kpi:hover, button.kpi:hover { border-color: var(--line-strong); }
 .page-h .ph-act { display: flex; align-items: center; gap: var(--sp-2) var(--sp-3); flex-wrap: wrap; }
 .page-h .ph-sent { font: var(--t-body); color: var(--ink-2); max-width: var(--l-measure); }
 .info { display: inline-flex; flex-shrink: 0; }
-.info-btn { width: 28px; height: 28px; display: inline-grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink-3); }
+/* Toggletip button: 28 px on desktop, the density's minimum target on touch (40) and kiosk (56) (A10). */
+.info-btn { width: max(28px, var(--min-target)); height: max(28px, var(--min-target)); display: inline-grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink-3); }
 .info-btn:hover, .info-btn[aria-expanded="true"] { background: var(--surface-3); color: var(--ink); }
 .info-txt p + p { margin-top: var(--sp-2); }
 .denied { display: flex; flex-direction: column; }
@@ -919,6 +927,8 @@ wa-toast[data-place="frame"] { --width: auto; inset: auto calc(var(--tr) + 12px)
 .toast-act { margin-inline-start: auto; }
 a.lnk { color: var(--primary-ink); text-decoration: underline; text-underline-offset: 3px; }
 a.lnk-back, a.lnk-more { text-decoration: none; font: var(--t-label); }
+/* Standalone links (back, "see all", change links of a SummaryList) get the density's minimum target (A10). */
+a.lnk-back, a.lnk-more, .sl-a > a.lnk { display: inline-flex; align-items: center; width: fit-content; min-height: var(--min-target); }
 a.lnk-back:hover, a.lnk-more:hover { text-decoration: underline; }
 .kit-scope { display: contents; }
 .frame-scroll { height: 100%; overflow-y: auto; overflow-x: hidden; }
@@ -942,7 +952,8 @@ a.lnk-back:hover, a.lnk-more:hover { text-decoration: underline; }
 .guide.guide-phone { bottom: 88px; }
 
 /* ---------- Release scope ---------- */
-.rel-badge { display: inline-flex; align-items: center; min-height: 20px; padding: 0 var(--sp-1h); border-radius: var(--r-sm); font: var(--t-caption); font-weight: var(--fw-medium); white-space: nowrap; flex-shrink: 0; }
+/* The release tag uses the meta role (13 · 14 · 14 · 19 px), the smallest text size that passes A7 in every density. */
+.rel-badge { display: inline-flex; align-items: center; min-height: 20px; padding: 0 var(--sp-1h); border-radius: var(--r-sm); font: var(--t-meta); font-weight: var(--fw-medium); white-space: nowrap; flex-shrink: 0; }
 .rb-0 { color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line-strong); }
 .rb-1 { background: var(--accent-soft); color: var(--accent-ink); }
 .rb-2 { background: var(--primary-soft); color: var(--primary-ink); }

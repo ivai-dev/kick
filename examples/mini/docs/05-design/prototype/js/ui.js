@@ -925,25 +925,52 @@
   }
   // Filter one list by status: an APG tablist (one Tab stop, arrows, Home/End, automatic activation) whose
   // tabpanel is the caller's list region (panelId). Counts are text in the label; when the strip would need
-  // more than 2 lines it becomes a select "Status: All (186)".
+  // more than 2 lines it becomes a select "Status: All (186)". The form is decided once per container width
+  // (KIT.logic.tabsForm): the strip is measured only while it is rendered, and the select goes back to tabs
+  // only when the container is wider than where the strip overflowed, so the observer cannot loop.
   function StatusTabs({ items = [], value, onPick, label, panelId, id }) {
     const tid = useUid("tabs");
     const base = id || tid;
     const ref = useRef(null);
-    const [narrow, setNarrow] = useState(false);
+    const [form, setForm] = useState(L.TABS_START);
+    const narrow = form.form === "select";
     const refs = useRef([]);
-    useLayoutEffect(() => {
+    const sig = items.map((x) => x.key + ":" + x.label + ":" + (x.count == null ? "" : x.count)).join("|");
+    const seen = useRef(sig);
+    // Reads the element rendered now (tablist or label) and its container, never an element of the other form.
+    const measure = () => {
       const el = ref.current;
-      if (!el) return undefined;
-      const measure = () => {
+      const box = el && el.parentElement;
+      if (!box || !el.isConnected) return;
+      let overflow = false;
+      if (el.getAttribute("role") === "tablist") {
         const line = parseFloat(getComputedStyle(el).getPropertyValue("--ctl-h")) || 32;
-        setNarrow(el.scrollHeight > line * 2 + 12);
-      };
+        overflow = el.scrollHeight > line * 2 + 12;
+      }
+      const width = box.getBoundingClientRect().width;
+      setForm((s) => L.tabsForm(s, { width, overflow }));
+    };
+    const measureRef = useRef(measure);
+    measureRef.current = measure;
+    useLayoutEffect(() => {
+      if (seen.current !== sig) {
+        seen.current = sig;
+        if (narrow) { setForm(L.TABS_START); return; } // new labels or counts: measure the strip again
+      }
       measure();
-      let ro;
-      try { ro = new ResizeObserver(measure); ro.observe(el.parentElement || el); } catch (e) { /* no observer */ }
-      return () => ro && ro.disconnect();
-    }, [items.length]);
+    }, [form.form, sig]);
+    useEffect(() => {
+      const box = ref.current && ref.current.parentElement;
+      if (!box) return undefined;
+      // Measured in the next frame: a form switch inside the observer callback would resize the observed box
+      // during the same delivery ("ResizeObserver loop completed with undelivered notifications").
+      let ro, raf = 0;
+      try {
+        ro = new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => measureRef.current()); });
+        ro.observe(box);
+      } catch (e) { /* no observer */ }
+      return () => { cancelAnimationFrame(raf); ro && ro.disconnect(); };
+    }, [form.form]);
     const tabId = (k) => base + "-t-" + k;
     useEffect(() => {
       const panel = panelId && document.getElementById(panelId);
@@ -961,7 +988,7 @@
       refs.current[j] && refs.current[j].focus();
     };
     if (narrow) {
-      return html`<label class="row gap-8 tabs-sel" data-kit="StatusTabs"><span class="t-label">${label}</span>
+      return html`<label ref=${ref} class="row gap-8 tabs-sel" data-kit="StatusTabs"><span class="t-label">${label}</span>
         <select class="select" value=${value} aria-controls=${panelId} onChange=${(e) => onPick && onPick(e.currentTarget.value)}>
           ${items.map((x) => html`<option key=${x.key} value=${x.key}>${x.label}${x.count != null ? ` (${KIT.util.nf(x.count, 0)})` : ""}</option>`)}</select></label>`;
     }
