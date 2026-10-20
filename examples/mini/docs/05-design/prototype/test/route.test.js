@@ -5,7 +5,23 @@ const { makeParser, formatHash } = require("../js/route.js");
 const parse = makeParser({ roles: ["librarian", "member", "admin"], platforms: ["web", "android"] });
 
 test("plain screen", () => {
-  assert.deepEqual(parse("#sc-01"), { screen: "sc-01", scenario: null, theme: null, lens: "full", platform: null, role: null });
+  assert.deepEqual(parse("#sc-01"), { screen: "sc-01", scenario: null, theme: null, lens: "full", platform: null, role: null, params: {} });
+});
+
+test("parameters after the tokens", () => {
+  const r = parse("#sc-08-dark-member?kiosk=1&id=tt03&full=true&q=lap%20rap");
+  assert.equal(r.screen, "sc-08");
+  assert.equal(r.role, "member");
+  assert.equal(r.theme, "dark");
+  assert.deepEqual(r.params, { kiosk: 1, id: "tt03", full: true, q: "lap rap" });
+  assert.deepEqual(parse("#sc-01?flag").params, { flag: true });
+  assert.deepEqual(parse("#sc-01?").params, {});
+});
+
+test("formatHash writes parameters back", () => {
+  const r = parse("#sc-08-member?kiosk=1&q=lap%20rap");
+  assert.deepEqual(parse(formatHash(r)), r);
+  assert.equal(formatHash({ screen: "sc-08", params: { id: "tt03", gone: null } }), "#sc-08?id=tt03");
 });
 
 test("tokens in any order", () => {

@@ -110,10 +110,23 @@ Run `kickoff --help` or `kickoff <command> --help` for every option. `--root DIR
 | `kickoff tickets push [--dry] [--adopt]` | Create and update issues, sub-issues, blocked-by links and fields idempotently; `--dry` prints the diff. |
 | `kickoff tickets pull` | Pull issue state and dates into `actuals` and show which gates moved. |
 | `kickoff tickets link KEY NUMBER` | Map a WBS code or epic id to an existing issue before the first push. |
-| `kickoff proto new [--force]` | Copy the prototype kit and write one stub per ux-spec screen. |
-| `kickoff proto check [ROUTES...] [--shots DIR] [--jobs N]` | Open every screen and scenario in a headless browser (light and dark, plus a 390 px check); exit 4 when no browser is found. |
-| `kickoff proto lint` | Count font sizes, weights, inline styles and raw colours against thresholds; flag forbidden text. |
+| `kickoff proto new [--force]` | Copy the prototype kit and write one stub per ux-spec screen; `config.js` gets `locale`, `lang` and `shell: "app"` from `languages.ui`, and the tokens get `--cap-case: none` for vi. |
+| `kickoff proto update [--dry]` | Copy the kit core files over the project's copies and refresh `index.html` outside its title, tokens and modules blocks; never touches project modules; prints what changed (`--dry` only lists it). |
+| `kickoff proto check [ROUTES...] [--shots DIR] [--jobs N]` | Open every screen and scenario in a headless browser (light and dark, plus a 390 px check); exit 4 when no browser is found. A route is `<screen>[-tokens][?key=value&…]` with role and other tokens and parameters, for example `"sc-08-guest?kiosk=1&id=tt03"` (quote it in the shell). `--shots` writes light, dark and 390 px screenshots. |
+| `kickoff proto lint` | Count font sizes, weights, inline styles and raw colours against thresholds; flag forbidden text; fail when `languages.ui` is not English and `config.js` sets no `locale`. |
 | `kickoff proto bundle [--out FILE]` | Write the prototype as one self-contained HTML file. |
+
+## Prototype kit
+
+`kickoff proto new` copies a no-build prototype kit (Preact and htm) into the project. Project files are `js/config.js`, `js/data.js`, the screen modules and `js/scenarios.js`; the kit core is never edited and is refreshed with `kickoff proto update`. The prototype shows exactly what the product will show: chrome, navigation and wording.
+
+- **Shells.** `app`: a work tool with a sidebar (the default). `site`: a public site with a header, top menu, account area and footer, and on phones a compact header with a menu sheet and a bottom tab bar (`shell: "site"` and `tabs` on the role, `KIT_CONFIG.site` for the organisation line, account menu, sign-in links and footer). `android` screens show in a phone frame and `windows` screens in a Windows frame.
+- **Bare screens.** `KIT.register(id, { bare })`, with `bare: true` or `(params, role) => boolean`, renders a screen without any shell: device frames such as a kiosk, full-screen start screens.
+- **Route parameters.** `#<screen>[-light|-dark][-full|-tags|-mvp][-<platform>][-<role>][?key=value&…]`; integer values become numbers, `true`/`false` booleans. Deep links, the screen index and `kickoff proto check` keep them, so device views and records open from a link.
+- **Localisation.** Every kit word, in the product area and in the prototype chrome, goes through `KIT.t(key, vars)` with `en` and `vi` packs, chosen by `KIT_CONFIG.lang` or the locale; `KIT_CONFIG.strings` overrides single strings. `KIT_CONFIG.locale` sets number formats.
+- **Letter case.** The `--cap-case` token (`uppercase` by default, `none` for languages with stacked diacritics) drives `.t-cap` and table headers.
+
+The full kit guide is `README.md` in the prototype folder after `kickoff proto new`.
 
 ## Examples
 
@@ -145,4 +158,4 @@ node --test "cli/src/kickoff/kit/prototype/test/*.test.js"
 
 Tests run offline except those marked `browser` (need Edge or Chrome and the CDN) and `docker` (need Docker); both skip when the tool is missing. CI (`.github/workflows/ci.yml`) runs lint and tests on Python 3.11 and 3.13, the kit tests, the examples checks, the test suite on Windows and a wheel check.
 
-The design is in `docs/specs/2026-09-26-kickoff-plugin-design.md`, the implementation plan in `docs/plans/2026-09-26-kickoff-plugin.md`.
+The design is in `docs/specs/2026-09-26-kickoff-plugin-design.md`, the implementation plan in `docs/plans/2026-09-26-kickoff-plugin.md`, the v0.2.0 plan in `docs/plans/2026-10-20-kickoff-v0.2.0.md`. Changes per release are in `CHANGELOG.md`.

@@ -39,13 +39,42 @@ window.KIT_CONFIG = {
 
 Role ids are lowercase letters and digits only (they appear in the URL).
 
+Optional settings:
+
+```js
+window.KIT_CONFIG = {
+  // …
+  locale: "vi-VN",          // numbers and dates (KIT.util.nf); kickoff proto new sets it from languages.ui
+  lang: "vi",               // the kit's own words: "en" or "vi" (default: the locale's language)
+  strings: { "table.empty": "Không có dòng nào." },   // override single kit strings (keys in js/core.js)
+  roles: [
+    { id: "visitor", name: "Visitor", home: "sc-01", shell: "site" },
+    { id: "member", name: "Member", home: "sc-02", shell: "site", tabs: ["sc-02", "sc-05", "sc-06", "sc-07"] },
+    { id: "librarian", name: "Librarian", home: "sc-10", shell: "app" },
+  ],
+  site: {
+    org: "City Library",                     // line under the product name in the header
+    account: "My account",                   // nav label whose screens form the account menu
+    accountLabel: "My account",              // text of the account button (default: the role name)
+    signIn: [{ label: "Sign in", go: "sc-03" }, { label: "Register", go: "sc-04" }],   // shown to a visitor
+    signOut: "visitor",                      // role that "Sign out" switches to
+    footer: ["Opening hours 8:00–17:00"],
+  },
+};
+```
+
+- **Shells.** `shell: "app"` (default) is the work-tool layout: sidebar, top bar, content. `shell: "site"` is the public-site layout: a header with the brand, the top menu (every screen with `nav` outside the `site.account` group, labelled by the screen's `menu` or `name`), the account menu or the sign-in buttons, the page, a footer; below 760 px a compact header with a menu sheet and, when the role has `tabs`, a bottom tab bar. A project may draw its own header or footer: `KIT.site.Header = function () { … }`, `KIT.site.Footer = …` (read `KIT.useApp()`). The prototype must show the shell the product will have; never write "the prototype differs from the product".
+- **Letter case.** `.t-cap` and table headers use `text-transform: var(--cap-case, uppercase)`; set `--cap-case: none; --cap-spacing: 0` in the tokens block for languages with stacked diacritics (`proto new` does this for Vietnamese).
+- **Kit strings.** Every word the kit shows goes through `KIT.t(key, vars)`: the `en` and `vi` packs, then `strings`.
+
 ## Screens
 
 ```js
 KIT.register("sc-02", { comp: Loans, code: "SC-02", name: "Loans", roles: ["librarian"], platforms: ["web"], rel: "MVP", nav: "Library", icon: "book" });
 ```
 
-- Defaults: `roles` every role, `platforms` `["web"]`, `rel` the first release. `nav` is the sidebar (or phone tab bar) section label; a screen without `nav` is reached only through links. `icon` is a `KIT.ui.Icon` name.
+- Defaults: `roles` every role, `platforms` `["web"]`, `rel` the first release. `nav` is the sidebar (or phone tab bar) section label; a screen without `nav` is reached only through links. `icon` is a `KIT.ui.Icon` name. In the site shell `menu` overrides the top-menu label and `tab` the bottom-tab label.
+- `bare: true` or `bare: (params, role) => boolean` renders the screen on the stage without any shell: a device frame (a kiosk, a terminal) or a full-screen start screen. Example: `bare: (p) => !!p.kiosk`.
 - The route id is the ux-spec code in lower case. A component takes no props: it reads `KIT.useApp()` → `{ role, theme, resolved, lens, platform, params, screen, narrow, layout, go, back, toast, setRole, setTheme, setLens, setPlatform }`.
 - The shell gives each screen its container (`.page` on the desktop, `.m-content` on the phone); a screen returns its sections only.
 - Role guard: a screen whose `roles` exclude the current role renders `KIT.ui.Denied`, never the screen.
@@ -69,7 +98,7 @@ Whole screens of a later release get a note strip (`tags`) or are dimmed under a
 
 ## Hash routes
 
-`#<screen>[-light|-dark][-full|-tags|-mvp][-<platform>][-<role>]`, tokens in any order, for example `#sc-02-librarian-dark` or `#a-01-member`. No hash opens the start page (roles, scenarios, theme). `#scn-<id>` runs a guided scenario.
+`#<screen>[-light|-dark][-full|-tags|-mvp][-<platform>][-<role>][?key=value&…]`, tokens in any order, for example `#sc-02-librarian-dark` or `#a-01-member`. Parameters after `?` become the screen's `params` (integers become numbers, `true`/`false` booleans), so a device view or a record can be linked, checked and screenshotted: `#sc-08-visitor?kiosk=1&id=b7`. `kickoff proto check` takes the same routes. No hash opens the start page (roles, scenarios, theme). `#scn-<id>` runs a guided scenario.
 
 ## Guided scenarios
 

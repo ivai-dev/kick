@@ -1,5 +1,6 @@
 // main.js — the application root: state, navigation (go, jump, back, role and platform
-// switches), the hash route, theme handling, toasts, the scenario hooks, the layout choice,
+// switches), the hash route (with ?parameters as the screen's params), theme handling, toasts,
+// the scenario hooks, the layout choice,
 // and the <html> attributes the headless check reads. Loaded last, after every project
 // module has registered its screens. Core file.
 //
@@ -64,7 +65,7 @@
     const patch = { lens: r.lens, scenario: null };
     if (r.theme) patch.theme = r.theme;
     if (r.scenario || !r.screen) return { ...patch, screen: r.scenario ? s.screen : null, params: {}, hist: [] };
-    return { ...patch, ...place(s, r.screen, { role: r.role, platform: r.platform, pickRole: true }), params: {}, hist: [] };
+    return { ...patch, ...place(s, r.screen, { role: r.role, platform: r.platform, pickRole: true }), params: r.params || {}, hist: [] };
   }
 
   function initialState() {
@@ -134,7 +135,7 @@
           const home = KIT.homeOf(role);
           if (!home) {
             set({ role });
-            a.toast("No screens for " + KIT.roleName(role) + " yet.", { icon: "info" });
+            a.toast(KIT.t("app.noScreensRole", { role: KIT.roleName(role) }), { icon: "info" });
             return;
           }
           set((s) => ({ ...place({ ...s, role }, home), params: {}, hist: [], drawer: false }));
@@ -146,7 +147,7 @@
             const home = KIT.homeOf(s.role);
             const pick = [home, ...Object.keys(KIT.screens)].find((id) => id && KIT.canOpen(id, s.role) && KIT.screens[id].platforms.includes(p));
             if (!pick) {
-              setTimeout(() => a.toast(`No ${p} screens for ${KIT.roleName(s.role)}.`, { icon: "info" }), 0);
+              setTimeout(() => a.toast(KIT.t("app.noPlatform", { platform: p, role: KIT.roleName(s.role) }), { icon: "info" }), 0);
               return {};
             }
             return { screen: pick, platform: p, params: {}, hist: pushHist(s) };
@@ -204,7 +205,7 @@
     }, []);
 
     useEffect(() => {
-      document.title = cfg.product + " · Prototype";
+      document.title = KIT.t("app.title", { product: cfg.product });
     }, []);
 
     const reg = KIT.screens[S.screen];

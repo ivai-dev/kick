@@ -1,8 +1,8 @@
 # Lessons encoded as checks
 
-Each row is a mistake made on a real project (AI Minute) and the check that now prevents it. Phase skills quote the rows that apply to them in their **Lessons** section.
+Each row is a mistake made on a real project and the check that now prevents it: rows 1–13 come from AI Minute (a meeting-minutes product), rows 14–21 from a public employment portal with a Vietnamese UI (job seekers, employers, staff and commune kiosks). Phase skills quote the rows that apply to them in their **Lessons** section.
 
-| Lesson from AI Minute | Where it is enforced |
+| Lesson | Where it is enforced |
 | --- | --- |
 | `chain_after` created a cycle; the schedule ran to 2039 | `validate` cycle detection; `schedule` refuses to run with a cycle |
 | Sync matched issues by title and created a duplicate after a rename | hidden body key matching |
@@ -17,6 +17,14 @@ Each row is a mistake made on a real project (AI Minute) and the check that now 
 | A sidebar filter that reloaded a near-identical page confused the reviewer | `ux-design` rule: navigation goes to a distinct page; filters stay in-page |
 | Literal `\n` in a Bash heredoc became real newlines in JS | skills write files with file tools, not heredocs |
 | A late sign-off moved the MVP gate | `signoff` workshop date is a package in `plan.yaml` with a risk entry; `schedule` shows its effect |
+| Public pages of the product had a top menu, but the prototype could only show the kit sidebar; the team wrote "the prototype differs from the product" | kit site shell (`shell: "site"`) and bare screens; `ux-design` shell per role; `prototype` fidelity rule |
+| Kiosk and other device views of a web screen could not be opened from a link, screenshotted or checked | route parameters `#<screen>[-tokens]?key=value`; `proto check` accepts routes with role tokens and parameters |
+| "No change", "No data yet", "Close" appeared in a Vietnamese product UI, and the prototype bar spoke English to the customer | `KIT.t` with `en` and `vi` packs, `KIT_CONFIG.lang` and `KIT_CONFIG.strings` |
+| "+7.1%" sat next to "2.304" | `proto new` writes `locale` and `lang` from `languages.ui`; `proto lint` fails on a non-English UI without `locale` |
+| Small uppercase labels crowded stacked Vietnamese diacritics | `--cap-case` token; `proto new` sets `none` for vi |
+| A kit improvement could reach an existing prototype only through `proto new --force`, which overwrites project files | `kickoff proto update [--dry]` |
+| Screen codes in product UI, look-alike KPI rows on every home, text explaining system mechanics, unclear next actions | `ux-design` home shape per role, anti-flooding and copy rules, `content-and-craft.md`, `guidance-library.md`; `prototype` screen checklist and design review loop |
+| Republishing the prototype Artifact from a new session was refused | `prototype` publish step: read the published files and compare their hashes with git before overwriting |
 
 ## Which skill applies each row
 
@@ -33,3 +41,11 @@ Each row is a mistake made on a real project (AI Minute) and the check that now 
 11. Filter as a page: `ux-design` writes the rule into the ux-spec navigation rules; `prototype` follows it.
 12. Heredocs: every skill writes files with the file tools (see `conventions.md`, Files).
 13. Late sign-off: `signoff` makes the workshop a package in `plan.yaml` with a risk entry and runs `kickoff schedule`; `plan` keeps both.
+14. Prototype differs from the product: `ux-design` gives every role a shell (`site` or `app`); `prototype` follows the fidelity rule, configures the site shell and uses bare screens; `signoff` and `feedback` show customers only material with the real product chrome.
+15. Device views: `ux-design` notes device views as route parameters; `prototype` registers them as parameters (bare when they have their own frame) and checks them with `kickoff proto check "<route>?<param>=1"`.
+16. English kit strings: `prototype` sets `lang` in `js/config.js` and overrides single strings with `KIT_CONFIG.strings`; the screen checklist reads every empty and unchanged state.
+17. Number formats: `prototype` keeps the `locale` that `kickoff proto new` writes and formats numbers through the kit; `kickoff proto lint` fails without it; `ux-design` writes the formats into the Copy guide.
+18. Letter case: `ux-design` sets letter case in the Craft rules; `prototype` keeps `--cap-case: none` for languages with stacked diacritics.
+19. Kit updates: `prototype` runs `kickoff proto update --dry`, then `kickoff proto update`, never `kickoff proto new --force` on a built prototype.
+20. Flooding: `ux-design` writes home shapes, the anti-flooding rules and the Copy guide (`references/content-and-craft.md`, `references/guidance-library.md`); `prototype` walks the screen checklist and runs the design review loop (`references/design-review.md`); `feedback` fixes such remarks across the whole product.
+21. Republish refused: `prototype` reads the published files in a new session, compares their hashes with the committed files, and asks the lead when one matches no commit.

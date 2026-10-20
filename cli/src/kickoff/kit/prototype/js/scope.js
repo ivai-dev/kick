@@ -24,7 +24,7 @@
   function RelBadge({ r, cls }) {
     if (!r) return null;
     const i = Math.min(relIndex(r), 3);
-    return html`<span class=${cx("rel-badge", "rb-" + i, cls)} title=${i === 0 ? "In " + r : "Arrives in " + r}>${r}</span>`;
+    return html`<span class=${cx("rel-badge", "rb-" + i, cls)} title=${i === 0 ? KIT.t("rel.in", { r }) : KIT.t("rel.arrives", { r })}>${r}</span>`;
   }
 
   // Rel({ r, children, inline }) wraps a part of a screen that arrives in release r.
@@ -38,7 +38,7 @@
         : html`<div class="rel-block">${children}<${RelBadge} r=${r} cls="rel-flag" /></div>`;
     }
     if (inline) return null;
-    return html`<div class="rel-ph" role="note" title=${"Arrives in " + r}><${Icon} n="lock" s=${14} /><span>${r}</span></div>`;
+    return html`<div class="rel-ph" role="note" title=${KIT.t("rel.arrives", { r })}><${Icon} n="lock" s=${14} /><span>${r}</span></div>`;
   }
 
   // The lens applied to a whole screen (used by the shell around every screen).
@@ -47,9 +47,9 @@
     if (!isLater(r) || A.lens === "full") return children;
     const first = releases()[0];
     if (A.lens === "tags") {
-      return html`<div class="rel-strip" role="note"><${RelBadge} r=${r} /><span>This screen arrives in <b>${r}</b>.</span></div>${children}`;
+      return html`<div class="rel-strip" role="note"><${RelBadge} r=${r} /><span>${KIT.t("rel.screen", { r })}</span></div>${children}`;
     }
-    return html`<div class="rel-strip dim" role="note"><${Icon} n="lock" s=${16} /><span><b>Not in ${first}.</b> This screen arrives in ${r}.</span></div>
+    return html`<div class="rel-strip dim" role="note"><${Icon} n="lock" s=${16} /><span><b>${KIT.t("rel.notIn", { first })}</b> ${KIT.t("rel.screen", { r })}</span></div>
       <div class="rel-dim" aria-disabled="true" inert=${true}>${children}</div>`;
   }
 

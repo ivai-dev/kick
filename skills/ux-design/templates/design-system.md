@@ -101,6 +101,60 @@ The prototype shows every release. Parts of later releases are marked, never hid
 - One short sentence under each page header; details go into an (i) popover.
 - Sample data is invented; development infrastructure (VPN names, private IP ranges, internal hosts) never appears in product UI.
 
+## Craft rules
+
+Small details are rules. Wording, punctuation and formats are in the ux-spec Copy guide; the visual rules are here.
+
+### Type scale per surface
+
+At most {{5}} sizes per screen and 3 per component; one display size per screen. Size / weight in px.
+
+| Role | Work tool | Public web | Phone | {{Device, e.g. kiosk}} |
+| --- | --- | --- | --- | --- |
+| Display | {{— or size / weight}} | {{size / weight}} | {{size / weight}} | {{size / weight}} |
+| Headline (page title, hero) | {{22 / 600}} | {{…}} | {{…}} | {{…}} |
+| Figure (count, price) | {{28 / 600}} | {{…}} | {{…}} | {{…}} |
+| Title (card, section) | {{16 / 600, 18 / 600}} | {{…}} | {{…}} | {{…}} |
+| Body | {{14 tables, 16 text / 400}} | {{…}} | {{…}} | {{…}} |
+| Label (field, chip, button) | {{14 / 500}} | {{…}} | {{…}} | {{…}} |
+| Meta (the minimum) | {{13 / 400}} | {{…}} | {{…}} | {{…}} |
+
+### Weights and line height
+
+- Weights: {{e.g. 400 body, 500 labels, 600 headings and figures; 800 only at 19 px and above on public surfaces}}.
+- Line height: {{1.6 body, 1.25 headings, at least 1.15 where stacked diacritics occur}}.
+
+### Letter case
+
+- Sentence case for titles, buttons, labels and table headers.
+- `--cap-case`: {{uppercase / none}} ({{why, e.g. "none: Vietnamese capitals stack two marks"}}). It drives `.t-cap` and table headers in the prototype.
+
+### Spacing rhythm
+
+- Steps {{4, 8, 12, 16, 24, 32, 48}} px; no other values in new work.
+- Inside a component {{8 label to control, 12 between rows, 16 card padding}}; between components {{16}}; between sections {{32}}; hero to first section {{48}}.
+- {{Device scale, e.g. kiosk × 1.25, at least 12 px between touch targets}}.
+
+### Chips, buttons and icons
+
+| Chip | Use | Style |
+| --- | --- | --- |
+| Status | status vocabulary only | {{soft fill of its tone}} |
+| Fact | card facts, at most {{2}} per card | {{neutral fill with an icon}} |
+| Choice | filters and toggles | {{outline; pressed in the primary soft colour}} |
+
+| Button | {{Work tool}} | {{Public web}} | {{Phone}} | {{Device}} |
+| --- | --- | --- | --- | --- |
+| Default (height × font) | {{40 × 14}} | {{…}} | {{…}} | {{…}} |
+| Large (the main action) | {{48 × 16}} | {{…}} | {{…}} | {{…}} |
+
+- One filled main action per screen ({{colour}}); secondary as outline; tertiary as a link. The icon goes before the label.
+- Icons: {{outline}} style, one meaning each; sizes {{16 inline, 18 buttons, 20 notices, 24 tiles}}.
+
+| Icon | Meaning |
+| --- | --- |
+| {{icon name}} | {{the one thing it means}} |
+
 ## Accessibility
 
 - Target {{e.g. WCAG 2.2 AA}}; text contrast at least 4.5:1 in both themes.

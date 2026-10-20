@@ -82,5 +82,6 @@ Read `conventions.md` before writing any project file. Write files with the file
 | "Small change, no need to re-run the chain" | Use `kickoff:feedback`: `features.yaml` → `ux-spec.md` → prototype → `plan.yaml` → `kickoff schedule`, in that order. |
 | "The lead said OK in chat, I'll approve the gate" | Ask for the evidence link and the role, then `kickoff gate approve <id> --by "<role>" --evidence "<link>"`; no evidence, no gate. |
 | "The phase is stale but this is urgent" | Re-run the stale phase first; `kickoff can <phase>` blocks the dependent phase anyway. |
+| "The kit can't draw it; I'll note that the prototype differs from the product" | Follow the fidelity rule of `kickoff:prototype`: site shell, bare screens, route parameters or a project-file extension; customers see only the real product chrome in their language. |
 | "No browser here, the prototype check is fine" | Exit 4 means skipped: report it as skipped, never as passed. |
 | "Just a rough architecture sketch to unblock the devs" | That is solution work: `kickoff can solution` first. |

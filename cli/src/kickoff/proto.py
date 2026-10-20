@@ -27,6 +27,13 @@ TOKENS_END = "/* kickoff:tokens:end */"
 PLATFORM_ORDER = ("web", "windows", "android")
 BROWSER_NAMES = ("msedge", "microsoft-edge", "google-chrome", "chromium", "chromium-browser", "chrome")
 THEMES = ("light", "dark")
+# UI language -> locale for numbers and dates in the kit (KIT_CONFIG.locale).
+LOCALES = {
+    "en": "en-US", "vi": "vi-VN", "fr": "fr-FR", "de": "de-DE", "es": "es-ES", "it": "it-IT", "pt": "pt-PT", "nl": "nl-NL",
+    "ja": "ja-JP", "ko": "ko-KR", "zh": "zh-CN", "th": "th-TH", "id": "id-ID", "ms": "ms-MY",
+}
+# Languages whose stacked diacritics make small uppercase labels hard to read: no small capitals.
+NO_SMALL_CAPS = frozenset({"vi"})
 
 
 class ProtoError(KickoffError):
@@ -98,6 +105,20 @@ def _screen_id(code: str) -> str:
     return code.lower()
 
 
+def ui_language(project: Project) -> str:
+    """The two-letter UI language of the project (languages.ui), lower case."""
+    value = str((project.languages or {}).get("ui") or "en")
+    return value.split("-")[0].split("_")[0].lower() or "en"
+
+
+def ui_locale(project: Project) -> str:
+    """The locale for numbers and dates in the prototype: languages.ui as given when it names a region."""
+    value = str((project.languages or {}).get("ui") or "en")
+    if "-" in value:
+        return value
+    return LOCALES.get(value.lower(), value.lower())
+
+
 def _config_js(project: Project, rows: list[dict]) -> str:
     used: list[str] = []
     for row in rows:
@@ -109,12 +130,17 @@ def _config_js(project: Project, rows: list[dict]) -> str:
     for role in ordered:
         home = next((_screen_id(r["code"]) for r in rows if role in r["roles"]), None)
         name = project.roles[role].name if role in project.roles else role
-        role_lines.append(f"    {{ id: {json.dumps(role)}, name: {json.dumps(name, ensure_ascii=False)}, home: {json.dumps(home)} }},")
+        role_lines.append(
+            f"    {{ id: {json.dumps(role)}, name: {json.dumps(name, ensure_ascii=False)}, home: {json.dumps(home)}, shell: \"app\" }},"
+        )
     platforms = [p for p in PLATFORM_ORDER if any(p in _split_list(r["platform"]) for r in rows)] or ["web"]
     lines = [
         f"// config.js — {project.name}: roles, releases and platforms of the prototype.",
+        "// shell: \"app\" (sidebar work tool) or \"site\" (public site: top menu, footer, phone tabs; see the kit README).",
         "window.KIT_CONFIG = {",
         f"  product: {json.dumps(project.name, ensure_ascii=False)},",
+        f"  locale: {json.dumps(ui_locale(project))},",
+        f"  lang: {json.dumps(ui_language(project))},",
         "  roles: [",
         *role_lines,
         "  ],",
@@ -177,6 +203,13 @@ def new_prototype(root: Path, project: Project, force: bool = False) -> list[Pat
         text,
         flags=re.DOTALL,
     )
+    if ui_language(project) in NO_SMALL_CAPS:
+        # Stacked diacritics: labels and table headers keep their letter case.
+        text = text.replace(
+            TOKENS_END,
+            ":root { --cap-case: none; --cap-spacing: 0; } /* no small capitals for this UI language */\n" + TOKENS_END,
+            1,
+        )
     _write(index, text)
     for name in ("config", "data", "screens", "scenarios"):
         path = dest / "js" / f"{name}.js"
@@ -185,6 +218,60 @@ def new_prototype(root: Path, project: Project, force: bool = False) -> list[Pat
     if index not in written:
         written.append(index)
     return written
+
+
+# ---------------------------------------------------------------- update
+TITLE_RE = re.compile(r"<title>.*?</title>", re.DOTALL)
+
+
+def _block(text: str, begin: str, end: str) -> str | None:
+    start = text.find(begin)
+    stop = text.find(end, start + len(begin)) if start != -1 else -1
+    return text[start : stop + len(end)] if start != -1 and stop != -1 else None
+
+
+def update_prototype(root: Path, project: Project, dry: bool = False) -> list[tuple[str, str]]:
+    """Bring a prototype's kit core up to the installed kit; keep every project file.
+
+    Copies the kit core files over the project's copies and rebuilds index.html from the kit's
+    page with the project's title, tokens block and modules block. Returns (path, "added" or
+    "updated") for every file that differs; writes nothing when `dry` is true.
+    """
+    dest = proto_dir(root, project)
+    src = kit_dir()
+    index = dest / "index.html"
+    if not index.is_file():
+        raise ProtoError(f"no prototype in {dest}; run: kickoff proto new")
+    old_page = index.read_text(encoding="utf-8")
+    page = (src / "index.html").read_text(encoding="utf-8")
+    for begin, end in ((TOKENS_BEGIN, TOKENS_END), (MODULES_BEGIN, MODULES_END)):
+        mine, theirs = _block(old_page, begin, end), _block(page, begin, end)
+        if mine is None or theirs is None:
+            raise ProtoError(f"index.html has no {begin} … {end} block; cannot update it safely")
+        page = page.replace(theirs, mine, 1)
+    title = TITLE_RE.search(old_page)
+    if title:
+        page = TITLE_RE.sub(lambda _m: title.group(0), page, count=1)
+
+    changes: list[tuple[str, str]] = []
+    for path in sorted(src.rglob("*")):
+        if path.is_dir() or "__pycache__" in path.parts or path.name == "index.html":
+            continue
+        rel = path.relative_to(src)
+        target = dest / rel
+        new = path.read_bytes()
+        old = target.read_bytes() if target.is_file() else None
+        if old == new:
+            continue
+        changes.append((rel.as_posix(), "added" if old is None else "updated"))
+        if not dry:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(new)
+    if page != old_page:
+        changes.append(("index.html", "updated"))
+        if not dry:
+            _write(index, page)
+    return changes
 
 
 # ---------------------------------------------------------------- browser
@@ -306,14 +393,40 @@ def _parse_screens(value: str | None) -> list[dict]:
     return screens
 
 
-def _screen_task(browser: _Browser, base: Path, screen: dict, kind: str, shots: Path | None) -> str | None:
-    route = screen["id"]
-    role = screen["roles"][0] if screen["roles"] else ""
-    hash_ = f"{route}-{role}-{'light' if kind == 'narrow' else kind}"
+def _route_spec(route: str, screens: list[dict]) -> dict | None:
+    """Resolve a check route: a screen id or code, optional role and theme tokens, optional ?parameters.
+
+    "sc-08", "SC-08", "sc-08-guest", "sc-08-guest?kiosk=1&id=tt03" -> {id, role, query, label}.
+    """
+    base, _, query = route.partition("?")
+    parts = base.strip().lower().split("-")
+    roles = {r for s in screens for r in s["roles"]}
+    role = None
+    while len(parts) > 1 and (parts[-1] in roles or parts[-1] in THEMES):
+        token = parts.pop()
+        if token in roles:
+            role = token
+    key = "-".join(parts)
+    screen = next((s for s in screens if s["id"] == key or s["code"].lower() == key), None)
+    if screen is None:
+        return None
+    first = screen["roles"][0] if screen["roles"] else ""
+    if role not in screen["roles"]:
+        role = first
+    plain = not query and role == first
+    label = screen["id"] if plain else re.sub(r"[^a-z0-9]+", "-", route.lower()).strip("-")
+    return {"id": screen["id"], "role": role, "query": query, "label": label}
+
+
+def _screen_task(browser: _Browser, base: Path, spec: dict, kind: str, shots: Path | None) -> str | None:
+    route = spec["label"]
+    query = f"?{spec['query']}" if spec["query"] else ""
+    hash_ = f"{spec['id']}-{spec['role']}-{'light' if kind == 'narrow' else kind}{query}"
     try:
         if kind == "narrow":
+            shot = shots / f"{route}-narrow.png" if shots else None
             attrs = browser.dump(
-                (base / "narrow.html").as_uri() + "#" + hash_, 6000, size=(600, 844), file_access=True
+                (base / "narrow.html").as_uri() + "#" + hash_, 6000, size=(600, 844), file_access=True, shot=shot
             )
             if _attr(attrs, "ok") == "narrow":
                 return None
@@ -357,8 +470,9 @@ def check(
 ) -> list[str]:
     """Open the prototype in a headless browser. Returns failures (empty = pass).
 
-    `routes` limits the per-screen dumps to those screen ids; `[]` means coverage only. Scenarios run
-    only when `routes` is None.
+    `routes` limits the per-screen dumps to those routes: a screen id or code, optionally with a role
+    token and ?parameters ("sc-08-guest?kiosk=1"); `[]` means coverage only. Scenarios run only when
+    `routes` is None. With `shots`, every dump also writes a screenshot (light, dark and 390 px).
     """
     exe = find_browser(project)
     if exe is None:
@@ -386,9 +500,17 @@ def check(
     failures += [f"coverage: {c} in ux-spec but not registered" for c in expected if c not in registered]
     failures += [f"coverage: {c} registered but not in ux-spec" for c in registered if c not in expected]
 
-    wanted = None if routes is None else {r.lower() for r in routes}
-    selected = [s for s in screens if wanted is None or s["id"] in wanted or s["code"].lower() in wanted]
-    tasks = [(s, kind) for s in selected for kind in (*THEMES, "narrow")]
+    if routes is None:
+        specs = [{"id": s["id"], "role": s["roles"][0] if s["roles"] else "", "query": "", "label": s["id"]} for s in screens]
+    else:
+        specs = []
+        for route in routes:
+            spec = _route_spec(route, screens)
+            if spec is None:
+                failures.append(f"route: no registered screen matches {route}")
+            else:
+                specs.append(spec)
+    tasks = [(s, kind) for s in specs for kind in (*THEMES, "narrow")]
     with ThreadPoolExecutor(max_workers=max(1, jobs)) as pool:
         screen_results = list(pool.map(lambda t: _screen_task(browser, base, t[0], t[1], shots), tasks))
         scenario_results = (
@@ -447,6 +569,14 @@ def lint(root: Path, project: Project) -> tuple[dict[str, int], list[str]]:
             for pattern, regex in forbidden:
                 for match in regex.finditer(line):
                     detail.append(f"forbidden /{pattern}/ in {label}:{number}: {match.group(0)}")
+
+    config_js = base / "js" / "config.js"
+    if ui_language(project) != "en" and config_js.is_file():
+        if not re.search(r"\blocale\s*:", config_js.read_text(encoding="utf-8")):
+            detail.append(
+                f"locale: languages.ui is {ui_language(project)} but js/config.js sets no locale; "
+                f'add locale: "{ui_locale(project)}" so numbers and dates use its separators'
+            )
 
     metrics = {
         "font_sizes": len(sizes),

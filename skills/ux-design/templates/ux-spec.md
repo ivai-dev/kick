@@ -8,9 +8,13 @@ The prototype tools read the Screen inventory below: it stays the first table in
 
 ## Roles and IA per role
 
-| Role id | Role | Home screen | Navigation sections and their screens | Platforms |
-| --- | --- | --- | --- | --- |
-| {{role id}} | {{role name}} | {{screen ID}} | {{section: screen IDs; section: screen IDs}} | {{web / windows / android}} |
+| Role id | Role | Shell | Home shape | Home screen | Navigation sections and their screens | Platforms |
+| --- | --- | --- | --- | --- | --- | --- |
+| {{role id}} | {{role name}} | {{site / app}} | {{approval inbox / pipeline / health and tasks / next-action hero / other: what it opens on}} | {{screen ID}} | {{section: screen IDs; section: screen IDs}} | {{web / windows / android}} |
+
+- **Shell:** `site` for public and self-service audiences (header with a top menu, footer; on phones a compact header and a bottom tab bar), `app` for work tools (sidebar). The prototype draws the same shell.
+- **Home shape:** what the home opens on, matched to the role's main job. Homes of different roles do not share one template.
+- **Phone tab bar** (site roles used on phones): {{role id}}: {{3–5 screen IDs}}.
 
 ## Screen inventory
 
@@ -33,7 +37,21 @@ The prototype tools read the Screen inventory below: it stays the first table in
 1. Navigation goes to distinct pages; filters, sorting and search stay in-page. No menu item reloads a near-identical page with a filter applied.
 2. Each role starts on its own home screen at every width, desktop and phone.
 3. A screen opens only for the roles listed in the inventory; any other role sees an access notice, never the content.
-4. {{project-specific rule, e.g. "Back from a detail page returns to the list with its filters kept"}}
+4. A menu label is 24 characters or fewer and equals the page title it opens.
+5. {{project-specific rule, e.g. "Back from a detail page returns to the list with its filters kept"}}
+
+### Screen content
+
+1. One primary job per screen: above the fold, at most the header, one guidance device and the start of the main content.
+2. One main action per screen (one filled button); a screen offers only the actions possible now.
+3. No repeated look-alike blocks: two blocks on one screen differ in shape and purpose; no KPI row repeats counts listed below it; the same text never appears twice on a screen.
+4. The header sentence names the task or carries live facts (counts, dates, state); with nothing live there is no sentence.
+
+### Guidance devices
+
+| Screen group | Device (from the guidance library) | Where it is not used |
+| --- | --- | --- |
+| {{screen IDs}} | {{e.g. next-action card, process map, step groups, positive empty state}} | {{e.g. not on list screens}} |
 
 ## Behaviour rules
 
@@ -49,15 +67,45 @@ The prototype tools read the Screen inventory below: it stays the first table in
 
 ## Copy guide
 
-- **Language:** {{languages.ui}}; sample data uses invented names, organisations and addresses only.
-- **Voice:** {{e.g. plain, polite, short sentences; address the user as "you"}}
-- **Page headers:** a title and one short sentence; any further detail goes into an (i) popover.
-- **Formats:** dates {{format}}, numbers {{format}}, currency {{format}}.
-- **Never in the UI:** development infrastructure (VPN names, private IP ranges, internal host or tool names), internal IDs other than the ones users need.
+- **Language and locale:** {{languages.ui}}, locale {{e.g. vi-VN}}; sample data uses invented names, organisations and addresses only.
+- **Only what the user needs now:** no text that explains system mechanics or policy ({{e.g. "free", "not stored", sign-out timers, how accounts are checked}}); a fact appears when its event happens.
+- **Page headers:** a title and one sentence that names the task or carries live facts, or no sentence; rules and detail go into an (i) popover.
+- **Never in the UI:** development infrastructure (VPN names, private IP ranges, internal host or tool names), screen codes, prototype words, internal IDs other than the ones users need.
+
+### Voice and tone
+
+Voice in one sentence: {{e.g. "a helpful clerk who speaks plainly: warm, respectful, simple"}}.
+
+| Audience (roles) | Address | Tone | Verbs and words | Avoid | Example |
+| --- | --- | --- | --- | --- | --- |
+| {{e.g. guest, seeker}} | {{form of address}} | {{e.g. plain, warm, no pressure}} | {{e.g. "Tap" on touch screens; buttons start with a verb}} | {{slang, marketing, officialese, English}} | {{one real string}} |
+
+### Terms
+
+One name per thing. A term in "Do not use" never appears in the UI.
 
 | Term | Use | Do not use |
 | --- | --- | --- |
 | {{term}} | {{meaning and where it appears}} | {{synonyms to avoid}} |
+
+### Formats
+
+| Thing | Format | Example |
+| --- | --- | --- |
+| Numbers, percent | {{locale rule}} | {{e.g. 2.304 · 7,1% · −4}} |
+| Money | {{rule}} | {{example}} |
+| Ranges | {{en dash rule}} | {{e.g. 8–11; 20/10/2026 – 05/11/2026}} |
+| Dates | {{rule}} | {{example}} |
+| Date with weekday and time | {{rule}} | {{example}} |
+| Relative dates | {{rule}} | {{e.g. Today, 06:30 · 2 days left}} |
+| Times | {{rule}} | {{e.g. 07:00}} |
+| Units | {{non-breaking space rule}} | {{e.g. 60 people · 4 min}} |
+
+### Punctuation and letter case
+
+- Sentence case in titles, buttons, labels and table headers; small uppercase labels {{allowed / not used (stacked diacritics)}}.
+- {{locale rules for names of organisations and places}}
+- No exclamation marks; typographic quotes “ ”; en dash for ranges; "—" only for missing data in table cells; "·" joins at most two facts; no full stop after labels, buttons or chips.
 
 ## Accessibility
 
