@@ -43,6 +43,21 @@ Start 4–5 reviewers in parallel, each with its own viewpoint and its own repor
 
 Each report holds: the research with sources; the ten changes that matter most; a findings table per screen (Screen, Element, Problem, Why for this role, Change, Rank); look-alike blocks and texts; decisions to revisit.
 
+### Lenses and screen audits
+
+For a foundation pass (fonts, density, overlays, motion), run lens reviewers in place of or next to the audience reviewers, each over the whole screenshot set:
+
+| Lens | Looks at |
+| --- | --- |
+| Layout and cards | page anchoring and widths, grids, the one-box rule, card anatomy and slot drift |
+| Type for the UI language | sizes per screen, weights, line heights for stacked diacritics, letter case, the font |
+| Density and sizing | control, row and chip sizes per audience, touch sizes leaking onto desktop |
+| Interaction and overlays | one surface per task, the overlay contract, consequences, buttons, links versus clickable rows, selection controls |
+| Motion | route, overlay and list motion, interruptions, reduced motion, layout shift |
+| Foundation | the kit and its gaps: what the kit should own versus the project |
+
+Then one **screen audit** per screen group, written from a brief with: the job and the user of each screen; the data inventory with volumes (`../../ux-design/references/data-at-volume.md`); the functions each list needs; the layout per width; the states; the gaps against the foundation rules; and each screen's `ui-ux-pro-max` log (queries, what was taken, what was rejected and why).
+
 ## 4. Cross-review
 
 Each reviewer reads the other reports and writes `<folder>/x-r<n>.md`: what it agrees with, what it disagrees with and why, conflicts between reports, what everyone missed, and rank changes. One round is enough.
