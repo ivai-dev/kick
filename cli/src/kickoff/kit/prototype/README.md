@@ -73,7 +73,7 @@ window.KIT_CONFIG = {
 KIT.register("sc-02", { comp: Loans, code: "SC-02", name: "Loans", roles: ["librarian"], platforms: ["web"], rel: "MVP", nav: "Library", icon: "book" });
 ```
 
-- Defaults: `roles` every role, `platforms` `["web"]`, `rel` the first release. `nav` is the sidebar (or phone tab bar) section label; a screen without `nav` is reached only through links. `icon` is a `KIT.ui.Icon` name. In the site shell `menu` overrides the top-menu label and `tab` the bottom-tab label.
+- Defaults: `roles` every role, `platforms` `["web"]`, `rel` the first release. `nav` is the sidebar (or phone tab bar) section label; a screen without `nav` is reached only through links. `icon` is a `KIT.ui.Icon` name. In the site shell `menu` overrides the top-menu label (`menu: false` keeps the screen out of the site menus, for example sign-in pages reached from the header buttons) and `tab` the bottom-tab label.
 - `bare: true` or `bare: (params, role) => boolean` renders the screen on the stage without any shell: a device frame (a kiosk, a terminal) or a full-screen start screen. Example: `bare: (p) => !!p.kiosk`.
 - The route id is the ux-spec code in lower case. A component takes no props: it reads `KIT.useApp()` → `{ role, theme, resolved, lens, platform, params, screen, narrow, layout, go, back, toast, setRole, setTheme, setLens, setPlatform }`.
 - The shell gives each screen its container (`.page` on the desktop, `.m-content` on the phone); a screen returns its sections only.
