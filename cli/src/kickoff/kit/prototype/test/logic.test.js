@@ -121,6 +121,49 @@ test("clampList", () => {
   assert.deepEqual(L.clampList(["a"], 2), { shown: ["a"], more: 0 });
 });
 
+test("tabsForm: one decision per width, hysteresis, no loop", () => {
+  const f = L.tabsForm;
+  let s = f(null, { width: 600, overflow: false });
+  assert.deepEqual(s, { form: "tabs", width: 600, at: null });
+  assert.equal(f(s, { width: 600, overflow: false }), s); // same width: the same object (no re-render)
+  s = f(s, { width: 300, overflow: true });
+  assert.deepEqual(s, { form: "select", width: 300, at: 300 });
+  // The select form has no strip: whatever the observer reports at this width, nothing changes.
+  for (let i = 0; i < 50; i++) {
+    assert.equal(f(s, { width: 300, overflow: false }), s);
+    assert.equal(f(s, { width: 300, overflow: true }), s);
+  }
+  // Wider, but within the hysteresis: stays a select.
+  s = f(s, { width: 323, overflow: false });
+  assert.deepEqual(s, { form: "select", width: 323, at: 300 });
+  // Narrower: stays a select, the switch width is kept.
+  s = f(s, { width: 200 });
+  assert.deepEqual(s, { form: "select", width: 200, at: 300 });
+  // At least `gap` wider than the switch width: back to tabs, measured again.
+  s = f(s, { width: 324 });
+  assert.deepEqual(s, { form: "tabs", width: 324, at: 300 });
+  // The strip still overflows there: select again, and the switch width moves up (it ratchets).
+  s = f(s, { width: 324, overflow: true });
+  assert.deepEqual(s, { form: "select", width: 324, at: 324 });
+  assert.equal(f(s, { width: 340 }).form, "select");
+  // It fits: tabs, and the switch width is forgotten.
+  s = f(f(s, { width: 400 }), { width: 400, overflow: false });
+  assert.deepEqual(s, { form: "tabs", width: 400, at: null });
+  // A simulated observer loop: tabs overflow at 320, the select is measured at the same width. Bounded.
+  let st = L.TABS_START, flips = 0;
+  for (let i = 0; i < 100; i++) {
+    const next = f(st, { width: 320, overflow: st.form === "tabs" });
+    if (next.form !== st.form) flips++;
+    st = next;
+  }
+  assert.equal(flips, 1);
+  assert.equal(st.form, "select");
+  // Hidden or unmeasured containers change nothing; a custom gap.
+  assert.equal(f(st, { width: 0 }), st);
+  assert.equal(f({ form: "select", width: 300, at: 300 }, { width: 310 }, 10).form, "tabs");
+  assert.equal(L.TABS_GAP, 24);
+});
+
 test("typeahead", () => {
   const labels = ["Xem hồ sơ", "Mời phỏng vấn", "Xóa hồ sơ", "Lưu trữ"];
   assert.equal(L.typeahead(labels, "x", -1), 0);

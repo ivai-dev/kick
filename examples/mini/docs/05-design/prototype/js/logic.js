@@ -1,6 +1,6 @@
 // logic.js — pure helpers of the kit (KIT.logic): text folding and option matching, density
 // resolution, window classes, toast timing, paging items, sorting, dates and periods, list
-// clamping, keyboard helpers, the overlay stack, row selection, navigation direction and colour
+// clamping, the StatusTabs form, keyboard helpers, the overlay stack, row selection, navigation direction and colour
 // contrast. No DOM and no Preact: the same file runs in the browser (window.KIT.logic) and under
 // `node --test` (module.exports). Core file.
 (function (root) {
@@ -198,6 +198,29 @@
     return { shown: list.slice(0, k), more: Math.max(0, list.length - k) };
   }
 
+  /* ---------------- StatusTabs form ---------------- */
+  // Tabs or a select, decided once per container width with hysteresis, so the switch cannot loop (the
+  // select form has no strip to measure, and switching forms changes the container's height, not its width).
+  // s: { form: "tabs" | "select", width, at } (null: start); m: { width (container px), overflow (the strip
+  // needs more than 2 lines; read only in the tabs form) }. Returns s itself when nothing changes.
+  //   tabs: overflow -> select, remembering the width `at` where the strip overflowed;
+  //   select: same width -> unchanged; back to tabs (to measure again) only at `at + gap` px or wider.
+  const TABS_START = Object.freeze({ form: "tabs", width: null, at: null });
+  const TABS_GAP = 24;
+  function tabsForm(s, m, gap) {
+    const cur = s && s.form ? s : TABS_START;
+    const g = gap == null ? TABS_GAP : Math.max(0, Number(gap) || 0);
+    const w = Math.round(Number(m && m.width) || 0);
+    if (!(w > 0)) return cur;
+    if (cur.form === "tabs") {
+      if (m && m.overflow) return { form: "select", width: w, at: w };
+      return cur.width === w && cur.at == null ? cur : { form: "tabs", width: w, at: null };
+    }
+    if (cur.width === w) return cur;
+    if (cur.at != null && w >= cur.at + g) return { form: "tabs", width: w, at: cur.at };
+    return { form: "select", width: w, at: cur.at };
+  }
+
   /* ---------------- Keyboard ---------------- */
   // Next enabled index from i by delta (+1 / -1), wrapping by default; -1 when nothing is enabled.
   function nextIndex(i, delta, n, isDisabled, wrap) {
@@ -353,7 +376,7 @@
   const api = {
     fold, matchOptions, DENSITIES, DENSITY_DEFAULTS, resolveDensity, windowClass, toastMs,
     GAP, pageItems, pageCount, compareValues, sortRows, parseDate, formatDate, addDays, monthGrid, periodLabel,
-    clampList, nextIndex, typeahead, overlayStack, selection, navDir, parseHex, contrast, mix,
+    clampList, TABS_START, TABS_GAP, tabsForm, nextIndex, typeahead, overlayStack, selection, navDir, parseHex, contrast, mix,
     AUDIT_DEFAULTS, CHART_MUTE_PCT,
   };
   if (typeof module === "object" && module.exports) module.exports = api;

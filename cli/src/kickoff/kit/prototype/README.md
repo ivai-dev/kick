@@ -11,7 +11,7 @@ The prototype is a design artifact. Its CDN use does not relax the product's own
 | `index.html` | tokens block and modules block only | Page, design tokens, Foundation tokens, kit CSS, script list |
 | `narrow.html` | no | 390 × 844 iframe wrapper used by `kickoff proto check` (also relays runtime audit failures) |
 | `js/route.js` | no | Hash parser `KIT.makeParser`, `KIT.formatHash` |
-| `js/logic.js` | no | Pure helpers `KIT.logic` (folding, density, window classes, toast timing, paging, sorting, dates, overlay stack, selection, contrast), tested with `node --test` |
+| `js/logic.js` | no | Pure helpers `KIT.logic` (folding, density, window classes, toast timing, paging, sorting, dates, the StatusTabs form, overlay stack, selection, contrast), tested with `node --test` |
 | `js/core.js` | no | `KIT` namespace, configuration, `KIT.register`, `KIT.frame`, strings, error capture, `KIT.util` |
 | `js/ui.js` | no | `KIT.ui` part 1: buttons, links, tips, the overlay set, toaster, structure and feedback components |
 | `js/ui-form.js` | no | `KIT.ui` part 2: fields and choice controls |

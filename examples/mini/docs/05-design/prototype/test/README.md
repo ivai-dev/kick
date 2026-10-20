@@ -2,7 +2,7 @@
 
 | File | Runs | What it covers |
 | --- | --- | --- |
-| `route.test.js`, `logic.test.js` | CI: `node --test "test/*.test.js"` | hash routes; the pure helpers of `js/logic.js` (folding, density, window classes, toast timing, paging, sorting, dates, periods, keyboard helpers, overlay stack, selection, contrast) |
+| `route.test.js`, `logic.test.js` | CI: `node --test "test/*.test.js"` | hash routes; the pure helpers of `js/logic.js` (folding, density, window classes, toast timing, paging, sorting, dates, periods, the StatusTabs form (hysteresis), keyboard helpers, overlay stack, selection, contrast) |
 | `overlays.html` | by hand | the internal overlay gallery `../index.html#kit-overlays` in a frame |
 | `cdp-overlays.mjs` | by hand, after a UI-library upgrade or an overlay change | trusted keyboard and mouse checks on the gallery over the Chrome DevTools Protocol: `node test/cdp-overlays.mjs` (Node 22, no npm dependencies; set `KICKOFF_BROWSER` when Edge or Chrome is not found; exit 1 on a failed check) |
 
