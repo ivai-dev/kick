@@ -357,7 +357,8 @@
   }
 
   // A chart with its table view: a fixed header (title, sub line; "Chart · Table" and "Download ▾" on the
-  // right, never wrapping), the takeaway sentence, a body of fixed height, the source line.
+  // right, never wrapping), the takeaway sentence, a body of fixed height, the source line (the meta role:
+  // the caption role is for axis text inside the chart only, below the text minimum outside it).
   // table: a node or { columns, rows } (a DataTable); downloads: true (PNG and Excel) or [{ label, onClick }].
   function ChartCard({ title, sub, takeaway, chart, table, source, downloads, height = 240, id }) {
     const A = KIT.useApp();
@@ -374,7 +375,7 @@
       <div class="card-h"><div class="ch-col"><h3 class="t-title clamp1">${title}</h3>${sub && html`<span class="t-meta clamp1">${sub}</span>`}</div><div class="ch-act">${actions}</div></div>
       <div class="card-b">${takeaway && html`<p class="t-body cc-take">${takeaway}</p>`}
         <div class="cc-body" style=${{ minHeight: height + "px" }}>${view === "table" && tableEl ? tableEl : chart}</div>
-        ${source && html`<p class="t-caption">${KIT.t("chart.source", { source })}</p>`}</div>
+        ${source && html`<p class="t-meta">${KIT.t("chart.source", { source })}</p>`}</div>
     </section>`;
   }
 
