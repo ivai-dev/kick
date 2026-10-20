@@ -186,11 +186,21 @@
         setLens(l) { set({ lens: l }); },
         setDrawer(v) { set({ drawer: !!v }); },
         toggleSidebar() { set((s) => ({ sidebar: !s.sidebar })); },
-        // toast(msg, { icon, action: { label, run } }) — disappears after 4 s.
+        // toast(msg, { icon, tone, action: { label, run }, ms, key }) -> id. Timing (KIT.logic.toastMs): 5 s + 1 s per
+        // 40 characters above 80; with an action it stays until closed; a toast with the same key replaces the
+        // older one. No toasts on the kiosk (feedback changes the control that was used).
         toast(msg, o = {}) {
+          if (document.querySelector('[data-frame="kiosk"]')) {
+            console.warn("kit: no toasts on the kiosk");
+            return null;
+          }
           const id = ++seq;
-          set((s) => ({ toasts: [...s.toasts.slice(-2), { id, msg, icon: o.icon, action: o.action }] }));
-          setTimeout(() => a.dismiss(id), 4000);
+          const ms = L.toastMs(msg, o);
+          set((s) => ({
+            toasts: [...s.toasts.filter((x) => !(o.key && x.key === o.key)).slice(-2),
+              { id, msg, icon: o.icon, tone: o.tone, action: o.action, ms, key: o.key }],
+          }));
+          return id;
         },
         dismiss(id) { set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })); },
         // Scenario hooks (scenario.js).
@@ -216,7 +226,7 @@
       if (problem) KIT.stampErr(problem);
       const first = readHash();
       if (first.screen && !KIT.screens[first.screen]) KIT.stampErr("route: no screen " + first.screen);
-      root.dataset.screens = Object.values(KIT.screens).map((s) => `${s.id}|${s.code}|${s.roles.join("+")}`).join(";");
+      root.dataset.screens = Object.values(KIT.screens).filter((s) => !s.internal).map((s) => `${s.id}|${s.code}|${s.roles.join("+")}`).join(";");
       root.dataset.scenarios = (KIT.SCENARIOS || []).map((s) => s.id).join(",");
       // Ready after the UI library (≤ 4.5 s, inside the 5 s budget of proto check) and the fonts (≤ 800 ms).
       // The module loader is deferred, so wait for the end of parsing before reading window.KIT_LIB.
@@ -226,6 +236,7 @@
         : Promise.reject(new Error("loader missing"))));
       const fontsReady = Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise((r) => setTimeout(r, 800))]);
       Promise.all([libReady, fontsReady]).then(() => {
+        if (KIT.ui._ && KIT.ui._.libLocalize) KIT.ui._.libLocalize();
         root.classList.add("kit-in"); // the stage fades in over --dur-2
         if (KIT.audit && KIT.audit.afterReady) KIT.audit.afterReady();
         root.dataset.ready = "1";

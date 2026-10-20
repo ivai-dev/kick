@@ -120,6 +120,45 @@
       "win.minimise": "Minimise", "win.restore": "Restore down", "win.maximise": "Maximise", "win.open": "Open {p}", "win.exit": "Exit",
       "win.window": "{p} window", "win.minimised": "{p} is minimised. Open it again from the taskbar.", "win.taskbar": "Windows taskbar (simulated)",
       "win.tray": "{p} in the tray", "win.trayMenu": "{p} tray menu",
+      "app.screenTitle": "{screen} · {product}", "loading": "Working…", "more": "More actions", "tip.more": "More actions: {object}",
+      "confirm.cancel": "Cancel", "confirm.type": "Type “{expected}” to confirm", "confirm.typeWhy": "Type “{expected}” exactly to continue",
+      "discard.q": "Discard changes?", "discard.c": "Unsaved changes will be lost.", "discard.keep": "Keep editing", "discard.ok": "Discard changes",
+      "panel.expand": "Open the full page", "panel.pager": "{index}/{total}", "panel.prev": "Previous item", "panel.next": "Next item",
+      "info.label": "Explanation: {label}", "proto.density": "Density", "density.compact": "Compact", "density.comfortable": "Comfortable",
+      "proto.search": "Find a screen", "proto.noMatch": "No matching screen",
+      "period.week": "Week {n}/{y}", "period.month": "{n}/{y}", "period.quarter": "Q{n} {y}", "period.year": "{y}",
+      "field.optional": "(optional)", "num.dec": "Decrease", "num.inc": "Increase", "combo.empty": "No match for “{q}”",
+      "combo.remove": "Remove {label}", "combo.recent": "Recent", "combo.count": "{n} results",
+      "date.pick": "Choose a date", "date.invalid": "Enter a real date, for example {example}", "date.range": "Choose a date from {min} to {max}",
+      "date.day": "Day", "date.month": "Month", "date.year": "Year", "date.prevMonth": "Previous month", "date.nextMonth": "Next month",
+      "date.weekdays": "Mo,Tu,We,Th,Fr,Sa,Su", "date.presetDays": "{n} days", "date.today": "Today",
+      "period.compare.prev": "vs the previous period", "period.compare.yoy": "vs the same period last year", "period.apply": "Apply",
+      "period.granularity": "Period", "gran.day": "Day", "gran.week": "Week", "gran.month": "Month", "gran.quarter": "Quarter", "gran.year": "Year",
+      "period.from": "From", "period.to": "To",
+      "check.all": "Select all", "file.hint": "PDF or image, up to {size}", "file.choose": "Choose files", "file.drop": "or drop them here",
+      "file.remove": "Remove {name}", "file.tooBig": "{name} is larger than {size}", "file.badType": "{name} is not an accepted file type",
+      "file.uploading": "Uploading {name}", "file.done": "Uploaded", "file.tooMany": "At most {n} files",
+      "filter.remove": "Remove filter {label}", "stepper.live": "Step {n} of {total} · {label}",
+      "pager.label": "Pagination", "pager.prev": "Previous page", "pager.next": "Next page", "pager.range": "{from}–{to} / {total}",
+      "pager.size": "Rows per page", "pager.more": "Show {size} more {unit}", "pager.newer": "Newer", "pager.older": "Older", "pager.page": "Page {n}",
+      "errors.title": "{n} things to fix", "meter.text": "{value} of {max}", "job.continue": "You can carry on; you will be told when it is done",
+      "job.retry": "Try again", "job.failed": "Stopped at: {step}", "job.done": "Done", "section.all": "See all",
+      "dt.sortedBy": "Sorted by {col}, {dir}", "dt.asc": "ascending", "dt.desc": "descending", "dt.sortBy": "Sort by {col}",
+      "dt.select": "Select {name}", "dt.selectPage": "Select the whole page", "dt.selectAll": "Select all {count} {unit} that match",
+      "dt.allSelected": "All {count} {unit} that match are selected", "dt.columns": "Columns", "dt.error": "The list did not load.",
+      "dt.expand": "Expand {name}", "dt.collapse": "Collapse {name}", "dt.total": "{n} {unit}", "dt.actions": "Actions",
+      "dt.cleared": "Selection cleared because the filter changed", "dt.rows": "rows",
+      "filter.search": "Search", "filter.clear": "Clear filters", "filter.more": "More filters", "filter.button": "Filters",
+      "filter.show": "Show {n} {unit}", "filter.all": "All", "filter.sort": "Sort", "filter.results": "{n} {unit}",
+      "bulk.region": "Actions on selected items", "bulk.count": "{n} selected", "bulk.clear": "Clear selection",
+      "views.save": "Save filters", "views.more": "More", "views.name": "Name", "views.delete": "Delete {name}", "views.label": "Saved views",
+      "keys.help": "Keyboard shortcuts", "keys.toggle": "Use keyboard shortcuts",
+      "reorder.moved": "Moved {name} to position {n} of {total}", "reorder.up": "Move up", "reorder.down": "Move down", "reorder.top": "Move to top",
+      "reorder.handle": "Reorder {name}", "reorder.lifted": "{name} lifted. Arrow keys move it, Space drops it, Escape cancels.",
+      "settings.search": "Find a setting", "settings.reset": "Restore default", "settings.changed": "Changed", "settings.groups": "Settings sections",
+      "chart.view": "Chart", "chart.table": "Table", "chart.views": "View", "chart.download": "Download", "chart.png": "Image (PNG)",
+      "chart.excel": "Excel (.xlsx)", "chart.source": "Source: {source}", "chart.funnel": "Funnel", "chart.kept": "{pct} kept", "chart.ranking": "Ranking",
+      "chart.grouped": "Grouped columns", "chart.stacked": "Stacked columns",
     },
     vi: {
       "table.empty": "Chưa có dữ liệu.", "kpi.noChange": "Không đổi", "kpi.up": "Tăng", "kpi.down": "Giảm",
@@ -148,6 +187,45 @@
       "win.minimise": "Thu nhỏ", "win.restore": "Thu cửa sổ", "win.maximise": "Phóng to", "win.open": "Mở {p}", "win.exit": "Thoát",
       "win.window": "Cửa sổ {p}", "win.minimised": "{p} đang thu nhỏ. Mở lại từ thanh tác vụ.", "win.taskbar": "Thanh tác vụ Windows (mô phỏng)",
       "win.tray": "{p} ở khay hệ thống", "win.trayMenu": "Menu khay của {p}",
+      "app.screenTitle": "{screen} · {product}", "loading": "Đang xử lý…", "more": "Thao tác khác", "tip.more": "Thao tác khác: {object}",
+      "confirm.cancel": "Hủy", "confirm.type": "Nhập “{expected}” để xác nhận", "confirm.typeWhy": "Nhập đúng “{expected}” để tiếp tục",
+      "discard.q": "Bỏ thay đổi?", "discard.c": "Các thay đổi chưa lưu sẽ mất.", "discard.keep": "Tiếp tục sửa", "discard.ok": "Bỏ thay đổi",
+      "panel.expand": "Mở trang đầy đủ", "panel.pager": "{index}/{total}", "panel.prev": "Mục trước", "panel.next": "Mục sau",
+      "info.label": "Giải thích: {label}", "proto.density": "Mật độ", "density.compact": "Gọn", "density.comfortable": "Thoải mái",
+      "proto.search": "Tìm màn hình", "proto.noMatch": "Không có màn hình phù hợp",
+      "period.week": "Tuần {n}/{y}", "period.month": "Tháng {n}/{y}", "period.quarter": "Quý {n}/{y}", "period.year": "Năm {y}",
+      "field.optional": "(không bắt buộc)", "num.dec": "Giảm", "num.inc": "Tăng", "combo.empty": "Không tìm thấy “{q}”",
+      "combo.remove": "Bỏ chọn {label}", "combo.recent": "Gần đây", "combo.count": "{n} kết quả",
+      "date.pick": "Chọn ngày", "date.invalid": "Ngày không đúng, ví dụ {example}", "date.range": "Chọn ngày từ {min} đến {max}",
+      "date.day": "Ngày", "date.month": "Tháng", "date.year": "Năm", "date.prevMonth": "Tháng trước", "date.nextMonth": "Tháng sau",
+      "date.weekdays": "T2,T3,T4,T5,T6,T7,CN", "date.presetDays": "{n} ngày", "date.today": "Hôm nay",
+      "period.compare.prev": "so với kỳ trước", "period.compare.yoy": "so với cùng kỳ năm trước", "period.apply": "Áp dụng",
+      "period.granularity": "Kỳ", "gran.day": "Ngày", "gran.week": "Tuần", "gran.month": "Tháng", "gran.quarter": "Quý", "gran.year": "Năm",
+      "period.from": "Từ ngày", "period.to": "Đến ngày",
+      "check.all": "Chọn tất cả", "file.hint": "PDF hoặc ảnh, tối đa {size}", "file.choose": "Chọn tệp", "file.drop": "hoặc kéo thả vào đây",
+      "file.remove": "Xóa tệp {name}", "file.tooBig": "{name} lớn hơn {size}", "file.badType": "{name} không đúng loại tệp",
+      "file.uploading": "Đang tải lên {name}", "file.done": "Đã tải lên", "file.tooMany": "Tối đa {n} tệp",
+      "filter.remove": "Bỏ lọc {label}", "stepper.live": "Bước {n}/{total} · {label}",
+      "pager.label": "Phân trang", "pager.prev": "Trang trước", "pager.next": "Trang sau", "pager.range": "{from}–{to} / {total}",
+      "pager.size": "Số dòng mỗi trang", "pager.more": "Xem thêm {size} {unit}", "pager.newer": "Mới hơn", "pager.older": "Cũ hơn", "pager.page": "Trang {n}",
+      "errors.title": "Có {n} mục cần sửa", "meter.text": "{value} trên {max}", "job.continue": "Bạn có thể tiếp tục, hệ thống sẽ báo khi xong",
+      "job.retry": "Thử lại", "job.failed": "Không xong ở bước: {step}", "job.done": "Đã xong", "section.all": "Xem tất cả",
+      "dt.sortedBy": "Sắp xếp theo {col}, {dir}", "dt.asc": "tăng dần", "dt.desc": "giảm dần", "dt.sortBy": "Sắp xếp theo {col}",
+      "dt.select": "Chọn {name}", "dt.selectPage": "Chọn cả trang", "dt.selectAll": "Chọn tất cả {count} {unit} theo bộ lọc",
+      "dt.allSelected": "Đã chọn tất cả {count} {unit} theo bộ lọc", "dt.columns": "Cột", "dt.error": "Không tải được danh sách.",
+      "dt.expand": "Mở rộng {name}", "dt.collapse": "Thu gọn {name}", "dt.total": "{n} {unit}", "dt.actions": "Thao tác",
+      "dt.cleared": "Đã bỏ chọn vì bộ lọc thay đổi", "dt.rows": "dòng",
+      "filter.search": "Tìm", "filter.clear": "Xóa bộ lọc", "filter.more": "Thêm bộ lọc", "filter.button": "Bộ lọc",
+      "filter.show": "Xem {n} {unit}", "filter.all": "Tất cả", "filter.sort": "Sắp xếp", "filter.results": "{n} {unit}",
+      "bulk.region": "Thao tác với mục đã chọn", "bulk.count": "Đã chọn {n}", "bulk.clear": "Bỏ chọn",
+      "views.save": "Lưu bộ lọc", "views.more": "Thêm", "views.name": "Tên bộ lọc", "views.delete": "Xóa bộ lọc {name}", "views.label": "Bộ lọc đã lưu",
+      "keys.help": "Phím tắt", "keys.toggle": "Dùng phím tắt",
+      "reorder.moved": "Đã chuyển {name} đến vị trí {n}/{total}", "reorder.up": "Lên", "reorder.down": "Xuống", "reorder.top": "Đưa lên đầu",
+      "reorder.handle": "Đổi vị trí {name}", "reorder.lifted": "Đã chọn {name}. Dùng phím mũi tên để chuyển, Space để thả, Esc để hủy.",
+      "settings.search": "Tìm cài đặt", "settings.reset": "Khôi phục mặc định", "settings.changed": "Đã đổi", "settings.groups": "Nhóm cài đặt",
+      "chart.view": "Biểu đồ", "chart.table": "Bảng", "chart.views": "Cách xem", "chart.download": "Tải xuống", "chart.png": "Ảnh (PNG)",
+      "chart.excel": "Excel (.xlsx)", "chart.source": "Nguồn: {source}", "chart.funnel": "Phễu", "chart.kept": "giữ lại {pct}", "chart.ranking": "Xếp hạng",
+      "chart.grouped": "Biểu đồ cột nhóm", "chart.stacked": "Biểu đồ cột chồng",
     },
   };
   function t(key, vars) {
@@ -164,6 +242,7 @@
     for (const id of ids) if (!/^[a-z0-9]+$/.test(id)) return `config: role id "${id}" must be lowercase letters and digits`;
     for (const r of cfg.roles) if (r.home && !KIT.screens[r.home]) return `config: home of ${r.id} is not a registered screen (${r.home})`;
     for (const s of Object.values(KIT.screens)) {
+      if (s.internal) continue;
       const role = s.roles.find((r) => !ids.includes(r));
       if (role) return `screen ${s.id}: unknown role ${role}`;
       const plat = s.platforms.find((p) => !PLATFORMS.includes(p));
@@ -207,7 +286,7 @@
   function homeOf(role) {
     const r = config().roles.find((x) => x.id === role);
     if (r && r.home && canOpen(r.home, role)) return r.home;
-    const first = Object.values(screens).find((s) => s.roles.includes(role));
+    const first = Object.values(screens).find((s) => !s.internal && s.roles.includes(role));
     return first ? first.id : null;
   }
   const roleName = (id) => {
@@ -242,6 +321,63 @@
     }
   };
   const nf = (v, d = 1) => (v == null || isNaN(v) ? "—" : Number(v).toLocaleString(config().locale, { maximumFractionDigits: d }));
+  // Motion tokens in ms and px, read from the CSS (one source with the stylesheet).
+  function motion() {
+    const cs = getComputedStyle(document.documentElement);
+    const ms = (n, d) => {
+      const v = cs.getPropertyValue(n).trim();
+      if (!v) return d;
+      return v.endsWith("ms") ? parseFloat(v) : v.endsWith("s") ? parseFloat(v) * 1000 : parseFloat(v) || d;
+    };
+    const px = (n, d) => parseFloat(cs.getPropertyValue(n)) || d;
+    return { d1: ms("--dur-1", 100), d2: ms("--dur-2", 150), d3: ms("--dur-3", 200), d4: ms("--dur-4", 250), d5: ms("--dur-5", 300), shift1: px("--shift-1", 4), shift2: px("--shift-2", 8) };
+  }
+  // Resolves after the next render has painted (two animation frames).
+  const afterRender = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  function debounce(fn, ms = 300) {
+    let tm = null;
+    const d = (...a) => { clearTimeout(tm); tm = setTimeout(() => fn(...a), ms); };
+    d.cancel = () => clearTimeout(tm);
+    return d;
+  }
+  // FLIP: records the children of `container` (keyed by data-key), awaits mutate() (a promise resolved
+  // after the new render, e.g. KIT.util.afterRender()), then moves each child from its old place to the new
+  // one; new children fade in. No-op under reduced motion.
+  async function flip(container, mutate, ms) {
+    if (!container) { await mutate(); return; }
+    const before = new Map();
+    for (const el of container.children) if (el.dataset && el.dataset.key != null) before.set(el.dataset.key, el.getBoundingClientRect());
+    await mutate();
+    if (reduced()) return;
+    const dur = ms == null ? motion().d3 : ms;
+    for (const el of container.children) {
+      const key = el.dataset && el.dataset.key;
+      if (key == null) continue;
+      const old = before.get(key);
+      if (!old) {
+        el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: motion().d2, easing: "cubic-bezier(0, 0, 0, 1)" });
+        continue;
+      }
+      const now = el.getBoundingClientRect();
+      const dx = old.left - now.left, dy = old.top - now.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+      el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: dur, easing: "cubic-bezier(.2, 0, 0, 1)" });
+    }
+  }
+  // Takes a leaving element out of the flow at its place, fades it out and removes the clone.
+  function collapseOut(el, ms) {
+    if (!el || !el.parentElement) return Promise.resolve();
+    if (reduced()) return Promise.resolve();
+    const r = el.getBoundingClientRect();
+    const host = el.offsetParent || document.body;
+    const hr = host.getBoundingClientRect();
+    const ghost = el.cloneNode(true);
+    Object.assign(ghost.style, { position: "absolute", left: r.left - hr.left + host.scrollLeft + "px", top: r.top - hr.top + host.scrollTop + "px", width: r.width + "px", height: r.height + "px", margin: "0", pointerEvents: "none" });
+    ghost.setAttribute("aria-hidden", "true");
+    host.appendChild(ghost);
+    const a = ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ms == null ? motion().d2 : ms, easing: "cubic-bezier(.3, 0, 1, 1)" });
+    return a.finished.catch(() => {}).then(() => ghost.remove());
+  }
 
   /* ---------------- App context ---------------- */
   // KIT.useApp() -> { role, theme, resolved, lens, platform, params, screen, narrow, layout,
@@ -264,7 +400,7 @@
     D: KIT.D || null, // sample data, set by js/data.js
     ui: KIT.ui || {},
     charts: KIT.charts || {},
-    util: Object.assign(KIT.util || {}, { cx, store, reduced, nf }),
+    util: Object.assign(KIT.util || {}, { cx, store, reduced, nf, motion, afterRender, debounce, flip, collapseOut }),
     // Navigate from anywhere (a screen module, a scenario step); main.js sets KIT._api.
     go: (id, params) => (KIT._api ? KIT._api.go(id, params) : undefined),
   });

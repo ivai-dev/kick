@@ -36,7 +36,7 @@
 
   // Screens a role reaches from navigation: desk (web and Windows shell) or phone (tab bar).
   function navItems(role, kind) {
-    return Object.values(KIT.screens).filter((s) => s.nav && s.roles.includes(role) &&
+    return Object.values(KIT.screens).filter((s) => s.nav && !s.internal && s.roles.includes(role) &&
       (kind === "phone" ? s.platforms.includes("android") : s.platforms.some((p) => p !== "android")));
   }
   const platformsOf = (role) => KIT.config().platforms.filter((p) => Object.values(KIT.screens).some((s) => s.roles.includes(role) && s.platforms.includes(p)));
@@ -61,7 +61,7 @@
     const [menu, setMenu] = useState(null);
     const idxRef = useRef(null);
     const cur = KIT.screens[A.screen];
-    const list = Object.values(KIT.screens);
+    const list = Object.values(KIT.screens).filter((s) => !s.internal);
     return html`<div class="proto" role="region" aria-label=${t("proto.controls")} data-density="compact">
       <span class="proto-tag hide-sm"><b>${t("proto.tag")}</b></span>
       <${Button} kind="ghost" size="sm" icon="home" label=${t("proto.start")} onClick=${A.openPicker} />
@@ -400,7 +400,7 @@
     }, []);
     return html`<div class="stage phone-stage" ref=${ref}>
       <div style=${{ width: 414 * scale + "px", height: 868 * scale + "px" }}>
-        <div class="phone" style=${{ transform: `scale(${scale})` }}><div class="phone-screen"><${MobileApp} /></div></div>
+        <div class="phone" style=${{ zoom: scale }}><div class="phone-screen" data-frame="phone" data-density="touch"><${MobileApp} /></div></div>
       </div>
     </div>`;
   }

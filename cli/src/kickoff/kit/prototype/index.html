@@ -640,6 +640,51 @@ a.kpi:hover, button.kpi:hover { border-color: var(--line-strong); }
 .info-txt p + p { margin-top: var(--sp-2); }
 .denied { display: flex; flex-direction: column; }
 
+/* ---------- Overlays (KIT.ui on the UI library) ---------- */
+.ov-body { display: flex; flex-direction: column; gap: var(--field-gap); outline: none; }
+.ov-foot { display: flex; justify-content: flex-end; align-items: center; gap: var(--sp-3); width: 100%; flex-wrap: wrap; }
+.ov-hact, .ov-pager { display: inline-flex; align-items: center; gap: var(--sp-1); }
+wa-dialog[data-full]::part(dialog) { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; }
+wa-dialog[data-anchor="bottom"]::part(dialog) { width: 100vw; max-width: 100vw; margin: auto 0 0 0; border-radius: var(--dialog-r) var(--dialog-r) 0 0; }
+.in-frame::part(dialog) { position: fixed; margin: auto; max-width: none; max-height: none; inset: var(--fy) var(--fr) var(--fb) var(--fx); }
+wa-dialog.in-frame::part(dialog) { width: min(calc(var(--fw) - 32px), 560px); height: fit-content; }
+wa-dialog.in-frame[data-anchor="bottom"]::part(dialog) { width: var(--fw); margin: auto 0 0 0; border-radius: var(--r-xl) var(--r-xl) 0 0; }
+wa-drawer.in-frame::part(dialog) { width: var(--fw); height: fit-content; max-height: calc(var(--fh) * .86); margin: auto 0 0 0; border-radius: var(--r-xl) var(--r-xl) 0 0; }
+wa-drawer[placement="bottom"]::part(dialog) { max-height: 86dvh; border-radius: var(--dialog-r) var(--dialog-r) 0 0; }
+.spanel { position: sticky; top: var(--sp-6); flex: 0 0 var(--l-panel-m); width: var(--l-panel-m); max-height: calc(100dvh - var(--proto-h) - var(--topbar-h) - 48px); display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--card-r); animation: kit-in var(--dur-4) var(--ease-enter); }
+.spanel.sz-l { flex-basis: var(--l-panel-l); width: var(--l-panel-l); }
+.spanel.over { position: absolute; top: 0; right: 0; z-index: var(--z-popover); box-shadow: var(--shadow-3); }
+.l-panel { position: relative; }
+.spanel-h { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--card-head-h); padding: 0 var(--sp-2) 0 var(--overlay-p); border-bottom: 1px solid var(--line); }
+.spanel-h h2 { outline: none; }
+.spanel-b { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--overlay-p); display: flex; flex-direction: column; gap: var(--gap-group); }
+.spanel-f { display: flex; justify-content: flex-end; gap: var(--sp-3); padding: var(--sp-3) var(--overlay-p); border-top: 1px solid var(--line); background: var(--surface-2); }
+wa-popover { --max-width: 400px; }
+wa-popover::part(body) { padding: var(--overlay-p); }
+.pop { display: flex; flex-direction: column; gap: var(--sp-3); min-width: min(280px, 90vw); font: var(--t-body); color: var(--ink); }
+.pop-h { display: flex; align-items: center; gap: var(--sp-2); margin: calc(-1 * var(--sp-2)) calc(-1 * var(--sp-2)) 0 0; }
+.pop-b { display: flex; flex-direction: column; gap: var(--field-gap); }
+.pop-f { display: flex; justify-content: flex-end; gap: var(--sp-2); }
+wa-popover.info-pop { --max-width: 360px; }
+.info-txt { font: var(--t-body); color: var(--ink-2); }
+.mb-sep { height: 1px; margin: var(--sp-1) 0; background: var(--line); }
+.mb-sub { display: block; }
+wa-dropdown::part(menu) { min-width: 220px; max-width: 320px; }
+wa-toast { --width: min(440px, calc(100vw - 32px)); --gap: var(--sp-2); }
+wa-toast[data-place="main"] { inset: auto auto calc(var(--sp-4) + var(--tb, 0px)) calc(var(--tx, 0px) + var(--sp-4)); margin: 0; }
+wa-toast[data-place="centre"] { inset: auto 0 calc(var(--sp-4) + var(--tb, 0px)) 0; margin: 0 auto; }
+wa-toast[data-place="touch"] { --width: calc(100vw - 24px); inset: auto 12px calc(12px + var(--tb, 0px)) 12px; margin: 0; }
+wa-toast[data-place="frame"] { --width: auto; inset: auto calc(var(--tr) + 12px) var(--tb) calc(var(--tx) + 12px); margin: 0; }
+.toast-row { display: flex; align-items: center; gap: var(--sp-3); font: var(--t-body); }
+.toast-msg { flex: 1 1 auto; min-width: 0; }
+.toast-ic { display: grid; place-items: center; flex-shrink: 0; }
+.toast-act { margin-inline-start: auto; }
+a.lnk { color: var(--primary-ink); text-decoration: underline; text-underline-offset: 3px; }
+a.lnk-back, a.lnk-more { text-decoration: none; font: var(--t-label); }
+a.lnk-back:hover, a.lnk-more:hover { text-decoration: underline; }
+.kit-scope { display: contents; }
+.frame-scroll { height: 100%; overflow-y: auto; overflow-x: hidden; }
+
 /* ---------- Legacy overlay classes (0.2; hand-made overlays), removed in 0.4.0. Use KIT.ui overlays. ---------- */
 .scrim { position: fixed; inset: 0; z-index: var(--z-modal); background: var(--scrim); display: grid; place-items: center; padding: var(--sp-6); animation: kit-in var(--dur-3) var(--ease-enter); }
 .scrim.drawer-host { place-items: stretch end; padding: 0; }
@@ -900,7 +945,10 @@ g.ch-anim .ch-line, g.ch-anim .ch-area, g.ch-anim .ch-seg { animation: kit-in va
   const TAGS = ["dialog", "drawer", "dropdown", "dropdown-item", "tooltip", "popover", "popup", "toast", "toast-item",
     "tab-group", "tab", "tab-panel", "radio-group", "radio"];
   window.KIT_LIB = Promise.all(TAGS.map((t) => import(W + t + "/" + t + ".js")))
-    .then(() => Promise.all(TAGS.map((t) => customElements.whenDefined("wa-" + t))));
+    .then(() => Promise.all(TAGS.map((t) => customElements.whenDefined("wa-" + t))))
+    // The library's own words (close buttons) follow the kit language: KIT.ui registers them from KIT.t.
+    .then(() => import(W.replace("/components/", "/utilities/") + "localize.js"))
+    .then((m) => { window.KIT_LIB_I18N = m.registerTranslation; });
 </script>
 <script src="js/route.js" charset="utf-8"></script>
 <script src="js/logic.js" charset="utf-8"></script>
@@ -912,4 +960,5 @@ g.ch-anim .ch-line, g.ch-anim .ch-area, g.ch-anim .ch-seg { animation: kit-in va
 <script src="js/scenario.js" charset="utf-8"></script>
 <!-- kickoff:modules:begin -->
 <!-- kickoff:modules:end -->
+<script src="js/audit.js" charset="utf-8"></script>
 <script src="js/main.js" charset="utf-8"></script>
