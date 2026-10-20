@@ -116,7 +116,7 @@
     };
     const cell = (c, r) => {
       const v = c.render ? c.render(r) : r[c.key];
-      if (!c.render && isEmpty(v)) return html`<span class="empty-v">—</span>`;
+      if (isEmpty(v) || v === false) return html`<span class="empty-v">—</span>`;
       if (c.clamp && (typeof v === "string" || typeof v === "number")) return html`<${Clamp} lines=${c.clamp} text=${String(v)} />`;
       return v;
     };
