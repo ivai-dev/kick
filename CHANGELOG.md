@@ -2,6 +2,18 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] - 2026-10-21
+
+Kit fixes found while a Vietnamese employment-services project adopted 0.3.0 (its foundation work package). Run `kickoff proto update` to take them; no project change is needed, and project rules that padded these targets can be removed.
+
+### Fixed
+
+- Kit audit (A10): EntityCard and ListRow title links were measured by their text, although their stretched overlay makes the whole card or row the target; the audit now measures the overlay. The inline exception follows WCAG 2.5.8: a link is exempt when its block holds other words (a link in a sentence), not only when its parent has its own text node.
+- Kit: DataTable first-cell links and buttons, column sort buttons, `Link` back and "see all" variants and SummaryList change links were below `--min-target`; they now take it in both directions.
+- Kit: the InfoPopover (toggletip) button, SegmentedControl segments (the ChartCard "Chart · Table" switch) and the Switch were below the target size in touch (40) and kiosk (56), the Switch also in compact (24); the Switch keeps its track and grows a transparent hit area.
+- Kit (A7): the ChartCard source line and the release tag used the caption role (12–13 px), below the text minimum of compact, comfortable and touch; both use the meta role. The caption role is for chart axes only.
+- Kit: StatusTabs measured its detached tab strip after switching to the select form and could loop its ResizeObserver ("ResizeObserver loop completed with undelivered notifications" in `data-err`). The form now comes from `KIT.logic.tabsForm`, decided once per container width with a 24 px hysteresis, with a node test.
+
 ## [0.3.0] - 2026-10-21
 
 Foundation for heavy, inconsistent prototypes: a UI library behind KIT.ui, density modes, quiet type, one overlay set, motion, data-at-volume components, and checks. Spec: docs/plans/2026-10-21-kickoff-v0.3.0.md.
