@@ -851,18 +851,6 @@
     return html`<div id="kit-content" class=${cx("frame-scroll", cls)} data-kit="FrameScroll">${children}</div>`;
   }
 
-  /* ---------------- Table (0.2 API; ui-data.js replaces it with DataTable) ---------------- */
-  function Table({ columns = [], rows = [], rowKey = "id", onRow, empty, caption, dense }) {
-    return html`<div class="table-wrap"><table class=${cx("tbl", dense && "dense")} data-kit="Table">
-      ${caption && html`<caption class="sr-only">${caption}</caption>`}
-      <thead><tr>${columns.map((c) => html`<th key=${c.key} scope="col" class=${c.num ? "n" : undefined}>${c.label}</th>`)}</tr></thead>
-      <tbody>${rows.length
-        ? rows.map((r, i) => html`<tr key=${r[rowKey] != null ? r[rowKey] : i} class=${onRow ? "click" : undefined} onClick=${onRow ? () => onRow(r) : undefined}>
-            ${columns.map((c) => html`<td key=${c.key} class=${c.num ? "n" : undefined}>${c.render ? c.render(r) : r[c.key]}</td>`)}</tr>`)
-        : html`<tr><td colspan=${columns.length} class="tbl-empty">${empty == null ? KIT.t("table.empty") : empty}</td></tr>`}</tbody>
-    </table></div>`;
-  }
-
   /* ---------------- Status, counts, meters ---------------- */
   // tone: ok | warn | danger | info | accent | neutral (default) | line. Text is always present; never a button.
   function StatusChip({ tone, icon, children }) {
@@ -1268,7 +1256,7 @@
     Dialog, ConfirmDialog, Confirm: ConfirmDialog, SidePanel, Drawer: SidePanel, BottomSheet, Sheet: BottomSheet,
     Popover, MenuButton, Menu, InfoPopover, Toaster, Toasts,
     DensityScope, Persist, FrameScroll, usePresence,
-    StatusChip, Count, Meter, Num, Table, KPI: StatTile, StatTile, PageHeader, SectionHead, SubNav, StatusTabs, Tabs: StatusTabs,
+    StatusChip, Count, Meter, Num, KPI: StatTile, StatTile, PageHeader, SectionHead, SubNav, StatusTabs, Tabs: StatusTabs,
     Stepper, Pager, Reveal, Disclosure, Banner, ErrorSummary, EmptyState, Skeleton, JobProgress, Card, Surface: Card,
     EntityCard, ListRow, SummaryList, Timeline, ActionBar, Clamp,
     Placeholder, Denied, NotFound,

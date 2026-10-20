@@ -187,7 +187,7 @@
     else if (!reg.roles.includes(A.role)) body = html`<${Denied} />`;
     else {
       const Comp = typeof reg.comp === "function" ? reg.comp : Placeholder;
-      body = html`<${ScreenRel} r=${reg.rel}><${Comp} key=${A.screen + JSON.stringify(A.params)} /><//>`;
+      body = html`<${ScreenRel} r=${reg.rel}><${Comp} key=${A.screen + ":" + (A.S._navKey || 0)} /><//>`;
     }
     return html`<div class=${wrap} data-screen=${A.screen} data-density=${density}>${body}</div>`;
   }

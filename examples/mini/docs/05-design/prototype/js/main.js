@@ -47,7 +47,8 @@
     }
     return { screen: id, role, platform };
   }
-  const pushHist = (s) => (s.screen == null ? [] : [...s.hist, { screen: s.screen, params: s.params, platform: s.platform }].slice(-20));
+  // History entries keep the scroll position and the opener (data-kit-key) of the screen that was left.
+  const pushHist = (s, at) => (s.screen == null ? [] : [...s.hist, { screen: s.screen, params: s.params, platform: s.platform, scroll: at ? at.leave : 0, from: at ? at.from : null }].slice(-20));
   const defaultPlatform = () => (cfg.platforms.includes("web") ? "web" : cfg.platforms[0]);
 
   // Below 760 px a screen with an android platform shows as the phone app, others in the
@@ -137,25 +138,68 @@
       const a = {
         get S() { return sRef.current; },
         set,
+        // One navigation commit point: every change of screen or params goes through it. It records where
+        // the old screen was scrolled and which opener had focus (for Back), and runs the change inside a View
+        // Transition when the browser has one (else the ScreenBody fallback animates). dir: forward · back ·
+        // lateral. A running transition finishes at once when a new navigation starts.
+        commit(patch, dir) {
+          const el = document.getElementById("kit-content");
+          const at = { leave: el ? el.scrollTop : 0, from: null };
+          const act = document.activeElement;
+          const fromEl = act && act.closest ? act.closest("[data-kit-key]") : null;
+          if (fromEl) at.from = fromEl.getAttribute("data-kit-key");
+          const run = () => set((s) => {
+            const p = typeof patch === "function" ? patch(s, at) : patch;
+            if (!p || !Object.keys(p).length) return {};
+            return { _dir: dir, _navKey: (s._navKey || 0) + 1, _restore: null, _from: null, ...p };
+          });
+          if (a._vt) { try { a._vt.skipTransition(); } catch (e) { /* finished */ } }
+          if (!document.startViewTransition || KIT.util.reduced() || !root.dataset.ready || document.hidden) { run(); return; }
+          root.dataset.nav = dir;
+          let vt;
+          try {
+            vt = document.startViewTransition(() => new Promise((res) => { run(); setTimeout(res, 0); }));
+          } catch (e) {
+            delete root.dataset.nav;
+            run();
+            return;
+          }
+          a._vt = vt;
+          const quiet = () => {};
+          vt.ready.catch(quiet);
+          vt.updateCallbackDone.catch(quiet);
+          vt.finished.catch(quiet).finally(() => { if (a._vt === vt) { delete root.dataset.nav; a._vt = null; } });
+        },
         // In-app navigation keeps the role: a screen the role may not open renders Denied.
-        go(id, params) {
+        // go(id, params, { replace }): replace changes params (filters, tabs, paging) without a history entry,
+        // a transition or a remount of the screen.
+        go(id, params, o) {
           if (id == null) return a.openPicker();
           if (!KIT.screens[id]) KIT.stampErr("route: no screen " + id);
-          set((s) => ({ ...place(s, id), params: params || {}, hist: pushHist(s), drawer: false }));
+          if (o && o.replace) {
+            set((s) => ({ ...place(s, id), params: params || {}, drawer: false, _dir: "replace", _navKey: s.screen === id ? s._navKey : (s._navKey || 0) + 1 }));
+            return;
+          }
+          const s0 = sRef.current;
+          const reg = KIT.screens[id];
+          const dir = L.navDir("go", { isNav: !!(reg && reg.nav && reg.roles.includes(s0.role)) });
+          a.commit((s, at) => ({ ...place(s, id), params: params || {}, hist: pushHist(s, at), drawer: false }), dir);
         },
         // Deep link (hash, screen index): a forced role or platform, else the screen's first role.
         jump(r) {
           if (r.screen && !KIT.screens[r.screen]) KIT.stampErr("route: no screen " + r.screen);
-          set((s) => ({ ...place(s, r.screen, { role: r.role, platform: r.platform, pickRole: true }), params: r.params || {}, hist: pushHist(s), drawer: false }));
+          a.commit((s, at) => ({ ...place(s, r.screen, { role: r.role, platform: r.platform, pickRole: true }), params: r.params || {}, hist: pushHist(s, at), drawer: false }), "lateral");
         },
+        // Back returns to the scroll position the screen was left at and focuses its opener.
         back() {
-          set((s) => {
+          if (!sRef.current.hist.length) return;
+          a.commit((s) => {
             if (!s.hist.length) return {};
             const prev = s.hist[s.hist.length - 1];
-            return { screen: prev.screen, params: prev.params, platform: prev.platform, hist: s.hist.slice(0, -1), drawer: false };
-          });
+            return { screen: prev.screen, params: prev.params, platform: prev.platform, hist: s.hist.slice(0, -1), drawer: false, _restore: prev.scroll || 0, _from: prev.from || null };
+          }, "back");
         },
-        openPicker() { set({ screen: null, params: {}, hist: [], drawer: false }); },
+        openPicker() { a.commit({ screen: null, params: {}, hist: [], drawer: false }, "lateral"); },
         // A role always starts on its own home, at every width.
         setRole(role) {
           const home = KIT.homeOf(role);
@@ -164,20 +208,19 @@
             a.toast(KIT.t("app.noScreensRole", { role: KIT.roleName(role) }), { icon: "info" });
             return;
           }
-          set((s) => ({ ...place({ ...s, role }, home), params: {}, hist: [], drawer: false }));
+          a.commit((s) => ({ ...place({ ...s, role }, home), params: {}, hist: [], drawer: false }), "lateral");
         },
         setPlatform(p) {
-          set((s) => {
-            const reg = KIT.screens[s.screen];
-            if (!reg || reg.platforms.includes(p)) return { platform: p };
-            const home = KIT.homeOf(s.role);
-            const pick = [home, ...Object.keys(KIT.screens)].find((id) => id && KIT.canOpen(id, s.role) && KIT.screens[id].platforms.includes(p));
-            if (!pick) {
-              setTimeout(() => a.toast(KIT.t("app.noPlatform", { platform: p, role: KIT.roleName(s.role) }), { icon: "info" }), 0);
-              return {};
-            }
-            return { screen: pick, platform: p, params: {}, hist: pushHist(s) };
-          });
+          const s = sRef.current;
+          const reg = KIT.screens[s.screen];
+          if (!reg || reg.platforms.includes(p)) { set({ platform: p }); return; }
+          const home = KIT.homeOf(s.role);
+          const pick = [home, ...Object.keys(KIT.screens)].find((id) => id && KIT.canOpen(id, s.role) && KIT.screens[id].platforms.includes(p) && !KIT.screens[id].internal);
+          if (!pick) {
+            setTimeout(() => a.toast(KIT.t("app.noPlatform", { platform: p, role: KIT.roleName(s.role) }), { icon: "info" }), 0);
+            return;
+          }
+          a.commit((st, at) => ({ screen: pick, platform: p, params: {}, hist: pushHist(st, at) }), "lateral");
         },
         setTheme(t) {
           store.set("theme", t);
@@ -247,7 +290,7 @@
       });
       const onHash = () => {
         const r = readHash();
-        set((s) => fromRoute(s, r));
+        api.commit((s) => fromRoute(s, r), "lateral");
         if (r.scenario) KIT.scenario.run(api, r.scenario);
         else if (r.screen && !KIT.screens[r.screen]) KIT.stampErr("route: no screen " + r.screen);
       };

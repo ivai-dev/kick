@@ -176,7 +176,7 @@ def test_kit_has_foundation_tokens():
 
 def test_mini_prototype_core_matches_the_kit():
     proto = MINI / "docs" / "05-design" / "prototype"
-    names = ("route", "logic", "core", "ui", "ui-form", "charts", "scope", "shell", "scenario", "audit", "main")
+    names = ("route", "logic", "core", "ui", "ui-form", "ui-data", "charts", "scope", "shell", "scenario", "audit", "main")
     for name in ["narrow.html", *(f"js/{n}.js" for n in names)]:
         assert (proto / name).read_bytes() == (KIT_DIR / name).read_bytes(), name
 

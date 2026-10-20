@@ -79,6 +79,7 @@
         </div>
       <//>
       <${Structure} />
+      <${Lists} />
       ${legacy && html`<${U.Menu} anchor=${legacy} onClose=${() => setLegacy(null)} width=${240}>
         <button type="button" role="menuitem" onClick=${() => { setLegacy(null); setLast("legacy 1"); }}>Mục một</button>
         <button type="button" role="menuitem" onClick=${() => { setLegacy(null); setLast("legacy 2"); }}>Mục hai</button><//>`}
@@ -157,6 +158,39 @@
       </div>
       <${U.ActionBar} status="Đã lưu nháp lúc 09:12" actions=${html`<${U.Button} kind="primary">Gửi duyệt<//>`} />
     <//>`;
+  }
+
+  // DataTable family with synthetic rows at volume.
+  const NAMES = ["Nguyễn Thị Ẵng", "Đặng Văn Bình", "Dương Thị Cúc", "Trần Văn Ữ", "Lê Thị Hòa", "Phạm Minh Đức", "Huỳnh Thị Mỹ", "Võ Văn Toàn"];
+  const ROWS = Array.from({ length: 137 }, (_, i) => ({
+    id: "r" + i, name: NAMES[i % NAMES.length] + " " + (i + 1), job: ["Kế toán", "Thợ may", "Lái xe", "Bán hàng"][i % 4],
+    sent: `2026-${String(1 + (i % 9)).padStart(2, "0")}-${String(1 + (i * 7) % 28).padStart(2, "0")}`, salary: 5 + (i * 13) % 20,
+    status: ["Mới", "Đã xem", "Chờ duyệt"][i % 3], note: i % 5 === 0 ? "" : "Ghi chú " + i,
+  }));
+  function Lists() {
+    const A = useApp();
+    const [page, setPage] = useState(1);
+    const [sel, setSel] = useState([]);
+    const [job, setJob] = useState(null);
+    const rows = job ? ROWS.filter((r) => r.job === job) : ROWS;
+    const cols = [
+      { key: "name", label: "Họ tên", sortable: true, cardRole: "title" },
+      { key: "job", label: "Vị trí", width: 140, sortable: true, cardRole: "meta" },
+      { key: "sent", label: "Ngày gửi", width: 112, sortable: true, nowrap: true, render: (r) => KIT.logic.formatDate(r.sent) },
+      { key: "salary", label: "Lương (triệu)", width: 120, num: true, sortable: true },
+      { key: "status", label: "Trạng thái", width: 140, render: (r) => html`<${U.StatusChip} tone=${r.status === "Mới" ? "info" : r.status === "Chờ duyệt" ? "warn" : undefined}>${r.status}<//>`, cardRole: "status" },
+      { key: "note", label: "Ghi chú", width: 160, hideBelow: 800 },
+    ];
+    return html`<${U.Card} title="Lists" sub="DataTable, FilterBar, BulkBar" flush>
+      <div class="col gap-12" style=${{ padding: "16px" }}>
+        <${U.FilterBar} sync=${false} search=${{ placeholder: "Tìm theo tên" }} count=${{ n: rows.length, unit: "ứng viên" }}
+          filters=${[{ key: "job", label: "Vị trí", type: "single", value: job, options: ["Kế toán", "Thợ may", "Lái xe", "Bán hàng"].map((v) => ({ value: v, label: v, count: ROWS.filter((r) => r.job === v).length })) }]}
+          onChange=${(k, v) => { if (k === "job") { setJob(v); setPage(1); setSel([]); } }} />
+        <${U.BulkBar} count=${sel.length} unit="ứng viên" actions=${[{ label: "Mời phỏng vấn", icon: "send" }, { label: "Không phù hợp" }]} onClear=${() => setSel([])} />
+        <${U.DataTable} id="g-list" caption="Ứng viên" unit="ứng viên" columns=${cols} rows=${rows} selection="multi" selected=${sel} onSelect=${(k) => setSel(k)}
+          selectAllMatching=${{ count: rows.length, unit: "ứng viên" }} page=${{ page, size: 25, total: rows.length, sizes: [25, 50, 100] }} onPage=${setPage}
+          rowLink=${(r) => ({ go: "kit-overlays", params: { id: r.id } })} activeId=${A.params.id} shortcuts columnsMenu persistKey="g-list" />
+      </div><//>`;
   }
 
   // Internal routes: every role may open them; they stay out of data-screens, the index and menus.

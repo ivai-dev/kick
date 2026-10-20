@@ -402,6 +402,6 @@
     charts: KIT.charts || {},
     util: Object.assign(KIT.util || {}, { cx, store, reduced, nf, motion, afterRender, debounce, flip, collapseOut }),
     // Navigate from anywhere (a screen module, a scenario step); main.js sets KIT._api.
-    go: (id, params) => (KIT._api ? KIT._api.go(id, params) : undefined),
+    go: (id, params, o) => (KIT._api ? KIT._api.go(id, params, o) : undefined),
   });
 })();

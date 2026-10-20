@@ -781,6 +781,36 @@ a.lr-t:hover { text-decoration: underline; }
 .tbl-busy tbody { opacity: .6; }
 @media (max-width: 760px) { .table-wrap.scroll { overflow-x: auto; } .table-wrap.scroll .tbl { min-width: 560px; } .table-wrap.scroll .tbl :is(th, td):first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; } }
 
+.dt { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.dt-tools { display: flex; justify-content: flex-end; }
+.dt-selall { display: flex; justify-content: center; padding: var(--sp-1h); background: var(--primary-soft); border-radius: var(--r-sm); font: var(--t-meta); }
+.dt-cards { list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); }
+.tree-b { margin-right: var(--sp-1); vertical-align: middle; }
+.fbar { display: flex; flex-direction: column; gap: var(--sp-2); }
+.fb-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); }
+.fb-search { flex: 0 1 320px; min-width: 200px; min-height: var(--ctl-h-sm); }
+.fb-search .ic { color: var(--ink-3); }
+.fbar.narrow .fb-search { flex: 1 1 auto; }
+.fb-sort .select { width: auto; }
+.frail { width: var(--l-rail); flex-shrink: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.ftray-g + .ftray-g { padding-top: var(--sp-3); border-top: 1px solid var(--line); }
+.bulk { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); min-height: var(--ctl-h); padding: var(--sp-1) var(--sp-3); border-radius: var(--ctl-r); background: var(--primary-soft); }
+.keys { display: flex; flex-direction: column; gap: var(--sp-1); margin: 0; }
+.keys-r { display: flex; gap: var(--sp-3); align-items: baseline; }
+.keys-r dt { min-width: 64px; } .keys-r dd { margin: 0; }
+kbd { font: var(--t-code); padding: 0 var(--sp-1h); border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--surface-2); }
+.ro-l { list-style: none; display: flex; flex-direction: column; gap: var(--sp-1); }
+.ro-i { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--list-h); padding: 0 var(--sp-2); border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
+.ro-i.lifted { border-color: var(--primary); box-shadow: var(--shadow-2); }
+.settings { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: var(--sp-8); align-items: start; }
+.set-nav { position: sticky; top: var(--sp-6); display: flex; flex-direction: column; gap: 2px; }
+.set-nav a { display: flex; align-items: center; min-height: var(--nav-h); padding: 0 var(--sp-3); border-radius: var(--r-sm); color: var(--ink-2); font: var(--t-label); text-decoration: none; }
+.set-nav a[aria-current="true"] { background: var(--primary-soft); color: var(--primary-ink); }
+.set-body { display: flex; flex-direction: column; gap: var(--section-gap); min-width: 0; }
+.set-row { display: grid; grid-template-columns: minmax(200px, 300px) minmax(0, 1fr); gap: var(--sp-6); padding: var(--sp-4) 0; border-bottom: 1px solid var(--line); }
+.set-l { display: flex; flex-direction: column; gap: var(--gap-inner); }
+@media (max-width: 1199.98px) { .settings, .set-row { grid-template-columns: minmax(0, 1fr); } .set-nav { position: static; flex-direction: row; flex-wrap: wrap; } }
+
 /* ---------- Stat tiles (KPI) ---------- */
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--gap-grid); }
 .kpi { position: relative; display: flex; flex-direction: column; gap: var(--gap-inner); padding: var(--card-p); border: 1px solid var(--line); border-radius: var(--card-r); background: var(--surface); min-width: 0; color: inherit; text-align: left; text-decoration: none; font: inherit; }
@@ -1159,6 +1189,7 @@ g.ch-anim .ch-line, g.ch-anim .ch-area, g.ch-anim .ch-seg { animation: kit-in va
 <script src="js/core.js" charset="utf-8"></script>
 <script src="js/ui.js" charset="utf-8"></script>
 <script src="js/ui-form.js" charset="utf-8"></script>
+<script src="js/ui-data.js" charset="utf-8"></script>
 <script src="js/charts.js" charset="utf-8"></script>
 <script src="js/scope.js" charset="utf-8"></script>
 <script src="js/shell.js" charset="utf-8"></script>

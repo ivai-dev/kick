@@ -220,6 +220,18 @@ await ev(`document.querySelector('[data-kit="ChoiceGroup"] [aria-checked="true"]
 await key("ArrowRight"); await sleep(100);
 check("choice group arrows select", (await ev(`document.querySelector('[data-kit="ChoiceGroup"] [aria-checked="true"]').textContent.trim()`)) === "Chiều");
 
+// 14. DataTable: sort, select a page, paging moves focus to the caption.
+await ev(`document.querySelector('#g-list .tbl-sort').scrollIntoView({block:"center"})`); await sleep(200);
+await ev(`document.querySelector('#g-list .tbl-sort').click()`); await sleep(300);
+check("sortable header sets aria-sort", (await ev(`document.querySelector('#g-list th[aria-sort]') && document.querySelector('#g-list th[aria-sort]').getAttribute("aria-sort")`)) === "ascending");
+const firstName = await ev(`document.querySelector('#g-list tbody tr td:nth-child(2)').textContent.trim()`);
+await ev(`document.querySelector('#g-list thead input[type=checkbox]').click()`); await sleep(300);
+check("header checkbox selects the page", (await ev(`document.querySelectorAll('#g-list tbody tr[aria-selected="true"]').length`)) === 25, firstName);
+check("select all matching is offered", await ev(`!!document.querySelector('#g-list .dt-selall button')`));
+await ev(`[...document.querySelectorAll('#g-list .pg-n')].find((b)=>b.textContent.trim()==="2").click()`); await sleep(300);
+check("paging keeps the selection and focuses the caption", (await active()).startsWith("g-list-caption") && (await ev(`document.querySelectorAll('[data-kit="BulkBar"]').length`)) === 1, await active());
+check("empty cells show a dash", await ev(`!!document.querySelector('#g-list td .empty-v')`));
+
 check("no script errors", logs.length === 0, logs);
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
