@@ -2,6 +2,40 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-10-21
+
+Foundation for heavy, inconsistent prototypes: a UI library behind KIT.ui, density modes, quiet type, one overlay set, motion, data-at-volume components, and checks. Spec: docs/plans/2026-10-21-kickoff-v0.3.0.md.
+
+### Added
+
+- Kit: Web Awesome 3.14.0 (MIT, pinned) as the behaviour foundation of KIT.ui overlays, menus, tooltips and toasts; a token bridge from the kit tokens; device-frame scoping for overlays; the library's own words (close buttons) follow the kit language; projects never use library tags.
+- Kit: density modes (`data-density` compact · comfortable · touch · kiosk) driving control sizes and type roles; `KIT_CONFIG.density`, per-role and per-user settings, a "Density" switch in the prototype bar; window classes (`data-wc`).
+- Kit: role type tokens (`--t-*`) and classes; Inter variable font with optical sizing; weights 400–700; `KIT_CONFIG.fonts`; `<html lang data-lang>`.
+- Kit: layout tokens, page types (`page: "data" | "form"`), left-anchored staff pages, 1200 px public container, persistent device frames (`KIT.frame`, `frame` on `register`, `KIT.ui.Persist`, `KIT.ui.FrameScroll`).
+- Kit: components Dialog, ConfirmDialog, SidePanel, BottomSheet, Popover, MenuButton, Tip, IconButton, Link, StatusTabs, SegmentedControl, ChoiceGroup, ToggleChip, FilterChip, DisclosureChip, Switch, NumberField, Combobox (diacritic-insensitive), DateField, PeriodPicker, CheckboxGroup, FileDrop, Banner, ErrorSummary, Skeleton, JobProgress, Meter, Count, SectionHead, SubNav, Stepper, Pager, Disclosure, Reveal, DataTable, FilterBar, FilterRail, FilterTray, BulkBar, SavedViews, ShortcutLayer, EntityCard, ListRow, SummaryList, Timeline, ChartCard, ActionBar, Clamp, Num, ReorderList, SettingsLayout, SettingRow, DensityScope, Persist; charts BarList, Funnel, grouped and stacked bars.
+- Kit: motion tokens, `commitNav` with View Transitions and a fallback, scroll restore and focus to `h1`, `go(…, { replace })`, `usePresence`, `flip`, `collapseOut`, `Reveal`; reduced motion keeps dissolves; the overlay stack `KIT.overlays` (Escape and Back close the top overlay).
+- Kit: `js/logic.js` (pure helpers with node tests) and `js/audit.js` (runtime audit A1–A18, `#kit-selftest` S1–S8, the overlay gallery `#kit-overlays`); `test/overlays.html` and `test/cdp-overlays.mjs` for library upgrades.
+- CLI: `proto check` reads runtime audits (`data-audit-fail` fails, `data-audit-warn` prints `warn:`) and runs the self-test; `proto lint` rules L1–L18 with warnings; `proto update` prints migration notes.
+- Skills: density, type for Vietnamese and other stacked-diacritic languages, overlays, motion, data at volume (`ux-design` references `foundation-rules.md` and `data-at-volume.md`); a required per-screen `ui-ux-pro-max` brainstorm and data-at-volume audit before each screen is built; screen checklist items 23–32; lessons rows 22–27.
+
+### Changed
+
+- Kit: Table is DataTable, KPI is StatTile, Drawer is SidePanel, Toasts follow the new timing (action toasts persist), `.t-cap` no longer uppercases by default, `.t-body` is the body role, disabled buttons no longer use opacity, the sidebar collapses without a width animation, the site header has no filled button, the account menu is a disclosure navigation, the narrow navigation is a modal drawer, the phone frame zooms instead of scaling, `narrow.html` waits 4 s and relays audit failures.
+- CLI: `proto new` no longer writes `--cap-case` into the tokens block (the kit sets it from `lang`).
+
+### Deprecated
+
+- `KIT.ui.Menu` (use MenuButton), `kind: "soft"`, `onRow` on tables, `--ease-spring`, `--d-*`, `--fw-bold`; removed in 0.4.0.
+
+### Removed
+
+- The global reduced-motion kill-switch; spring easing on menus and toasts; `pageIn`, `menuIn`, `toastIn`, `sheetIn`; the kit's `.toasts`, `.toast` and `.info-pop` classes (the legacy `.scrim`, `.sheet*` and `.menu` classes stay until 0.4.0).
+
+### Notes
+
+- Library API differences from the spec table (checked against `dist-cdn/custom-elements.json` 3.14.0): `wa-dialog` and `wa-drawer` report Escape and backdrop close requests with the same `source` (the inner dialog); ConfirmDialog therefore relies on not setting `light-dismiss`. `wa-popover` toggles itself on clicks of a `for` anchor, so the kit sets its `anchor` property instead. `wa-toast` removes its items after they hide, so the kit creates toast items itself. There is no `vi` translation file; the kit registers its own words with `registerTranslation` from `utilities/localize.js`.
+- The self-test needs rendered frames: a `--dump-dom` run renders none, so `proto check` runs it in a headless browser over the DevTools Protocol with a screencast that keeps frames coming.
+
 ## [0.2.2] - 2026-10-20
 
 ### Added
