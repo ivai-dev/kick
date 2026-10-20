@@ -61,7 +61,7 @@
       }} ...${rest} />`;
     const box = suffix ? html`<div class="affix">${input}<span class="sfx">${suffix}</span></div>` : input;
     if (!stepper) return html`<span class="numf" data-kit="NumberField">${box}</span>`;
-    return html`<span class="numf stepper" data-kit="NumberField">
+    return html`<span class="numf numf-step" data-kit="NumberField">
       <${IconButton} icon="minus" kind="secondary" label=${t("num.dec")} disabled=${num != null && min != null && num <= min} onClick=${() => bump(-1)} />
       ${box}
       <${IconButton} icon="plus" kind="secondary" label=${t("num.inc")} disabled=${num != null && max != null && num >= max} onClick=${() => bump(1)} />

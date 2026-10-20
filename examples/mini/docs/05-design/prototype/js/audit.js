@@ -78,6 +78,7 @@
             pager=${{ index: 5, total: 186, onPrev: () => setLast("prev"), onNext: () => setLast("next") }}><p>Nguyễn Thị Ẵng · Kế toán</p><//>
         </div>
       <//>
+      <${Structure} />
       ${legacy && html`<${U.Menu} anchor=${legacy} onClose=${() => setLegacy(null)} width=${240}>
         <button type="button" role="menuitem" onClick=${() => { setLegacy(null); setLast("legacy 1"); }}>Mục một</button>
         <button type="button" role="menuitem" onClick=${() => { setLegacy(null); setLast("legacy 2"); }}>Mục hai</button><//>`}
@@ -113,6 +114,49 @@
             <${U.SidePanel} open=${pPanel} title="Bộ lọc" onClose=${() => setPPanel(false)}><p>Ngành nghề, mức lương.</p><//>
           </div></div></div></div>
       </div>`}`;
+  }
+
+  // Structure and feedback components with stress content (long titles, missing values, many facts).
+  function Structure() {
+    const [tab, setTab] = useState("all");
+    const [page, setPage] = useState(5);
+    const [open, setOpen] = useState(false);
+    const [errs, setErrs] = useState([]);
+    return html`<${U.Card} title="Structure and feedback" sub="Stress content: long titles, empty values, many facts">
+      <${U.SectionHead} title="Việc làm mới" count=${38} link=${{ label: "Xem tất cả", go: "kit-overlays" }} />
+      <${U.StatusTabs} label="Trạng thái" value=${tab} onPick=${setTab} panelId="g-tabpanel"
+        items=${[{ key: "all", label: "Tất cả", count: 186 }, { key: "new", label: "Mới", count: 38 }, { key: "seen", label: "Đã xem", count: 0 }]} />
+      <div id="g-tabpanel" class="col gap-8">
+        <div class="kpis">
+          <${U.StatTile} id="g-k1" label="Hồ sơ mới trong tuần" value="1.240" unit="hồ sơ" delta=${7.1} period="so với tuần trước" spark=${[3, 5, 4, 7, 6, 9]} />
+          <${U.StatTile} id="g-k2" label="Đã tuyển" value="31" unit="/40 người" context="Mục tiêu tháng 10" go="kit-overlays" />
+        </div>
+        <${U.Meter} label="Đã tuyển" value=${31} max=${40} />
+        <div class="grid-2">
+          <${U.EntityCard} go="kit-overlays" params=${{ id: "v1" }} title="Nhân viên kinh doanh thiết bị y tế khu vực các xã ven biển phía Nam tỉnh Cà Mau, ưu tiên có kinh nghiệm"
+            subtitle="Công ty TNHH Thiết bị Y tế Phương Nam Ánh Dương Toàn Cầu chi nhánh Cà Mau" badge=${html`<${U.StatusChip} tone="info">Mới<//>`}
+            figure="8–11 triệu" figure2="/tháng" meta=${[{ icon: "building", text: "Phường Tân Thành · Cùng xã" }, { icon: "clock", text: "Còn 5 ngày" }]}
+            facts=${["Toàn thời gian", "Không cần bằng cấp", "Có chỗ ở", "Bảo hiểm"]} />
+          <${U.EntityCard} layout="row" go="kit-overlays" title="Thợ may công nghiệp" subtitle="Công ty May Phương Nam" figure="Thỏa thuận" meta=${["Xã Hòa Mỹ"]} facts=${["Ca sáng"]} />
+        </div>
+        <div class="card"><${U.ListRow} title="Nguyễn Thị Ẵng · Kế toán tổng hợp" meta="Nộp 18/10 · Phường Tân Thành" status=${html`<${U.StatusChip} tone="warn">Chờ duyệt<//>`} go="kit-overlays" />
+          <${U.ListRow} title="Trần Văn Ữ" status=${html`<${U.StatusChip}>Đã xem<//>`} figure="7–9 triệu" /></div>
+        <${U.SummaryList} columns=${2} rows=${[{ label: "Số điện thoại", value: "0912 345 678", action: { label: "Sửa số điện thoại", onClick: () => {} } }, { label: "Email", value: "" }, { label: "Mã số thuế", value: "2000000110-001" }]} />
+        <${U.Timeline} events=${[{ at: "20/10/2026 09:12", who: "Lãnh đạo", action: "đã duyệt", tone: "ok" }, { at: "19/10/2026", who: "Cán bộ", action: "trả lại", quote: "Bổ sung mô tả công việc.", tone: "warn" }]} />
+        <${U.Pager} page=${page} size=${50} total=${7840} sizes=${[25, 50, 100]} onPage=${setPage} listId="g-list" />
+        <${U.Pager} mode="more" page=${1} size=${20} total=${214} unit="việc" onPage=${() => {}} />
+        <${U.Stepper} steps=${[{ label: "Số điện thoại" }, { label: "Mã xác thực" }, { label: "Thông tin" }]} current=${2} />
+        <${U.Disclosure} summary="Câu hỏi thường gặp" open=${open} onToggle=${setOpen}><p class="t-prose">Hồ sơ được giữ 12 tháng.</p><//>
+        <${U.Banner} tone="warn" title="Tin đang ẩn" actions=${html`<${U.Button} size="sm">Hiện lại<//>`}>Người lao động không thấy tin này.<//>
+        <${U.ErrorSummary} errors=${errs} /><div><${U.Button} id="g-errs" onClick=${() => setErrs([{ field: "g-phone", text: "Nhập số điện thoại" }])}>Show errors<//></div>
+        <${U.JobProgress} title="Xuất báo cáo" steps=${[{ label: "Đọc dữ liệu" }, { label: "Tạo tệp" }]} current=${1} />
+        <${U.Skeleton} count=${2} />
+        <${U.EmptyState} kind="no-results" title="Không có việc phù hợp" action=${html`<${U.Button}>Xóa bộ lọc<//>`}>Thử bỏ bớt bộ lọc.<//>
+        <p class="t-body"><${U.Clamp} text="Một dòng chữ rất dài để thử cắt chữ và hiện đầy đủ khi rê chuột hoặc khi được chọn bằng bàn phím trong bảng" /> · <${U.Num} value=${1240} /></p>
+        <${U.SubNav} label="Tin tức" items=${[{ id: "kit-overlays", label: "Tin tức" }, { id: "kit-selftest", label: "Sự kiện" }]} />
+      </div>
+      <${U.ActionBar} status="Đã lưu nháp lúc 09:12" actions=${html`<${U.Button} kind="primary">Gửi duyệt<//>`} />
+    <//>`;
   }
 
   // Internal routes: every role may open them; they stay out of data-screens, the index and menus.

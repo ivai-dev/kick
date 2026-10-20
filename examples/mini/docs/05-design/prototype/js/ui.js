@@ -851,18 +851,7 @@
     return html`<div id="kit-content" class=${cx("frame-scroll", cls)} data-kit="FrameScroll">${children}</div>`;
   }
 
-  /* ---------------- Fields, status, tables (0.2 API; replaced in ui-form.js and ui-data.js) ---------------- */
-  function Field({ id, label, req, hint, err, children }) {
-    return html`<div class="field" data-kit="Field">
-      <label for=${id}>${label}${req && html`<span class="req" aria-hidden="true">*</span>`}</label>
-      ${children}
-      ${err ? html`<span class="err" id=${id + "-err"}><${Icon} n="alert" s=${14} />${err}</span>` : hint && html`<span class="hint" id=${id + "-hint"}>${hint}</span>`}
-    </div>`;
-  }
-  // tone: ok | warn | danger | info | accent | neutral (default) | line.
-  function StatusChip({ tone, icon, children }) {
-    return html`<span class=${cx("pill", tone)} data-kit="StatusChip">${icon && html`<${Icon} n=${icon} s=${14} />`}${children}</span>`;
-  }
+  /* ---------------- Table (0.2 API; ui-data.js replaces it with DataTable) ---------------- */
   function Table({ columns = [], rows = [], rowKey = "id", onRow, empty, caption, dense }) {
     return html`<div class="table-wrap"><table class=${cx("tbl", dense && "dense")} data-kit="Table">
       ${caption && html`<caption class="sr-only">${caption}</caption>`}
@@ -873,49 +862,376 @@
         : html`<tr><td colspan=${columns.length} class="tbl-empty">${empty == null ? KIT.t("table.empty") : empty}</td></tr>`}</tbody>
     </table></div>`;
   }
-  function KPI({ id, label, value, unit, delta, deltaGood = "up", deltaUnit = "%", note, icon }) {
-    const has = delta != null && !isNaN(delta);
-    const dir = !has || Math.abs(delta) < 1e-9 ? 0 : delta > 0 ? 1 : -1;
-    const good = dir === 0 ? null : (dir > 0) === (deltaGood === "up");
-    const dtxt = !has ? "" : dir === 0 ? KIT.t("kpi.noChange") : `${dir > 0 ? "+" : "−"}${KIT.util.nf(Math.abs(delta))}${deltaUnit === "%" ? "%" : deltaUnit ? " " + deltaUnit : ""}`;
-    return html`<div class="kpi" data-kpi=${id} data-kit="StatTile">
-      <div class="kpi-l">${icon && html`<${Icon} n=${icon} s=${15} />`}<span>${label}</span></div>
-      <div class="kpi-v"><b class="t-figure-l">${value}</b>${unit && html`<span class="kpi-u">${unit}</span>`}</div>
-      ${(has || note) && html`<div class="kpi-f">
-        ${has && html`<span class=${cx("kpi-d", good === true && "good", good === false && "bad")}>${dir !== 0 && html`<${Icon} n=${dir > 0 ? "up" : "down"} s=${14} />`}<span class="sr-only">${dir > 0 ? KIT.t("kpi.up") : dir < 0 ? KIT.t("kpi.down") : ""}${good === true ? KIT.t("kpi.good") : good === false ? KIT.t("kpi.bad") : ""}</span>${dtxt}</span>`}
-        ${note && html`<span class="t-meta clamp1">${note}</span>`}
-      </div>`}
+
+  /* ---------------- Status, counts, meters ---------------- */
+  // tone: ok | warn | danger | info | accent | neutral (default) | line. Text is always present; never a button.
+  function StatusChip({ tone, icon, children }) {
+    return html`<span class=${cx("pill", tone)} data-kit="StatusChip">${icon && html`<${Icon} n=${icon} s=${14} />`}${children}</span>`;
+  }
+  // A number badge (tabs, groups); part of the accessible name ("Mới 38"). Zero is dimmed, never hidden.
+  function Count({ n, tone }) {
+    const v = Number(n) || 0;
+    return html`<span class=${cx("count", v === 0 ? "zero" : tone)} data-kit="Count">${KIT.util.nf(v, 0)}</span>`;
+  }
+  // Progress toward a target ("31/40 hired"): neutral below the target, ok at it (never green before).
+  function Meter({ value = 0, max = 100, label, tone, id }) {
+    const mid = useUid("meter");
+    const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
+    const tn = tone || (value >= max ? "ok" : "neutral");
+    return html`<div class=${cx("meter", "tone-" + tn)} data-kit="Meter">
+      ${label && html`<span class="meter-l"><span id=${(id || mid) + "-l"}>${label}</span><span class="t-meta tnum">${KIT.util.nf(value, 0)}/${KIT.util.nf(max, 0)}</span></span>`}
+      <span class="meter-t" role="meter" id=${id || mid} aria-labelledby=${label ? (id || mid) + "-l" : undefined} aria-valuemin="0" aria-valuemax=${max}
+        aria-valuenow=${value} aria-valuetext=${t("meter.text", { value: KIT.util.nf(value, 0), max: KIT.util.nf(max, 0) })}><span class="meter-f" style=${{ width: pct + "%" }}></span></span>
     </div>`;
   }
+  // A number that cross-fades when it changes; the width is kept for the longest value seen (no count-up).
+  function Num({ value, format }) {
+    const text = format ? format(value) : typeof value === "number" ? KIT.util.nf(value) : String(value == null ? "—" : value);
+    const widest = useRef(0);
+    widest.current = Math.max(widest.current, String(text).length);
+    return html`<span class="num-x tnum" style=${{ minWidth: widest.current + "ch" }} data-kit="Num"><span key=${text} class="num-v">${text}</span></span>`;
+  }
 
-  /* ---------------- Headers and surfaces (0.2 API; extended in part 2) ---------------- */
-  function PageHeader({ eyebrow, title, desc, sentence, info, back, children }) {
-    const act = [].concat(children || []).filter(Boolean);
+  /* ---------------- Headers ---------------- */
+  // Page title (h1, the focus target after a route), one live sentence, an optional back link ({ label, go,
+  // params } or a node), an info toggletip and the page actions (≤ 1 primary). No screen codes in product UI.
+  function PageHeader({ eyebrow, title, desc, sentence, info, back, actions, children, meta }) {
+    const act = [].concat(actions || [], children || []).filter(Boolean);
     const line = sentence || desc;
+    const backEl = back && typeof back === "object" && back.label && !back.type
+      ? html`<${Link} variant="back" go=${back.go} params=${back.params} href=${back.href}>${back.label}<//>`
+      : back;
     return html`<div class="page-h" data-kit="PageHeader">
       <div class="grow">
-        ${back}
+        ${backEl}
         ${eyebrow && html`<span class="t-cap">${eyebrow}</span>`}
-        <div class="ph-title"><h1 class="t-headline" tabindex="-1" data-kit-h1="">${title}</h1>${info && html`<${InfoPopover} text=${info} />`}</div>
-        ${line && html`<p class="ph-sent">${line}</p>`}
+        <div class="ph-title"><h1 class="t-headline" tabindex="-1" data-kit-h1="">${title}</h1>${info && html`<${InfoPopover} text=${info} label=${typeof title === "string" ? title : undefined} />`}</div>
+        ${line && html`<p class="ph-sent" aria-live="polite">${line}</p>`}
+        ${meta && html`<div class="ph-meta t-meta">${meta}</div>`}
       </div>
       ${act.length > 0 && html`<div class="ph-act">${act}</div>`}
     </div>`;
   }
-  function Card({ title, sub, info, actions, flush, id, children }) {
-    const hid = id ? id + "-h" : undefined;
-    return html`<section class="card" id=${id} aria-labelledby=${title ? hid : undefined} data-kit="Card">
-      ${title && html`<div class="card-h"><div class="ch-col"><div class="ch-t"><h2 class="t-title clamp1" id=${hid}>${title}</h2>${info && html`<${InfoPopover} text=${info} />`}</div>${sub && html`<span class="t-meta clamp1">${sub}</span>`}</div>${actions && html`<div class="ch-act">${actions}</div>`}</div>`}
+  // Section title with a count and a "see all" link. level: heading level (default 2).
+  function SectionHead({ title, level = 2, count, link, actions, id }) {
+    const H = "h" + Math.min(6, Math.max(2, level));
+    return html`<div class="sec-h" data-kit="SectionHead">
+      ${KIT.h(H, { class: "t-title-l", id }, title, count != null ? html` <${Count} n=${count} />` : null)}
+      <span class="spacer"></span>${actions}
+      ${link && html`<${Link} variant="more" go=${link.go} params=${link.params} href=${link.href}>${link.label || t("section.all")}<//>`}
+    </div>`;
+  }
+  // Section sub-navigation: links with aria-current (an underlined-tab look). items: [{ id, label, params }].
+  function SubNav({ items = [], current, label }) {
+    const A = useApp();
+    const cur = current || (A && A.screen);
+    return html`<nav class="subnav" aria-label=${label} data-kit="SubNav">${items.map((x) => html`<${Link} key=${x.id} go=${x.id} params=${x.params}
+      aria-current=${x.id === cur ? "page" : undefined}>${x.label}<//>`)}</nav>`;
+  }
+  // Filter one list by status: an APG tablist (one Tab stop, arrows, Home/End, automatic activation) whose
+  // tabpanel is the caller's list region (panelId). Counts are text in the label; when the strip would need
+  // more than 2 lines it becomes a select "Status: All (186)".
+  function StatusTabs({ items = [], value, onPick, label, panelId, id }) {
+    const tid = useUid("tabs");
+    const base = id || tid;
+    const ref = useRef(null);
+    const [narrow, setNarrow] = useState(false);
+    const refs = useRef([]);
+    useLayoutEffect(() => {
+      const el = ref.current;
+      if (!el) return undefined;
+      const measure = () => {
+        const line = parseFloat(getComputedStyle(el).getPropertyValue("--ctl-h")) || 32;
+        setNarrow(el.scrollHeight > line * 2 + 12);
+      };
+      measure();
+      let ro;
+      try { ro = new ResizeObserver(measure); ro.observe(el.parentElement || el); } catch (e) { /* no observer */ }
+      return () => ro && ro.disconnect();
+    }, [items.length]);
+    const tabId = (k) => base + "-t-" + k;
+    useEffect(() => {
+      const panel = panelId && document.getElementById(panelId);
+      if (panel) { panel.setAttribute("role", "tabpanel"); panel.setAttribute("aria-labelledby", tabId(value)); }
+    }, [value, panelId]);
+    const key = (e, i) => {
+      let j = null;
+      if (e.key === "ArrowRight") j = (i + 1) % items.length;
+      else if (e.key === "ArrowLeft") j = (i - 1 + items.length) % items.length;
+      else if (e.key === "Home") j = 0;
+      else if (e.key === "End") j = items.length - 1;
+      if (j == null) return;
+      e.preventDefault();
+      onPick && onPick(items[j].key);
+      refs.current[j] && refs.current[j].focus();
+    };
+    if (narrow) {
+      return html`<label class="row gap-8 tabs-sel" data-kit="StatusTabs"><span class="t-label">${label}</span>
+        <select class="select" value=${value} aria-controls=${panelId} onChange=${(e) => onPick && onPick(e.currentTarget.value)}>
+          ${items.map((x) => html`<option key=${x.key} value=${x.key}>${x.label}${x.count != null ? ` (${KIT.util.nf(x.count, 0)})` : ""}</option>`)}</select></label>`;
+    }
+    return html`<div ref=${ref} class="tabs" role="tablist" aria-label=${label} data-kit="StatusTabs">${items.map((x, i) => html`<button key=${x.key} type="button" role="tab"
+      id=${tabId(x.key)} ref=${(el) => (refs.current[i] = el)} class="tab" aria-selected=${x.key === value ? "true" : "false"} aria-controls=${panelId}
+      tabindex=${x.key === value ? 0 : -1} onKeyDown=${(e) => key(e, i)} onClick=${() => onPick && onPick(x.key)}>
+      <span>${x.label}</span>${x.count != null && html`<${Count} n=${x.count} tone=${x.tone} />`}</button>`)}</div>`;
+  }
+  // Progress in a flow: steps [{ label }], current (1-based); "Step 3 of 9 · …" in a live region.
+  function Stepper({ steps = [], current = 1, variant = "bar" }) {
+    const n = Math.max(1, Math.min(steps.length, current));
+    const cur = steps[n - 1] || {};
+    return html`<div class=${cx("stepper", "v-" + variant)} data-kit="Stepper">
+      <p class="t-meta" aria-live="polite">${t("stepper.live", { n, total: steps.length, label: cur.label || "" })}</p>
+      <ol class="st-l" aria-hidden=${variant === "dots" ? "true" : undefined}>${steps.map((s, i) => html`<li key=${i} class=${cx("st-i", i + 1 < n && "done", i + 1 === n && "cur")}
+        aria-current=${i + 1 === n ? "step" : undefined}>${variant !== "dots" && html`<span class="st-t">${s.label}</span>`}</li>`)}</ol>
+    </div>`;
+  }
+
+  /* ---------------- Paging ---------------- */
+  // mode numbers (staff and public desktop: "1 … 4 5 6 … 157", "1–50 / 2.340", rows per page), more ("Show 20
+  // more jobs" + "1–20/214"; phone and kiosk) or cursor ("Newer · Older"; logs). After a change, focus moves
+  // to #<listId>-caption (the list's caption).
+  function Pager({ mode = "numbers", page = 1, size = 50, total = 0, sizes, unit, onPage, onSize, listId, hasNewer, hasOlder }) {
+    const pages = L.pageCount(total, size);
+    const from = total ? (page - 1) * size + 1 : 0;
+    const to = Math.min(total, page * size);
+    const focusCaption = () => setTimeout(() => {
+      const c = listId && document.getElementById(listId + "-caption");
+      c && c.focus({ preventScroll: false });
+    }, 0);
+    const go = (p) => { if (p < 1 || p > pages || p === page) return; onPage && onPage(p); focusCaption(); };
+    const nf = (v) => KIT.util.nf(v, 0);
+    if (mode === "more") {
+      const left = Math.max(0, total - to);
+      return html`<div class="pager more" data-kit="Pager">
+        <span class="t-meta tnum" role="status">${nf(from === 0 ? 0 : 1)}–${nf(to)}/${nf(total)}</span>
+        ${left > 0 && html`<${Button} onClick=${() => { onPage && onPage(page + 1); }}>${t("pager.more", { size: nf(Math.min(size, left)), unit: unit || "" }).trim()}<//>`}
+      </div>`;
+    }
+    if (mode === "cursor") {
+      return html`<nav class="pager" aria-label=${t("pager.label")} data-kit="Pager">
+        <${Button} kind="ghost" icon="left" disabled=${!hasNewer} onClick=${() => { onPage && onPage(-1); focusCaption(); }}>${t("pager.newer")}<//>
+        <${Button} kind="ghost" iconRight="right" disabled=${!hasOlder} onClick=${() => { onPage && onPage(1); focusCaption(); }}>${t("pager.older")}<//>
+      </nav>`;
+    }
+    return html`<nav class="pager" aria-label=${t("pager.label")} data-kit="Pager">
+      <span class="t-meta tnum pg-range">${t("pager.range", { from: nf(from), to: nf(to), total: nf(total) })}${unit ? " " + unit : ""}</span>
+      <span class="spacer"></span>
+      ${sizes && sizes.length > 1 && html`<label class="row gap-8 pg-size"><span class="t-meta">${t("pager.size")}</span>
+        <select class="select sm" value=${String(size)} onChange=${(e) => { onSize && onSize(Number(e.currentTarget.value)); focusCaption(); }}>
+          ${sizes.map((s) => html`<option key=${s} value=${String(s)}>${s}</option>`)}</select></label>`}
+      ${pages > 1 && html`<span class="pg-btns">
+        <${IconButton} icon="left" size="sm" label=${t("pager.prev")} disabled=${page <= 1} onClick=${() => go(page - 1)} />
+        ${L.pageItems(page, pages).map((p, i) => (p === L.GAP
+          ? html`<span key=${"g" + i} class="pg-gap" aria-hidden="true">…</span>`
+          : html`<button key=${p} type="button" class=${cx("btn sm", p === page ? "primary" : "ghost", "pg-n")} aria-current=${p === page ? "page" : undefined}
+              aria-label=${t("pager.page", { n: p })} onClick=${() => go(p)}>${nf(p)}</button>`))}
+        <${IconButton} icon="right" size="sm" label=${t("pager.next")} disabled=${page >= pages} onClick=${() => go(page + 1)} />
+      </span>`}
+    </nav>`;
+  }
+
+  /* ---------------- Disclosure, Reveal ---------------- */
+  // Height reveal through grid-template-rows (no height animation).
+  function Reveal({ open, children, id }) {
+    return html`<div class="reveal" data-open=${open ? "true" : "false"} id=${id} data-kit="Reveal"><div inert=${open ? undefined : true}>${children}</div></div>`;
+  }
+  // Show or hide a section (FAQ, "more"). Controlled with open + onToggle, or uncontrolled.
+  function Disclosure({ open, onToggle, summary, children, id, cls }) {
+    const did = useUid("disc");
+    const [mine, setMine] = useState(false);
+    const isOpen = open == null ? mine : open;
+    const toggle = () => (onToggle ? onToggle(!isOpen) : setMine(!isOpen));
+    const rid = (id || did) + "-r";
+    return html`<div class=${cx("disc", cls)} data-kit="Disclosure">
+      <button type="button" class="disc-b" aria-expanded=${isOpen ? "true" : "false"} aria-controls=${rid} onClick=${toggle}>
+        <${Icon} n="down" cls="chev" /><span>${summary}</span></button>
+      <${Reveal} open=${isOpen} id=${rid}>${children}<//>
+    </div>`;
+  }
+
+  /* ---------------- Feedback ---------------- */
+  // Persistent state of a page or object, server errors, success at the start of the next page.
+  // tone info · ok · warn · danger; ≤ 2 actions; role alert for danger, status otherwise.
+  function Banner({ tone = "info", title, actions, onDismiss, children, icon }) {
+    const ic = icon || { ok: "checkCircle", warn: "alert", danger: "alert" }[tone] || "info";
+    return html`<div class=${cx("banner", tone)} role=${tone === "danger" ? "alert" : "status"} data-kit="Banner">
+      <${Icon} n=${ic} /><div class="bn-b">${title && html`<span class="bn-t">${title}</span>`}${children && html`<span>${children}</span>`}
+        ${actions && html`<div class="bn-act">${actions}</div>`}</div>
+      ${onDismiss && html`<${IconButton} icon="x" size="sm" label=${t("dismiss")} onClick=${onDismiss} />`}
+    </div>`;
+  }
+  // Errors after a submit: a reserved slot at the top of the form; it takes focus when errors appear and
+  // each link focuses its field. errors: [{ field, text }].
+  function ErrorSummary({ errors = [], title }) {
+    const ref = useRef(null);
+    const had = useRef(0);
+    useEffect(() => {
+      if (errors.length && !had.current && ref.current) ref.current.focus();
+      had.current = errors.length;
+    }, [errors.length]);
+    return html`<div class="errsum-slot" data-kit="ErrorSummary"><${Reveal} open=${errors.length > 0}>
+      <div ref=${ref} class="errsum" role="alert" tabindex="-1">
+        <b class="t-title">${title || t("errors.title", { n: errors.length })}</b>
+        <ul>${errors.map((e, i) => html`<li key=${i}><a href=${"#" + e.field} onClick=${(ev) => { ev.preventDefault(); const f = document.getElementById(e.field); f && f.focus(); }}>${e.text}</a></li>`)}</ul>
+      </div><//></div>`;
+  }
+  // Nothing to show. kind: first-use · no-results · positive · error · permission; art: a project
+  // illustration (64 staff, 96 public, 120 kiosk); one action at most (none for positive).
+  function EmptyState({ icon, title, children, action, kind, art }) {
+    const ic = icon || { "no-results": "search", positive: "checkCircle", error: "alert", permission: "lock", "first-use": "plus" }[kind] || "inbox";
+    return html`<div class=${cx("empty", kind && "k-" + kind)} role="status" data-kit="EmptyState">
+      ${art ? html`<span class="empty-art">${art}</span>` : html`<span class="ic-wrap"><${Icon} n=${ic} s=${22} /></span>`}
+      ${title && html`<b class="empty-t">${title}</b>`}
+      ${children && html`<span class="empty-txt">${children}</span>`}
+      ${kind !== "positive" && action}
+    </div>`;
+  }
+  // Loading of a known shape (product: after 300 ms, ≥ 500 ms; prototype: ?state=loading). Static, no shimmer.
+  function Skeleton({ shape = "row", count = 3 }) {
+    return html`<div class=${cx("skel", "s-" + shape)} aria-hidden="true" data-kit="Skeleton">${Array.from({ length: count }, (_, i) => html`<span key=${i} class="skel-i"></span>`)}</div>`;
+  }
+  // Tasks over 1 s (export, backup, restore). state: queued · running · done · failed.
+  function JobProgress({ title, steps = [], current = 0, percent, state = "running", startedAt, onCancel, onRetry, now }) {
+    const pct = percent != null ? percent : steps.length ? Math.round((current / steps.length) * 100) : 0;
+    const long = startedAt && (now || Date.now()) - startedAt > 15000;
+    const step = steps[Math.min(current, steps.length - 1)];
+    return html`<div class=${cx("job", "st-" + state)} role="status" data-kit="JobProgress">
+      <div class="row gap-8"><b class="t-label grow">${title}</b>${state === "running" && onCancel && html`<${Button} size="sm" kind="ghost" onClick=${onCancel}>${t("confirm.cancel")}<//>`}</div>
+      ${state === "failed"
+        ? html`<span class="err-t">${t("job.failed", { step: step ? step.label || step : "" })}</span>${onRetry && html`<div><${Button} size="sm" onClick=${onRetry}>${t("job.retry")}<//></div>`}`
+        : html`<span class="meter-t" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow=${state === "done" ? 100 : pct}><span class="meter-f" style=${{ width: (state === "done" ? 100 : pct) + "%" }}></span></span>
+          <span class="t-meta">${state === "done" ? t("job.done") : step ? step.label || step : ""}${long && state === "running" ? " · " + t("job.continue") : ""}</span>`}
+    </div>`;
+  }
+
+  /* ---------------- Surfaces and records ---------------- */
+  // Section container: a fixed-height header (title, sub line, info, trailing actions that never wrap).
+  // tone default · sunken · info · warn; flush for tables and lists.
+  function Card({ title, sub, info, actions, flush, tone, id, children, level = 2 }) {
+    const gen = useUid("card");
+    const hid = id ? id + "-h" : gen;
+    const H = "h" + Math.min(6, Math.max(2, level));
+    return html`<section class=${cx("card", tone && "tone-" + tone)} id=${id} aria-labelledby=${title ? hid : undefined} data-kit="Card">
+      ${title && html`<div class="card-h"><div class="ch-col"><div class="ch-t">${KIT.h(H, { class: "t-title clamp1", id: hid }, title)}${info && html`<${InfoPopover} text=${info} label=${typeof title === "string" ? title : undefined} />`}</div>${sub && html`<span class="t-meta clamp1">${sub}</span>`}</div>${actions && html`<div class="ch-act">${actions}</div>`}</div>`}
       <div class=${flush ? "card-flush" : "card-b"}>${children}</div>
     </section>`;
   }
-  function EmptyState({ icon = "inbox", title, children, action }) {
-    return html`<div class="empty" role="status" data-kit="EmptyState">
-      <span class="ic-wrap"><${Icon} n=${icon} s=${22} /></span>
-      ${title && html`<b class="empty-t">${title}</b>`}
-      ${children && html`<span class="empty-txt">${children}</span>`}
-      ${action}
+  // StatTile (0.2 KPI): label (1 line) → value + unit → context line (delta in words, period); an optional
+  // spark or chevron in the top-right slot; href makes it a link; selected (with onSelect) a radio.
+  function StatTile({ id, label, value, unit, delta, deltaGood = "up", deltaUnit = "%", note, context, period, icon, spark, href, go, params, selected, onSelect }) {
+    const A = useApp();
+    const has = delta != null && !isNaN(delta);
+    const dir = !has || Math.abs(delta) < 1e-9 ? 0 : delta > 0 ? 1 : -1;
+    const good = dir === 0 ? null : (dir > 0) === (deltaGood === "up");
+    const dtxt = !has ? "" : dir === 0 ? KIT.t("kpi.noChange") : `${dir > 0 ? "+" : "−"}${KIT.util.nf(Math.abs(delta))}${deltaUnit === "%" ? "%" : deltaUnit ? " " + deltaUnit : ""}`;
+    const sparkSvg = Array.isArray(spark) && spark.length > 1 && (() => {
+      const lo = Math.min(...spark), hi = Math.max(...spark), w = 56, h = 20;
+      const pts = spark.map((v, i) => `${(i / (spark.length - 1)) * w},${hi === lo ? h / 2 : h - ((v - lo) / (hi - lo)) * h}`).join(" ");
+      return html`<svg class="kpi-spark" width=${w} height=${h} viewBox=${`0 0 ${w} ${h}`} aria-hidden="true"><polyline points=${pts} fill="none" stroke="currentColor" stroke-width="1.5" /></svg>`;
+    })();
+    const inner = html`<div class="kpi-l">${icon && html`<${Icon} n=${icon} s=${15} />`}<span>${label}</span></div>
+      <div class="kpi-v"><b class="t-figure-l">${value}</b>${unit && html`<span class="kpi-u">${unit}</span>`}</div>
+      ${(has || note || context || period) && html`<div class="kpi-f">
+        ${has && html`<span class=${cx("kpi-d", good === true && "good", good === false && "bad")}>${dir !== 0 && html`<${Icon} n=${dir > 0 ? "up" : "down"} s=${14} />`}<span class="sr-only">${dir > 0 ? KIT.t("kpi.up") : dir < 0 ? KIT.t("kpi.down") : ""}${good === true ? KIT.t("kpi.good") : good === false ? KIT.t("kpi.bad") : ""}</span>${dtxt}</span>`}
+        ${period && html`<span class="clamp1">${period}</span>`}${(context || note) && html`<span class="clamp1">${context || note}</span>`}
+      </div>`}
+      ${(sparkSvg || href || go) && html`<span class="kpi-x">${sparkSvg || html`<${Icon} n="right" s=${16} />`}</span>`}`;
+    if (onSelect) return html`<button type="button" class="kpi" role="radio" aria-checked=${selected ? "true" : "false"} data-kpi=${id} data-kit="StatTile" onClick=${() => onSelect(id)}>${inner}</button>`;
+    if (href || go) {
+      return html`<a class="kpi" href=${go ? "#" + go : href} data-kpi=${id} data-kit="StatTile" onClick=${(e) => { if (go && e.button === 0 && !e.ctrlKey && !e.metaKey) { e.preventDefault(); A.go(go, params || {}); } }}>${inner}</a>`;
+    }
+    return html`<div class="kpi" data-kpi=${id} data-kit="StatTile">${inner}</div>`;
+  }
+
+  // One record as a card (layout vertical) or a row (layout row): fixed slots, clamps, reserved figure,
+  // a stretched link on the title (the card's accessible name), ≤ 2 inner actions raised above it.
+  // meta: ≤ 2 lines [{ icon, text }] or strings; facts: ≤ 3 (overflow "+n").
+  function EntityCard({ layout = "vertical", href, go, params, media, eyebrow, title, subtitle, badge, figure, figure2, meta = [], body, facts = [], maxFacts, actions, selected, id, titleTag = "h3", kitKey }) {
+    const A = useApp();
+    const to = go ? "#" + go + (params ? "?" + Object.keys(params).filter((k) => params[k] != null).map((k) => k + "=" + encodeURIComponent(params[k])).join("&") : "") : href;
+    const click = (e) => {
+      if (!go || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      e.preventDefault();
+      A.go(go, params || {});
+    };
+    const nFacts = maxFacts || (A && A.density === "compact" ? 3 : 2);
+    const fc = L.clampList(facts, nFacts);
+    const Ttag = titleTag;
+    return html`<article class=${cx("ec", "ec-" + layout, selected && "sel")} id=${id} data-kit="EntityCard" aria-current=${selected ? "true" : undefined} data-key=${kitKey}>
+      <div class="ec-head">
+        ${media && html`<span class="ec-media">${media}</span>`}
+        <div class="ec-tt">
+          ${eyebrow && html`<span class="ec-eye t-meta clamp1">${eyebrow}</span>`}
+          ${KIT.h(Ttag, { class: "ec-title" }, to ? html`<a class="ec-link" href=${to} data-kit-key=${kitKey} onClick=${click}>${title}</a>` : title)}
+          ${subtitle && html`<span class="ec-sub clamp1">${subtitle}</span>`}
+        </div>
+        ${badge && html`<span class="ec-badge">${badge}</span>`}
+      </div>
+      ${(figure != null || figure2 != null) && html`<div class="ec-fig"><span class="ec-f1 t-figure nowrap">${figure}</span>${figure2 != null && html`<span class="ec-f2 t-meta nowrap">${figure2}</span>`}</div>`}
+      ${meta.length > 0 && html`<ul class="ec-meta">${meta.slice(0, 2).map((m, i) => html`<li key=${i} class="clamp1">${m && m.icon && html`<${Icon} n=${m.icon} s=${16} />`}<span>${m && m.text != null ? m.text : m}</span></li>`)}</ul>`}
+      ${body && html`<p class="ec-body clamp2">${body}</p>`}
+      ${(facts.length > 0 || actions) && html`<div class="ec-foot"><span class="ec-facts">${fc.shown.map((f, i) => html`<span key=${i} class="ec-fact">${f}</span>`)}${fc.more > 0 && html`<span class="ec-fact more">+${fc.more}</span>`}</span>
+        ${actions && html`<span class="ec-act">${actions}</span>`}</div>`}
+    </article>`;
+  }
+  // Rows in queues and short lists: lead · title + meta · status · figure · actions; the title is a link.
+  function ListRow({ lead, title, meta, status, figure, actions, href, go, params, selected, onClick, kitKey, two }) {
+    const A = useApp();
+    const to = go ? "#" + go : href;
+    const click = (e) => { if (onClick) { e.preventDefault(); onClick(e); return; } if (!go || e.button !== 0 || e.ctrlKey || e.metaKey) return; e.preventDefault(); A.go(go, params || {}); };
+    return html`<div class=${cx("lrow", (two || meta) && "two", selected && "sel")} aria-current=${selected ? "true" : undefined} data-kit="ListRow" data-key=${kitKey}>
+      ${lead && html`<span class="lr-lead">${lead}</span>`}
+      <span class="lr-main">${to || onClick ? html`<a class="lr-t clamp1" href=${to || "#"} data-kit-key=${kitKey} onClick=${click}>${title}</a>` : html`<span class="lr-t clamp1">${title}</span>`}
+        ${meta && html`<span class="lr-m t-meta clamp1">${meta}</span>`}</span>
+      ${status && html`<span class="lr-s">${status}</span>`}
+      ${figure != null && html`<span class="lr-f t-figure nowrap">${figure}</span>`}
+      ${actions && html`<span class="lr-a">${actions}</span>`}
     </div>`;
+  }
+  // Key–value detail with change links: rows [{ label, value, action: { label, onClick | go } }]; "—" when empty.
+  function SummaryList({ rows = [], columns = 1 }) {
+    const empty = (v) => v == null || v === "" || (Array.isArray(v) && !v.length);
+    return html`<dl class=${cx("sl", columns === 2 && "c2")} data-kit="SummaryList">${rows.map((r, i) => html`<div class="sl-r" key=${i}>
+      <dt class="sl-k">${r.label}</dt><dd class=${cx("sl-v", empty(r.value) && "empty-v")}>${empty(r.value) ? "—" : r.value}</dd>
+      ${r.action && html`<dd class="sl-a">${r.action.go ? html`<${Link} go=${r.action.go} params=${r.action.params}>${r.action.label}<//>` : html`<button type="button" class="btn link sm" onClick=${r.action.onClick}>${r.action.label}</button>`}</dd>`}
+    </div>`)}</dl>`;
+  }
+  // Dated events: [{ at, who, action, text, quote, tone }] in an ordered list.
+  function Timeline({ events = [], dense }) {
+    return html`<ol class=${cx("tl", dense && "dense")} data-kit="Timeline">${events.map((e, i) => html`<li key=${i} class=${cx("tl-i", e.tone && "tone-" + e.tone)}>
+      <span class="tl-dot" aria-hidden="true"></span>
+      <div class="tl-b"><span class="tl-h">${e.who && html`<b>${e.who}</b> `}${e.action}</span>${e.at && html`<span class="t-meta tnum">${e.at}</span>`}
+        ${e.text && html`<span class="t-body">${e.text}</span>`}${e.quote && html`<q class="tl-q">${e.quote}</q>`}</div></li>`)}</ol>`;
+  }
+  // Sticky action bar of a form or decision: a leading status slot and trailing actions; spans its pane only;
+  // not rendered when there is nothing to act on (show false). While mounted the page keeps room under focus.
+  function ActionBar({ status, actions, sticky = true, show = true }) {
+    useEffect(() => {
+      if (!show || !sticky) return undefined;
+      const sc = document.getElementById("kit-content");
+      if (!sc) return undefined;
+      const prev = sc.style.scrollPaddingBottom;
+      sc.style.scrollPaddingBottom = "calc(var(--bar-h) + 16px)";
+      return () => { sc.style.scrollPaddingBottom = prev; };
+    }, [show, sticky]);
+    if (!show) return null;
+    return html`<div class=${cx("abar", sticky && "sticky")} data-kit="ActionBar"><span class="abar-s t-meta" role="status">${status}</span><span class="abar-a">${actions}</span></div>`;
+  }
+  // Truncate by lines with the full text available (accessible name and a tip when it overflows).
+  function Clamp({ lines = 1, text, as = "span", cls }) {
+    const ref = useRef(null);
+    const [over, setOver] = useState(false);
+    useLayoutEffect(() => {
+      const el = ref.current;
+      if (!el) return undefined;
+      const m = () => setOver(el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1);
+      m();
+      window.addEventListener("resize", m);
+      return () => window.removeEventListener("resize", m);
+    }, [text]);
+    const tid = useUid("clamp");
+    const el = KIT.h(as, { ref, id: tid, class: cx("clamp" + Math.min(3, Math.max(1, lines)), cls), tabindex: over ? 0 : undefined, "data-kit": "Clamp" }, text);
+    return over ? html`${el}<wa-tooltip for=${tid} placement="top" show-delay="500" hide-delay="100">${text}</wa-tooltip>` : el;
   }
 
   /* ---------------- Shell pages ---------------- */
@@ -952,7 +1268,9 @@
     Dialog, ConfirmDialog, Confirm: ConfirmDialog, SidePanel, Drawer: SidePanel, BottomSheet, Sheet: BottomSheet,
     Popover, MenuButton, Menu, InfoPopover, Toaster, Toasts,
     DensityScope, Persist, FrameScroll, usePresence,
-    Field, StatusChip, Table, KPI, StatTile: KPI, PageHeader, Card, Surface: Card, EmptyState,
+    StatusChip, Count, Meter, Num, Table, KPI: StatTile, StatTile, PageHeader, SectionHead, SubNav, StatusTabs, Tabs: StatusTabs,
+    Stepper, Pager, Reveal, Disclosure, Banner, ErrorSummary, EmptyState, Skeleton, JobProgress, Card, Surface: Card,
+    EntityCard, ListRow, SummaryList, Timeline, ActionBar, Clamp,
     Placeholder, Denied, NotFound,
   });
   KIT.ui._ = { useOwnEvent, useUid, useOverlayEntry, useFrameScope, frameOf, refocus, pageH1, deepActive, libLocalize, nextId };
