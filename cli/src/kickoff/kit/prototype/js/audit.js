@@ -24,6 +24,15 @@
     const [kSheet, setKSheet] = useState(false);
     const [pPanel, setPPanel] = useState(false);
     const [last, setLast] = useState("—");
+    const [place, setPlace] = useState(null);
+    const [places, setPlaces] = useState([]);
+    const [day, setDay] = useState("2026-10-20");
+    const [shift, setShift] = useState("sang");
+    const [view, setView] = useState("list");
+    const [on, setOn] = useState(true);
+    const [skills, setSkills] = useState(["may"]);
+    const COMMUNES = ["Phường An Xuyên", "Phường Tân Thành", "Xã Hòa Mỹ", "Xã Tân Hòa", "Xã Khánh Bình", "Cà Mau", "Xã Đất Mới", "Xã Năm Căn"]
+      .map((label, i) => ({ value: "c" + i, label, count: (i * 37) % 90 }));
     const items = [
       { label: "Xem hồ sơ", onClick: () => setLast("Xem hồ sơ") },
       { label: "Mời phỏng vấn", sub: "Gửi lời mời qua email", onClick: () => setLast("Mời phỏng vấn") },
@@ -49,6 +58,20 @@
           <${U.InfoPopover} text="Hồ sơ được giữ 12 tháng kể từ lần cập nhật cuối." label="Thời gian lưu hồ sơ" />
           <${U.Button} id="g-frames" onClick=${() => setFrames(!frames)}>Device frames<//>
         </div>
+        <div class="fgrid">
+          <${U.Field} id="g-combo" label="Xã, phường" span=${3} width="commune"><${U.Combobox} id="g-combo" options=${COMMUNES} value=${place} onChange=${setPlace} placeholder="Gõ tên xã" /><//>
+          <${U.Field} id="g-combo-m" label="Nhiều xã" span=${3}><${U.Combobox} id="g-combo-m" multiple max=${3} options=${COMMUNES} value=${places} onChange=${setPlaces} recent=${["c5"]} /><//>
+          <${U.Field} id="g-day" label="Ngày phỏng vấn" span=${2} width="date"><${U.DateField} id="g-day" value=${day} onChange=${setDay} min="2026-10-01" max="2026-12-31" today="2026-10-20" presets=${[{ days: 15 }, { days: 30 }]} /><//>
+          <${U.Field} id="g-num" label="Số lượng" span=${2}><${U.NumberField} id="g-num" value=${60} suffix="người" stepper min=${1} /><//>
+          <${U.Field} id="g-period" label="Kỳ báo cáo" span=${2}><${U.PeriodPicker} value="2026-10" granularity="month" today="2026-10-20" onChange=${(v) => setLast(String(v))} /><//>
+        </div>
+        <${U.ChoiceGroup} legend="Ca làm việc" value=${shift} onChange=${setShift} options=${[{ value: "sang", label: "Sáng" }, { value: "chieu", label: "Chiều" }, { value: "ca", label: "Cả ngày" }]} />
+        <div class="row wrap gap-8"><${U.SegmentedControl} label="Cách xem" value=${view} onPick=${setView} items=${[["list", "Danh sách", "list"], ["cal", "Lịch", "calendar"]]} />
+          <${U.ToggleChip} label="May công nghiệp" pressed=${skills.includes("may")} onToggle=${() => setSkills(skills.includes("may") ? [] : ["may"])} />
+          <${U.FilterChip} label="Lương: 7–10 triệu" onRemove=${() => setLast("filter removed")} />
+          <${U.DisclosureChip} label="Lương" value="7–10 triệu" expanded=${false} /></div>
+        <${U.Switch} label="Hiển thị trên cổng" desc="Người lao động thấy tin này ngay." checked=${on} onChange=${setOn} />
+        <${U.FileDrop} accept=".pdf,image/*" files=${[]} />
         <div class="l-panel">
           <div class="col gap-8 grow"><p class="t-body">List area (the non-modal panel docks beside it when it keeps 560 px).</p></div>
           <${U.SidePanel} modal=${false} open=${aside} title="Chi tiết ứng viên" onClose=${() => setAside(false)}

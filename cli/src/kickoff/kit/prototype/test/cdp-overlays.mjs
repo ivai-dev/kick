@@ -56,7 +56,7 @@ async function ev(expr) {
   return r.result && r.result.result ? r.result.result.value : undefined;
 }
 async function waitFor(expr, ms = 8000) { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await ev(expr)) return true; await sleep(100); } return false; }
-const KEYS = { Escape: 27, Tab: 9, Enter: 13, ArrowDown: 40, ArrowUp: 38, Home: 36, End: 35, " ": 32 };
+const KEYS = { Escape: 27, Tab: 9, Enter: 13, ArrowDown: 40, ArrowUp: 38, ArrowLeft: 37, ArrowRight: 39, Home: 36, End: 35, PageUp: 33, PageDown: 34, " ": 32 };
 async function key(k, shift = false) {
   const base = { key: k, code: k === " " ? "Space" : k, windowsVirtualKeyCode: KEYS[k], nativeVirtualKeyCode: KEYS[k], modifiers: shift ? 8 : 0 };
   await send("Input.dispatchKeyEvent", { type: "rawKeyDown", ...base });
@@ -70,7 +70,7 @@ async function clickAt(x, y) {
   for (const type of ["mouseMoved", "mousePressed", "mouseReleased"]) await send("Input.dispatchMouseEvent", { type, x, y, button: "left", clickCount: 1 });
   await sleep(200);
 }
-async function click(id) { const r = await rectOf(`document.getElementById(${JSON.stringify(id)})`); if (!r) return false; await clickAt(r.x + r.w / 2, r.y + r.h / 2); return true; }
+async function click(id) { await ev(`(()=>{const e=document.getElementById(${JSON.stringify(id)});e&&e.scrollIntoView({block:"center"})})()`); await sleep(100); const r = await rectOf(`document.getElementById(${JSON.stringify(id)})`); if (!r) return false; await clickAt(r.x + r.w / 2, r.y + r.h / 2); return true; }
 async function hover(id) { const r = await rectOf(`document.getElementById(${JSON.stringify(id)})`); if (r) await send("Input.dispatchMouseEvent", { type: "mouseMoved", x: r.x + r.w / 2, y: r.y + r.h / 2 }); }
 const active = () => ev(`(()=>{let a=document.activeElement;while(a&&a.shadowRoot&&a.shadowRoot.activeElement)a=a.shadowRoot.activeElement;return a?(a.id||a.localName)+"|"+(a.textContent||"").trim().slice(0,24):""})()`);
 const popOpen = (anchorId) => ev(`[...document.querySelectorAll('[data-kit="Popover"]')].some((p)=>p.open&&p.anchor&&p.anchor.id===${JSON.stringify(anchorId)})`);
@@ -191,6 +191,34 @@ const p = await rectOf(`document.getElementById("g-phone-frame")`);
 const pd = await rectOf(`[...document.querySelectorAll('[data-kit="SidePanel"]')].find((e)=>e.open).shadowRoot.querySelector('[part~="dialog"]')`);
 check("phone panel is a bottom sheet inside the frame", p && pd && pd.x >= p.x - 2 && pd.x + pd.w <= p.x + p.w + 2 && pd.y + pd.h <= p.y + p.h + 4, { frame: p, panel: pd });
 await key("Escape"); await sleep(500);
+
+// 11. Combobox: folding and keys.
+await ev(`document.getElementById("g-combo").focus()`); await type("ca mau"); await sleep(300);
+const opts = await ev(`[...document.querySelectorAll('[role="option"]')].filter((o)=>o.getClientRects().length).map((o)=>o.textContent.trim())`);
+check("combobox folds diacritics", Array.isArray(opts) && opts.length >= 1 && opts[0].startsWith("Cà Mau"), opts);
+await key("ArrowDown"); await key("Enter"); await sleep(200);
+check("combobox picks with Enter", (await ev(`document.getElementById("g-combo").value`)) === "Cà Mau");
+await ev(`document.getElementById("g-combo").value=""`);
+await ev(`document.getElementById("g-combo").focus()`); await type("hoa my"); await sleep(300);
+const opts2 = await ev(`[...document.querySelectorAll('[role="option"]')].filter((o)=>o.getClientRects().length).map((o)=>o.textContent.trim())`);
+check("combobox: hoa my finds Xã Hòa Mỹ", Array.isArray(opts2) && opts2[0] && opts2[0].startsWith("Xã Hòa Mỹ"), opts2);
+await key("Escape"); await sleep(200);
+check("combobox Escape closes the list", (await ev(`document.getElementById("g-combo").getAttribute("aria-expanded")`)) === "false");
+
+// 12. DateField: calendar keys.
+await click("g-day-cal"); await sleep(600);
+const d0 = await active();
+await key("ArrowRight"); const d1 = await active();
+await key("ArrowDown"); const d2 = await active();
+await key("Enter"); await sleep(400);
+check("date grid: arrows move by day and week, Enter picks", d0.includes("20") && d1.includes("21") && d2.includes("28") && (await ev(`document.getElementById("g-day").value`)) === "28/10/2026", [d0, d1, d2]);
+await ev(`(()=>{const i=document.getElementById("g-day");i.focus();i.value="31/02/2026";i.dispatchEvent(new Event("input",{bubbles:true}));i.blur()})()`); await sleep(300);
+check("date field rejects 31/02/2026", await ev(`!!document.querySelector('[data-kit="DateField"] .err')`));
+
+// 13. ChoiceGroup: one Tab stop, arrows select.
+await ev(`document.querySelector('[data-kit="ChoiceGroup"] [aria-checked="true"]').focus()`);
+await key("ArrowRight"); await sleep(100);
+check("choice group arrows select", (await ev(`document.querySelector('[data-kit="ChoiceGroup"] [aria-checked="true"]').textContent.trim()`)) === "Chiều");
 
 check("no script errors", logs.length === 0, logs);
 const failed = results.filter((r) => !r.ok);
