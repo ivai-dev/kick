@@ -219,15 +219,16 @@
   //   signIn: buttons shown when the role has no account screens (a visitor);
   //   signOut: the role a "sign out" switches to (the visitor role), shown in the account menu;
   //   footer: lines of the default footer.
-  // Top menu: screens with nav outside the account group, labelled by `menu` or their name.
+  // Top menu: screens with nav outside the account group, labelled by `menu` or their name;
+  // `menu: false` keeps a screen out of the site menus (it stays in the app sidebar of other roles).
   function siteMenus(role) {
     const site = KIT.config().site || {};
-    const all = navItems(role, "desk");
+    const all = navItems(role, "desk").filter((s) => s.menu !== false);
     const account = all.filter((s) => site.account && s.nav === site.account);
     const top = all.filter((s) => !(site.account && s.nav === site.account));
     return { site, top, account };
   }
-  const label = (s) => s.menu || s.name;
+  const label = (s) => (typeof s.menu === "string" && s.menu) || s.name;
 
   function SiteHeader() {
     const A = useApp();

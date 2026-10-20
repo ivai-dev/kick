@@ -2,6 +2,12 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-10-20
+
+### Added
+
+- Kit: `menu: false` on a screen keeps it out of the site-shell menus (sign-in and registration pages reached from the header buttons, device start screens) while it stays in the app sidebar of other roles.
+
 ## [0.2.0] - 2026-10-20
 
 Prototype fidelity and design review, from lessons of a real project (a public employment portal with a Vietnamese UI). Plan: `docs/plans/2026-10-20-kickoff-v0.2.0.md`.
