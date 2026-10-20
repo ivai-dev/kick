@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ..model import load_project, resolve_root
-from ..proto import BrowserNotFound, bundle, check, lint, new_prototype, update_prototype
+from ..proto import BrowserNotFound, bundle, check, lint, migration_notes, new_prototype, update_prototype
 
 
 def register(sub) -> None:
@@ -31,7 +31,7 @@ def register(sub) -> None:
     a.add_argument("--jobs", type=int, default=4, help="parallel browser launches (default 4)")
     a.set_defaults(func=run_check)
 
-    a = actions.add_parser("lint", help="count font sizes, weights, inline styles and raw colours; flag forbidden text")
+    a = actions.add_parser("lint", help="check the foundation rules (L1–L18), count font sizes, weights, inline styles and raw colours; flag forbidden text")
     a.set_defaults(func=run_lint)
 
     a = actions.add_parser("bundle", help="write the prototype as one self-contained HTML file")
@@ -49,23 +49,30 @@ def run_new(args) -> int:
 
 def run_update(args) -> int:
     root = resolve_root(args.root)
-    changes = update_prototype(root, load_project(root), dry=args.dry)
+    project = load_project(root)
+    changes = update_prototype(root, project, dry=args.dry)
     for path, status in changes:
         print(f"{'would update' if args.dry else status}: {path}")
+    notes = migration_notes(root, project)
+    for note in notes:
+        print(f"migration: {note}")
     if not changes:
         print("kit core up to date")
     elif not args.dry:
-        print("next: kickoff proto check")
+        print("next: kickoff proto check; kickoff proto lint (see migration notes)")
     return 0
 
 
 def run_check(args) -> int:
     root = resolve_root(args.root)
+    warnings: list[str] = []
     try:
-        failures = check(root, load_project(root), routes=args.routes or None, shots=args.shots, jobs=args.jobs)
+        failures = check(root, load_project(root), routes=args.routes or None, shots=args.shots, jobs=args.jobs, warnings=warnings)
     except BrowserNotFound as exc:
         print(f"error: {exc}")
         return 4
+    for warning in warnings:
+        print(f"warn: {warning}")
     for failure in failures:
         print(failure)
     print(f"{len(failures)} failures" if failures else "prototype check passed")
@@ -77,8 +84,10 @@ def run_lint(args) -> int:
     metrics, failures = lint(root, load_project(root))
     print(
         f"font sizes {metrics['font_sizes']}, font-weight 600 {metrics['weight_600']}, "
-        f"inline styles {metrics['inline_styles']}, raw hex {metrics['raw_hex']}"
+        f"inline styles {metrics['inline_styles']}, raw hex {metrics['raw_hex']}, off-scale spacing {metrics['off_scale_spacing']}"
     )
+    for warning in metrics.get("warnings", []):
+        print(f"warn: {warning}")
     for failure in failures:
         print(failure)
     return 1 if failures else 0
