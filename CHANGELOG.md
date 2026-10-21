@@ -2,6 +2,38 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-10-21
+
+ECC bridge. ECC (`ecc@ecc` 2.2.3 or later) is now a required companion plugin. Kickoff keeps the gates, state, IDs, documents, plan and tickets; ECC does research, options and reviews, and takes over after tickets. The prototype kit is unchanged (0.5.0 replaces it). Spec: docs/plans/2026-10-21-kickoff-v0.4.0.md.
+
+After updating: run `uv tool install --force "<plugin root>/cli"`, then `kickoff ecc doctor`. In an existing project, run `kickoff ecc setup --dry`, then `kickoff ecc setup`.
+
+### Added
+
+- **`kickoff ecc` commands:**
+  - `root`: locates ECC from `installed_plugins.json` (project scope first) or `KICKOFF_ECC_ROOT`.
+  - `doctor`: checks D1–D6: installed, version, the components kickoff uses, the hook profile, the GateGuard exemption and the router route.
+  - `setup [--router] [--dry]`: exempts `.kickoff/**`, `docs_root` and `AGENTS.md` from GateGuard in `.claude/settings.json`; with `--router`, it also adds the kickoff route to the ecc-router table.
+  - `run <script>`: runs an ECC script from the ECC folder, with the project as the current folder.
+- **`kickoff hook session-start | pre-write | post-write`,** wired in `hooks/hooks.json`:
+  - pre-write refuses hand edits of `state.yaml` and `tickets.yaml`, architecture documents outside `adr/` before C3 and C4, and edits of the kit core;
+  - post-write runs `kickoff validate` after an edit of `.kickoff/*.yaml` and sends its errors back to the model.
+- **Other new commands:** `kickoff proto record --artifact <link> [--version <n>]` (the only way to write the `prototype` key in `state.yaml`), and `kickoff check-docs <paths…>` (placeholders and forbidden phrases with file and line).
+- **Review agents:** `kickoff:viewpoint-reviewer`, `kickoff:craft-auditor`, `kickoff:ia-reviewer` and `kickoff:integrator`, read-only, for the design review loop and the concept round.
+- **`skills/using-kickoff/references/ecc.md`:** the ownership rule, the ECC writers kickoff never uses, how to call ECC, GateGuard and the router, and the delegation table.
+- Lessons rows 28–30, pressure scenarios 4 and 5, live ECC tests (`pytest -m ecc`), and `docs/plans/ecc-upstream-notes.md`.
+
+### Changed
+
+- **Start-up:** the checks run `kickoff ecc doctor`. `ui-ux-pro-max` is now checked only by `ux-design` and `prototype`.
+- **Delegation to ECC:**
+  - discovery runs the `ecc:product-lens` diagnostics as a lens;
+  - research uses `ecc:search-first` (and `ecc:deep-research` when its MCP server is connected) and `ecc:council` for close decisions;
+  - solution gets its options from an `ecc:architect` agent and reviews from `ecc:security-reviewer` and `ecc:database-reviewer` before C5;
+  - plan runs `ecc:council` on slip options and an `ecc:planner` review of the baseline WBS.
+- **Verify sections** use `kickoff check-docs` in place of manual searches.
+- **Hooks:** the SessionStart hook calls `kickoff hook session-start`, and falls back to `kickoff status` with an older CLI. Hooks report a block as a JSON decision with exit 0, so an older CLI can never block a write.
+
 ## [0.3.1] - 2026-10-21
 
 Kit fixes found while a Vietnamese employment-services project adopted 0.3.0 (its foundation work package). Run `kickoff proto update` to take them; no project change is needed, and project rules that padded these targets can be removed.
