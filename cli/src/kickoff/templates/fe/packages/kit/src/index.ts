@@ -1,6 +1,8 @@
 export type {
   Density,
+  DirectionDef,
   KickoffConfig,
+  Motion,
   PageKind,
   ParamInput,
   RoleDef,
@@ -12,6 +14,7 @@ export type {
   ScreenParams,
   Shell,
   Theme,
+  Tweak,
 } from "./types";
 export { createKickoffApp, type CreateKickoffAppOptions, type KickoffApp } from "./app";
 export {
@@ -25,7 +28,10 @@ export {
   type GoOptions,
   type KickoffRuntime,
 } from "./runtime";
-export { demoStore, useDemo, RESERVED_PARAMS, type DemoState } from "./demo-store";
+export { demoStore, useDemo, RESERVED_PARAMS, parseTweak, formatTweak, type DemoState } from "./demo-store";
+export { contrastRatio, relativeLuminance } from "./contrast";
+export { activeDirection } from "./look";
+export { Tweaks, lookLink } from "./components/Tweaks";
 export { AppShell } from "./shells/AppShell";
 export { SiteShell } from "./shells/SiteShell";
 export { Placeholder } from "./components/Placeholder";

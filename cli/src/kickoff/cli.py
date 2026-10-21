@@ -15,6 +15,7 @@ def commands() -> list:
     """Command modules, each with register(subparsers) and run(args) -> int; imported on demand, because
     `kickoff hook` runs on every edit and must not pay for jsonschema, yaml and the frontend tooling."""
     from .commands import (
+        design_cmd,
         docs_cmd,
         ecc_cmd,
         export_cmd,
@@ -25,7 +26,8 @@ def commands() -> list:
         workbook_cmd,
     )
 
-    return [schedule_cmd, validate_cmd, docs_cmd, workbook_cmd, export_cmd, state_cmd, fe_cmd, ecc_cmd, hook_cmd]
+    return [schedule_cmd, validate_cmd, docs_cmd, workbook_cmd, export_cmd, state_cmd, fe_cmd, design_cmd, ecc_cmd,
+            hook_cmd]
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -1,11 +1,11 @@
 /**
  * Prints the screen/scenario manifest of the app as JSON on stdout:
- *   {"screens":[{"id","code","roles","platforms","rel"}],"scenarios":["id"]}
+ *   {"screens":[{"id","code","roles","platforms","rel"}],"scenarios":["id"],"directions":["id"],"direction":"id"|null}
  *
  * Run from the repo root (Node >= 22.6):
  *   node --experimental-strip-types packages/kit/scripts/manifest.ts [appDir]
  *
- * apps/web/src/kickoff/{screens,scenarios}.ts must stay plain data with
+ * apps/web/src/kickoff/{config,screens,scenarios}.ts must stay plain data with
  * type-only imports (no enums, namespaces or other TS-only runtime syntax).
  */
 import { existsSync } from "node:fs";
@@ -34,9 +34,12 @@ async function load<T>(file: string, name: string): Promise<T> {
 try {
   const screens = await load<ScreenRow[]>("screens.ts", "screens");
   const scenarios = await load<Array<{ id: string }>>("scenarios.ts", "scenarios");
+  const config = await load<{ directions?: Array<{ id: string }>; direction?: string }>("config.ts", "config");
   const manifest = {
     screens: screens.map(({ id, code, roles, platforms, rel }) => ({ id, code, roles, platforms, rel })),
     scenarios: scenarios.map((scenario) => scenario.id),
+    directions: (config.directions ?? []).map((direction) => direction.id),
+    direction: config.direction ?? null,
   };
   process.stdout.write(`${JSON.stringify(manifest)}\n`);
 } catch (error) {

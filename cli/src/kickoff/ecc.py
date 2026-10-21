@@ -98,6 +98,15 @@ def find_install(project: Path | None = None) -> Install:
         if not root.is_dir():
             raise EccError(f"KICKOFF_ECC_ROOT={env} is not a folder")
         return Install(root, _manifest_version(root))
+    best = plugin_install(lambda key: key == PLUGIN_KEY, project)
+    if best is None:
+        raise EccError(f"ECC is not installed (no {PLUGIN_KEY} in installed_plugins.json)")
+    return best
+
+
+def plugin_install(match, project: Path | None = None) -> Install | None:
+    """The install of the first plugin key `match` accepts in installed_plugins.json: a project-scope entry for
+    `project` first, then the user scope; the highest version wins within a scope. None when not installed."""
     path = config_dir() / "plugins" / "installed_plugins.json"
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -106,14 +115,14 @@ def find_install(project: Path | None = None) -> Install:
     except ValueError as exc:
         raise EccError(f"{path}: invalid JSON: {exc}") from exc
     plugins = data.get("plugins") if isinstance(data, dict) else None
-    entries = plugins.get(PLUGIN_KEY) if isinstance(plugins, dict) else None
-    entries = [e for e in entries if isinstance(e, dict)] if isinstance(entries, list) else []
+    lists = [v for k, v in plugins.items() if match(k)] if isinstance(plugins, dict) else []
+    entries = [e for v in lists if isinstance(v, list) for e in v if isinstance(e, dict)]
     entries = [e for e in entries if isinstance(e.get("installPath"), str) and Path(e["installPath"]).is_dir()]
     here = [e for e in entries if e.get("scope") in ("project", "local") and project is not None
             and isinstance(e.get("projectPath"), str) and _covers(e["projectPath"], project)]
     pool = here or [e for e in entries if e.get("scope") in ("user", "managed", None)]
     if not pool:
-        raise EccError(f"ECC is not installed (no {PLUGIN_KEY} in installed_plugins.json)")
+        return None
     best = max(pool, key=lambda e: version_key(str(e.get("version", ""))) or (0,))
     return Install(Path(best["installPath"]), str(best.get("version", "")))
 

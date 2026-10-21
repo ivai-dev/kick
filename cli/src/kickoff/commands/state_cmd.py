@@ -6,8 +6,9 @@ import json
 from datetime import date
 from pathlib import Path
 
+from ..errors import KickoffError
 from ..model import KICKOFF_DIR, load_state, resolve_root, write_yaml
-from ..state import approve, blockers, init_project, next_step, reopen, set_phase, status_lines
+from ..state import PHASES, approve, blockers, init_project, next_step, reopen, set_phase, status_lines
 
 
 def register(sub) -> None:
@@ -68,6 +69,10 @@ def run_can(args) -> int:
 def run_phase(args) -> int:
     root = resolve_root(args.root)
     state = load_state(root)
+    if args.action == "start":  # the same rule as `kickoff can`: a skipped gate must not become a legacy pass
+        reasons = blockers(state, args.phase) if args.phase in PHASES else []
+        if reasons:
+            raise KickoffError(f"cannot start {args.phase}: " + "; ".join(reasons))
     set_phase(state, args.phase, "in_progress" if args.action == "start" else "done")
     _save(root, state)
     print(f"{args.phase}: {state['phases'][args.phase]}")

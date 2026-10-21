@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from "react";
 
-import type { Density, Scope, Theme } from "./types";
+import type { Density, Motion, Scope, Theme, Tweak } from "./types";
 
 /** URL search keys owned by the demo bar; never passed to screens. */
-export const RESERVED_PARAMS = ["demo", "theme", "density", "scope", "scenario", "step"] as const;
+export const RESERVED_PARAMS = ["demo", "theme", "density", "scope", "scenario", "step", "direction", "tweak"] as const;
 
 export interface DemoState {
   theme: Theme;
@@ -15,10 +15,13 @@ export interface DemoState {
   collapsed: boolean;
   scenarioId: string | null;
   step: number;
+  /** Direction picked in the bar; null = the locked or the first offered direction. */
+  direction: string | null;
+  tweak: Tweak;
 }
 
 const PREFIX = "kickoff:";
-const persisted = ["theme", "density", "scope", "collapsed"] as const;
+const persisted = ["theme", "density", "scope", "collapsed", "direction", "tweak"] as const;
 
 /** localStorage throws in sandboxed iframes, private windows, blocked storage. */
 function readStorage(key: string): string | null {
@@ -42,8 +45,45 @@ const themes: Theme[] = ["light", "dark"];
 const densities: Density[] = ["compact", "comfortable", "touch"];
 const scopes: Scope[] = ["all", "mvp", "tagged"];
 
+const motions: Motion[] = ["off", "calm", "lively"];
+const DIRECTION_ID = /^[a-z0-9][a-z0-9-]*$/;
+
 function pick<T extends string>(value: string | null | undefined, allowed: T[]): T | undefined {
   return allowed.includes(value as T) ? (value as T) : undefined;
+}
+
+function bounded(value: string | undefined, min: number, max: number): number | undefined {
+  if (value === undefined || value.trim() === "") return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : undefined;
+}
+
+/** "h:250,c:0.12,r:0.75,m:calm" -> { h: 250, c: 0.12, r: 0.75, m: "calm" }; unknown keys and bad values are dropped. */
+export function parseTweak(text: string | null | undefined): Tweak {
+  const out: Tweak = {};
+  for (const part of (text ?? "").split(",")) {
+    const [key, value] = part.split(":").map((s) => s.trim());
+    if (key === "h") out.h = bounded(value, 0, 360);
+    else if (key === "c") out.c = bounded(value, 0, 0.3);
+    else if (key === "r") out.r = bounded(value, 0, 1.5);
+    else if (key === "m") out.m = pick(value, motions);
+  }
+  for (const key of Object.keys(out) as Array<keyof Tweak>) if (out[key] === undefined) delete out[key];
+  return out;
+}
+
+/** The inverse of parseTweak; "" when nothing is tweaked. */
+export function formatTweak(tweak: Tweak): string {
+  const parts: string[] = [];
+  if (tweak.h !== undefined) parts.push(`h:${Math.round(tweak.h)}`);
+  if (tweak.c !== undefined) parts.push(`c:${Number(tweak.c.toFixed(3))}`);
+  if (tweak.r !== undefined) parts.push(`r:${Number(tweak.r.toFixed(3))}`);
+  if (tweak.m !== undefined) parts.push(`m:${tweak.m}`);
+  return parts.join(",");
+}
+
+function directionId(value: string | null | undefined): string | null {
+  return value && DIRECTION_ID.test(value) ? value : null;
 }
 
 function initialState(): DemoState {
@@ -56,6 +96,8 @@ function initialState(): DemoState {
     collapsed: hasWindow && readStorage("collapsed") === "1",
     scenarioId: null,
     step: 0,
+    direction: (hasWindow && directionId(readStorage("direction"))) || null,
+    tweak: hasWindow ? parseTweak(readStorage("tweak")) : {},
   };
 }
 
@@ -75,13 +117,15 @@ export const demoStore = {
       for (const key of persisted) {
         if (key in patch) {
           const value = state[key];
-          writeStorage(key, value === null ? null : typeof value === "boolean" ? (value ? "1" : "0") : value);
+          if (key === "tweak") writeStorage(key, formatTweak(state.tweak) || null);
+          else writeStorage(key, value === null ? null : typeof value === "boolean" ? (value ? "1" : "0") : String(value));
         }
       }
     }
     for (const listener of listeners) listener();
   },
-  /** Apply reserved URL params (?demo=0&theme=dark&density=touch&scope=mvp&scenario=x&step=2) without persisting them. */
+  /** Apply reserved URL params (?demo=0&theme=dark&density=touch&scope=mvp&scenario=x&step=2&direction=b&tweak=h:30)
+   * without persisting them. */
   applyParams(params: Record<string, unknown>) {
     const get = (key: string) => (params[key] == null ? undefined : String(params[key]));
     const patch: Partial<DemoState> = {};
@@ -93,6 +137,10 @@ export const demoStore = {
     if (density) patch.density = density;
     const scope = pick(get("scope"), scopes);
     if (scope) patch.scope = scope;
+    const direction = directionId(get("direction"));
+    if (direction) patch.direction = direction;
+    const tweak = get("tweak");
+    if (tweak !== undefined) patch.tweak = parseTweak(tweak);
     const scenario = get("scenario");
     if (scenario !== undefined) {
       patch.scenarioId = scenario || null;

@@ -1,0 +1,8 @@
+/*
+ * Visual directions (project-owned), written by kickoff:design-direction: one file per direction in
+ * ./directions/<id>.css, listed in config.ts `directions`. Each file scopes its tokens to
+ *   :root[data-direction="<id>"]                    (light)
+ *   :root[data-direction="<id>"][data-theme="dark"] (dark: repeat every variable the light block sets)
+ * and writes brand-coloured tokens in terms of --brand-h and --brand-c, so the Tweaks panel can move them.
+ * After the lock (config.ts `direction`), only the chosen file stays imported here.
+ */

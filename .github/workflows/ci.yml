@@ -36,7 +36,9 @@ jobs:
           cd "$RUNNER_TEMP/mini"
           pnpm install --frozen-lockfile
           pnpm --filter web exec playwright install --with-deps chromium
-          PW_CHANNEL=chromium uv run --project "$GITHUB_WORKSPACE/cli" kickoff fe check
+          # impeccable's detector for the anti-pattern check (pinned, published more than 14 days ago)
+          npm install --global impeccable@4.1.0
+          IMPECCABLE_NO_TELEMETRY=1 PW_CHANNEL=chromium uv run --project "$GITHUB_WORKSPACE/cli" kickoff fe check
   examples:
     runs-on: ubuntu-latest
     steps:
