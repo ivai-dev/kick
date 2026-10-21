@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from ..errors import KickoffError
 from ..fe import ToolMissing, bundle, check, migration_notes, new_fe, update_kit
 from ..model import KICKOFF_DIR, load_project, load_state, resolve_root, write_yaml
@@ -24,6 +26,8 @@ def register(sub) -> None:
                                          "(exit 4 without pnpm or a browser)")
     a.add_argument("--skip-e2e", action="store_true",
                    help="skip the browser sweep (quick work inside a task; never a task's verification)")
+    a.add_argument("--shots", type=Path, default=None,
+                   help="folder for a screenshot of every screen x role x width x theme (git-ignored; design review)")
     a.set_defaults(func=run_check)
 
     a = actions.add_parser("bundle", help="build the one-file customer build (apps/web/dist-artifact/index.html)")
@@ -57,7 +61,7 @@ def run_update(args) -> int:
 def run_check(args) -> int:
     root = resolve_root(args.root)
     try:
-        failures = check(root, load_project(root), skip_e2e=args.skip_e2e)
+        failures = check(root, load_project(root), skip_e2e=args.skip_e2e, shots=args.shots)
     except ToolMissing as exc:
         print(f"error: {exc}")
         print("check skipped, not passed")

@@ -333,7 +333,8 @@ def scan_forbidden(root: Path, project: Project) -> list[str]:
     return out
 
 
-def check(root: Path, project: Project, skip_e2e: bool = False, run: Runner = subprocess.run) -> list[str]:
+def check(root: Path, project: Project, skip_e2e: bool = False, run: Runner = subprocess.run,
+          shots: Path | None = None) -> list[str]:
     """Run the frontend checks; return failures (empty = pass). Raises ToolMissing when the check cannot run."""
     base = fe_root(root, project)
     if not (base / "package.json").is_file() or not app_dir(root, project).is_dir():
@@ -347,6 +348,8 @@ def check(root: Path, project: Project, skip_e2e: bool = False, run: Runner = su
         channel = browser_channel()
         if channel:
             env["PW_CHANNEL"] = channel
+        if shots is not None:
+            env["KICKOFF_SHOTS"] = str(shots.resolve())  # the e2e sweep writes one full-page screenshot per test
     failures: list[str] = []
     for script in scripts:
         done = run([pnpm, "-s", script], cwd=base, env=env, capture_output=True, text=True, encoding="utf-8",

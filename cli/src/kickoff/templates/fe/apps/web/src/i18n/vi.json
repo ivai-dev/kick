@@ -1,0 +1,77 @@
+{
+  "common": {
+    "search": "Tìm kiếm",
+    "reset": "Xóa bộ lọc",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "all": "Tất cả"
+  },
+  "table": {
+    "label": "Bảng đề nghị",
+    "columns": "Cột",
+    "selectAll": "Chọn tất cả các dòng trên trang này",
+    "selectRow": "Chọn dòng",
+    "rowsPerPage": "Số dòng mỗi trang",
+    "pageOf": "Trang {{page}}/{{pages}}",
+    "summary": "{{total}} đề nghị",
+    "summarySelected": "Đã chọn {{selected}}/{{total}}",
+    "previous": "Trang trước",
+    "next": "Trang sau",
+    "empty": "Không có đề nghị nào khớp bộ lọc."
+  },
+  "request": {
+    "id": "Mã",
+    "title": "Tiêu đề",
+    "status": "Trạng thái",
+    "owner": "Người phụ trách",
+    "createdAt": "Ngày tạo",
+    "amount": "Số tiền",
+    "description": "Mô tả",
+    "statuses": {
+      "draft": "Nháp",
+      "submitted": "Đã gửi",
+      "approved": "Đã duyệt",
+      "rejected": "Từ chối"
+    }
+  },
+  "requests": {
+    "title": "Đề nghị",
+    "description": "Tất cả đề nghị mua sắm và chi phí của nhóm bạn.",
+    "new": "Tạo đề nghị",
+    "searchPlaceholder": "Tìm theo tiêu đề, người phụ trách, mã…",
+    "statusFilter": "Lọc theo trạng thái"
+  },
+  "newRequest": {
+    "title": "Tạo đề nghị",
+    "description": "Điền thông tin; bạn có thể lưu ở dạng nháp.",
+    "back": "Quay lại danh sách",
+    "titleHint": "Tóm tắt ngắn gọn, cụ thể.",
+    "ownerPlaceholder": "Chọn người phụ trách",
+    "ownerSearch": "Tìm người…",
+    "ownerEmpty": "Không tìm thấy ai.",
+    "submitNow": "Gửi duyệt ngay",
+    "submit": "Tạo đề nghị",
+    "created": "Đã tạo đề nghị {{id}}",
+    "errors": {
+      "title": "Nhập tiêu đề (tối đa 200 ký tự).",
+      "owner": "Chọn người phụ trách.",
+      "amount": "Nhập số tiền từ 0 trở lên."
+    }
+  },
+  "home": {
+    "eyebrow": "Xin chào",
+    "title": "Đề nghị mua sắm thật đơn giản",
+    "lead": "Gửi, theo dõi và phê duyệt đề nghị ở một nơi — trên mọi thiết bị.",
+    "cta": "Bắt đầu",
+    "secondary": "Tìm hiểu thêm",
+    "features": {
+      "fast": { "title": "Nhanh chóng", "body": "Tạo đề nghị chưa đến một phút." },
+      "clear": { "title": "Minh bạch", "body": "Mọi người đều thấy trạng thái ở từng bước." },
+      "safe": { "title": "Kiểm soát", "body": "Ngân sách và phê duyệt theo đúng quy định." }
+    },
+    "stats": {
+      "title": "Số đề nghị theo tháng",
+      "caption": "Dữ liệu minh họa."
+    }
+  }
+}

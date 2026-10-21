@@ -1,0 +1,37 @@
+/*
+ * Project tokens (project-owned). Override @app/ui defaults here: brand colours
+ * (light + dark), radius and font. Use the SAME selectors as @app/ui/styles.css:
+ * :root for light and :root[data-theme="dark"] for dark.
+ * Keep text/background pairs at WCAG AA (4.5:1) — the e2e sweep runs axe.
+ */
+
+:root {
+  --font-body: "Segoe UI", ui-sans-serif, system-ui, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --radius: 0.5rem;
+
+  --primary: oklch(0.5 0.17 258);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.55 0.17 258);
+  --accent: oklch(0.96 0.02 258);
+  --accent-foreground: oklch(0.3 0.1 258);
+  --sidebar: oklch(0.985 0.005 258);
+  --sidebar-accent: oklch(0.94 0.03 258);
+  --sidebar-accent-foreground: oklch(0.3 0.1 258);
+  --sidebar-ring: oklch(0.55 0.17 258);
+  --chart-1: oklch(0.5 0.17 258);
+  --chart-2: oklch(0.65 0.15 200);
+}
+
+:root[data-theme="dark"] {
+  --primary: oklch(0.75 0.12 258);
+  --primary-foreground: oklch(0.18 0.03 258);
+  --ring: oklch(0.65 0.12 258);
+  --accent: oklch(0.3 0.04 258);
+  --accent-foreground: oklch(0.96 0.01 258);
+  --sidebar: oklch(0.19 0.01 258);
+  --sidebar-accent: oklch(0.3 0.04 258);
+  --sidebar-accent-foreground: oklch(0.96 0.01 258);
+  --sidebar-ring: oklch(0.65 0.12 258);
+  --chart-1: oklch(0.75 0.12 258);
+  --chart-2: oklch(0.72 0.12 200);
+}

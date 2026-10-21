@@ -172,9 +172,13 @@ def full_manifest():
     return m
 
 
-def test_check_runs_every_script_then_coverage(ready):
+def test_check_runs_every_script_then_coverage(ready, tmp_path):
     run = FakeRun(manifest=full_manifest())
     assert fe.check(ready, load_project(ready), run=run) == []
+    seen = {}
+    fe.check(ready, load_project(ready), run=lambda argv, cwd, env=None, **kw: seen.setdefault(argv[-1], env) and None
+             or FakeRun(manifest=full_manifest())(argv, cwd, env), shots=tmp_path / "shots")
+    assert seen["e2e"]["KICKOFF_SHOTS"] == str((tmp_path / "shots").resolve())
     assert [c[0] for c in run.calls] == ["typecheck", "lint", "test", "build", "e2e", "manifest"]
     assert run.calls[4][1] == "chromium"
 
@@ -216,13 +220,13 @@ def test_check_scans_forbidden_text(ready):
     (["lint: failed (exit 1)"], 1, "1 failures"),
 ])
 def test_check_command_exit_codes(mini, monkeypatch, capsys, result, code, line):
-    monkeypatch.setattr("kickoff.commands.fe_cmd.check", lambda root, project, skip_e2e=False: result)
+    monkeypatch.setattr("kickoff.commands.fe_cmd.check", lambda root, project, skip_e2e=False, shots=None: result)
     assert main(["--root", str(mini), "fe", "check"]) == code
     assert line in capsys.readouterr().out
 
 
 def test_check_command_exit_4_when_skipped(mini, monkeypatch, capsys):
-    def missing(root, project, skip_e2e=False):
+    def missing(root, project, skip_e2e=False, shots=None):
         raise fe.ToolMissing("pnpm not found")
 
     monkeypatch.setattr("kickoff.commands.fe_cmd.check", missing)
