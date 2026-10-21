@@ -409,7 +409,7 @@ packages:
   i18n:
     en:
       name: "Test data: scripted meetings and first recording round (≥ 1 h)"
-  ticket:
+  item:
     title: "Test data: scripted meetings and first recording round (≥ 1 h)"
     type: task
     epic: E5
@@ -438,7 +438,7 @@ packages:
   i18n:
     en:
       name: "ASR quality harness: syllable error rate and latency"
-  ticket:
+  item:
     title: "ASR quality harness: syllable error rate and latency"
     type: task
     epic: E5
@@ -469,7 +469,7 @@ packages:
   i18n:
     en:
       name: "ASR model selection: evaluate two candidates and size the GPU (ADR-009)"
-  ticket:
+  item:
     title: "ASR model selection: evaluate two candidates and size the GPU (ADR-009)"
     type: task
     epic: E5
@@ -498,7 +498,7 @@ packages:
   i18n:
     en:
       name: "Test data: second recording round, complete set (≥ 2 h)"
-  ticket:
+  item:
     title: "Test data: second recording round, complete set (≥ 2 h)"
     type: task
     epic: E5
@@ -530,7 +530,7 @@ packages:
   i18n:
     en:
       name: Send open questions to the customer and track answers
-  ticket:
+  item:
     title: Send open questions to the customer and track answers
     type: task
     epic: E0
@@ -557,7 +557,7 @@ packages:
   i18n:
     en:
       name: System architecture document and data model
-  ticket:
+  item:
     title: System architecture document and data model
     type: task
     epic: E0
@@ -588,7 +588,7 @@ packages:
   i18n:
     en:
       name: Full-product prototype and customer review session
-  ticket:
+  item:
     title: Full-product prototype and customer review session
     type: task
     epic: E0
@@ -618,7 +618,7 @@ packages:
   i18n:
     en:
       name: Agree MVP scope and NFRs with the customer
-  ticket:
+  item:
     title: Agree MVP scope and NFRs with the customer
     type: task
     epic: E0
@@ -646,7 +646,7 @@ packages:
   i18n:
     en:
       name: Stories and acceptance criteria for build batch 1
-  ticket:
+  item:
     title: Stories and acceptance criteria for build batch 1
     type: task
     epic: E0
@@ -672,7 +672,7 @@ packages:
   i18n:
     en:
       name: Test strategy, browser and device matrix
-  ticket:
+  item:
     title: Test strategy, browser and device matrix
     type: task
     epic: E10
@@ -701,7 +701,7 @@ packages:
   i18n:
     en:
       name: Customer approves the full-product prototype and signs off features
-  ticket:
+  item:
     title: Customer approves the full-product prototype and signs off features
     type: task
     epic: E0
@@ -728,7 +728,7 @@ packages:
   i18n:
     en:
       name: Monorepo tooling, CI and web app shell
-  ticket:
+  item:
     title: Monorepo tooling, CI and web app shell
     type: task
     epic: E1
@@ -758,7 +758,7 @@ packages:
   i18n:
     en:
       name: Design tokens, base components, redacting logger and i18n
-  ticket:
+  item:
     title: Design tokens, base components, redacting logger and i18n
     type: task
     epic: E1
@@ -786,7 +786,7 @@ packages:
   i18n:
     en:
       name: "Backend skeleton: FastAPI, OpenAPI, PostgreSQL, migrations (ADR-008)"
-  ticket:
+  item:
     title: "Backend skeleton: FastAPI, OpenAPI, PostgreSQL, migrations (ADR-008)"
     type: task
     epic: E8
@@ -815,7 +815,7 @@ packages:
   i18n:
     en:
       name: Docker Compose profiles and staging on the trial server
-  ticket:
+  item:
     title: Docker Compose profiles and staging on the trial server
     type: task
     epic: E9
@@ -842,7 +842,7 @@ packages:
   i18n:
     en:
       name: Recording protocol spec and contract test suite
-  ticket:
+  item:
     title: Recording protocol spec and contract test suite
     type: task
     epic: E4
@@ -873,7 +873,7 @@ packages:
   i18n:
     en:
       name: "Gate G1: accept ADR-009, confirm GPU sizing and MVP scope"
-  ticket:
+  item:
     title: "Gate G1: accept ADR-009, confirm GPU sizing and MVP scope"
     type: task
     epic: E0
@@ -900,7 +900,7 @@ packages:
   i18n:
     en:
       name: Recording state machine and upload queue
-  ticket:
+  item:
     title: Recording state machine and upload queue
     type: story
     epic: E4
@@ -927,7 +927,7 @@ packages:
   i18n:
     en:
       name: "Web recorder: AudioWorklet, OPFS buffer, Wake Lock, condition warnings"
-  ticket:
+  item:
     title: "Web recorder: AudioWorklet, OPFS buffer, Wake Lock, condition warnings"
     type: story
     epic: E4
@@ -958,7 +958,7 @@ packages:
   i18n:
     en:
       name: "Audio ingest gateway: chunk storage, idempotent acks, resume"
-  ticket:
+  item:
     title: "Audio ingest gateway: chunk storage, idempotent acks, resume"
     type: story
     epic: E8
@@ -986,7 +986,7 @@ packages:
   i18n:
     en:
       name: Streaming ASR service on staging (partial and final text)
-  ticket:
+  item:
     title: Streaming ASR service on staging (partial and final text)
     type: story
     epic: E5
@@ -1013,7 +1013,7 @@ packages:
   i18n:
     en:
       name: Sign in, roles, unit data isolation, first-login password change and account lockout
-  ticket:
+  item:
     title: Sign in, roles, unit data isolation, first-login password change and account lockout
     type: story
     epic: E2
@@ -1047,7 +1047,7 @@ packages:
   i18n:
     en:
       name: Recording screen and live transcript
-  ticket:
+  item:
     title: Recording screen and live transcript
     type: story
     epic: E5
@@ -1075,7 +1075,7 @@ packages:
   i18n:
     en:
       name: "Meetings: create, quick record, list"
-  ticket:
+  item:
     title: "Meetings: create, quick record, list"
     type: story
     epic: E3
@@ -1104,7 +1104,7 @@ packages:
   i18n:
     en:
       name: "Batch 1 test: 2-hour recording on Chrome/Edge, network loss, tab reload"
-  ticket:
+  item:
     title: "Batch 1 test: 2-hour recording on Chrome/Edge, network loss, tab reload"
     type: task
     epic: E10
@@ -1132,7 +1132,7 @@ packages:
   i18n:
     en:
       name: ASR quality and latency report on staging
-  ticket:
+  item:
     title: ASR quality and latency report on staging
     type: task
     epic: E5
@@ -1163,7 +1163,7 @@ packages:
   i18n:
     en:
       name: Stories and acceptance criteria for build batch 2
-  ticket:
+  item:
     title: Stories and acceptance criteria for build batch 2
     type: task
     epic: E0
@@ -1191,7 +1191,7 @@ packages:
   i18n:
     en:
       name: Automatic recovery after network loss or tab reload, complete upload
-  ticket:
+  item:
     title: Automatic recovery after network loss or tab reload, complete upload
     type: story
     epic: E4
@@ -1219,7 +1219,7 @@ packages:
   i18n:
     en:
       name: Second pass, batch transcription, Vietnamese normalization, glossary biasing
-  ticket:
+  item:
     title: Second pass, batch transcription, Vietnamese normalization, glossary biasing
     type: story
     epic: E5
@@ -1246,7 +1246,7 @@ packages:
   i18n:
     en:
       name: LLM service and job queue; model selection (ADR-010)
-  ticket:
+  item:
     title: LLM service and job queue; model selection (ADR-010)
     type: story
     epic: E6
@@ -1276,7 +1276,7 @@ packages:
   i18n:
     en:
       name: Minutes generation from built-in templates
-  ticket:
+  item:
     title: Minutes generation from built-in templates
     type: story
     epic: E6
@@ -1303,7 +1303,7 @@ packages:
   i18n:
     en:
       name: DOCX and PDF export from the template
-  ticket:
+  item:
     title: DOCX and PDF export from the template
     type: story
     epic: E6
@@ -1330,7 +1330,7 @@ packages:
   i18n:
     en:
       name: "Transcript review: play a segment, edit text"
-  ticket:
+  item:
     title: "Transcript review: play a segment, edit text"
     type: story
     epic: E5
@@ -1357,7 +1357,7 @@ packages:
   i18n:
     en:
       name: Minutes editor beside the transcript
-  ticket:
+  item:
     title: Minutes editor beside the transcript
     type: story
     epic: E6
@@ -1385,7 +1385,7 @@ packages:
   i18n:
     en:
       name: Meeting detail, history, basic search and print
-  ticket:
+  item:
     title: Meeting detail, history, basic search and print
     type: story
     epic: E7
@@ -1412,7 +1412,7 @@ packages:
   i18n:
     en:
       name: Participants and recognition glossary
-  ticket:
+  item:
     title: Participants and recognition glossary
     type: story
     epic: E3
@@ -1440,7 +1440,7 @@ packages:
   i18n:
     en:
       name: Batch 2 test and minutes quality rating
-  ticket:
+  item:
     title: Batch 2 test and minutes quality rating
     type: task
     epic: E10
@@ -1470,7 +1470,7 @@ packages:
   i18n:
     en:
       name: Stories and acceptance criteria for build batch 3
-  ticket:
+  item:
     title: Stories and acceptance criteria for build batch 3
     type: task
     epic: E0
@@ -1497,7 +1497,7 @@ packages:
   i18n:
     en:
       name: "Minutes approval: draft → submitted → approved"
-  ticket:
+  item:
     title: "Minutes approval: draft → submitted → approved"
     type: story
     epic: E6
@@ -1524,7 +1524,7 @@ packages:
   i18n:
     en:
       name: Unit and account CLI; load built-in minutes templates
-  ticket:
+  item:
     title: Unit and account CLI; load built-in minutes templates
     type: story
     epic: E2
@@ -1555,7 +1555,7 @@ packages:
   i18n:
     en:
       name: "Mobile web: view, approve and share minutes"
-  ticket:
+  item:
     title: "Mobile web: view, approve and share minutes"
     type: story
     epic: E6
@@ -1583,7 +1583,7 @@ packages:
   i18n:
     en:
       name: Audit log and server-side encryption at rest
-  ticket:
+  item:
     title: Audit log and server-side encryption at rest
     type: story
     epic: E8
@@ -1610,7 +1610,7 @@ packages:
   i18n:
     en:
       name: Offline install bundle, TLS, backup and restore
-  ticket:
+  item:
     title: Offline install bundle, TLS, backup and restore
     type: task
     epic: E9
@@ -1637,7 +1637,7 @@ packages:
   i18n:
     en:
       name: Basic monitoring and health checks
-  ticket:
+  item:
     title: Basic monitoring and health checks
     type: task
     epic: E9
@@ -1665,7 +1665,7 @@ packages:
   i18n:
     en:
       name: Batch 3 test
-  ticket:
+  item:
     title: Batch 3 test
     type: task
     epic: E10
@@ -1694,7 +1694,7 @@ packages:
   i18n:
     en:
       name: Web recording reliability matrix (browsers × scenarios)
-  ticket:
+  item:
     title: Web recording reliability matrix (browsers × scenarios)
     type: task
     epic: E10
@@ -1722,7 +1722,7 @@ packages:
   i18n:
     en:
       name: "Performance test: concurrent meetings"
-  ticket:
+  item:
     title: "Performance test: concurrent meetings"
     type: task
     epic: E10
@@ -1751,7 +1751,7 @@ packages:
   i18n:
     en:
       name: Automated end-to-end tests (Playwright), extended per batch
-  ticket:
+  item:
     title: Automated end-to-end tests (Playwright), extended per batch
     type: task
     epic: E10
@@ -1778,7 +1778,7 @@ packages:
   i18n:
     en:
       name: Install rehearsal on a clean machine without internet
-  ticket:
+  item:
     title: Install rehearsal on a clean machine without internet
     type: task
     epic: E9
@@ -1806,7 +1806,7 @@ packages:
   i18n:
     en:
       name: "Bug fixing: UI and recorder"
-  ticket:
+  item:
     title: "Bug fixing: UI and recorder"
     type: task
     epic: E10
@@ -1832,7 +1832,7 @@ packages:
   i18n:
     en:
       name: "Bug fixing: server"
-  ticket:
+  item:
     title: "Bug fixing: server"
     type: task
     epic: E10
@@ -1858,7 +1858,7 @@ packages:
   i18n:
     en:
       name: Operator guide and secretary quick guide
-  ticket:
+  item:
     title: Operator guide and secretary quick guide
     type: task
     epic: E9
@@ -1889,7 +1889,7 @@ packages:
   i18n:
     en:
       name: Install on the customer server from the offline bundle
-  ticket:
+  item:
     title: Install on the customer server from the offline bundle
     type: task
     epic: E9
@@ -1920,7 +1920,7 @@ packages:
   i18n:
     en:
       name: UAT session with real users
-  ticket:
+  item:
     title: UAT session with real users
     type: task
     epic: E10
@@ -1952,7 +1952,7 @@ packages:
   i18n:
     en:
       name: UAT support and defect logging
-  ticket:
+  item:
     title: UAT support and defect logging
     type: task
     epic: E10
@@ -1977,7 +1977,7 @@ packages:
   i18n:
     en:
       name: Fixes after UAT
-  ticket:
+  item:
     title: Fixes after UAT
     type: task
     epic: E10
@@ -2004,7 +2004,7 @@ packages:
   i18n:
     en:
       name: Acceptance report and MVP handover
-  ticket:
+  item:
     title: Acceptance report and MVP handover
     type: task
     epic: E10
@@ -2400,7 +2400,7 @@ packages:
   i18n:
     en:
       name: Meeting classification and access rules
-  ticket:
+  item:
     title: Meeting classification and access rules
     type: story
     epic: E2
@@ -2499,7 +2499,7 @@ packages:
   i18n:
     en:
       name: Reference documents, time markers, regenerate one section
-  ticket:
+  item:
     title: Reference documents, time markers, regenerate one section
     type: story
     epic: E6
@@ -2538,7 +2538,7 @@ packages:
   i18n:
     en:
       name: "Unit administration screens: users, roles, unit profile, templates, rooms, voice profiles, activity log"
-  ticket:
+  item:
     title: "Unit administration screens: users, roles, unit profile, templates, rooms, voice profiles, activity log"
     type: story
     epic: E2
@@ -2566,7 +2566,7 @@ packages:
   i18n:
     en:
       name: "System administration screens: units, models and updates, backup, server settings"
-  ticket:
+  item:
     title: "System administration screens: units, models and updates, backup, server settings"
     type: story
     epic: E9
@@ -2596,7 +2596,7 @@ packages:
   i18n:
     en:
       name: Retention policy and long-term archive
-  ticket:
+  item:
     title: Retention policy and long-term archive
     type: task
     epic: E7
@@ -2622,7 +2622,7 @@ packages:
   i18n:
     en:
       name: "Metrics collection: usage, recognition quality, server monitoring"
-  ticket:
+  item:
     title: "Metrics collection: usage, recognition quality, server monitoring"
     type: task
     epic: E14
@@ -2649,7 +2649,7 @@ packages:
   i18n:
     en:
       name: "Statistics pages: unit overview, recognition quality, server monitoring"
-  ticket:
+  item:
     title: "Statistics pages: unit overview, recognition quality, server monitoring"
     type: story
     epic: E14
@@ -2677,7 +2677,7 @@ packages:
   i18n:
     en:
       name: Periodic reports and delivery schedule
-  ticket:
+  item:
     title: Periodic reports and delivery schedule
     type: story
     epic: E14
@@ -2704,7 +2704,7 @@ packages:
   i18n:
     en:
       name: Notification center
-  ticket:
+  item:
     title: Notification center
     type: story
     epic: E15

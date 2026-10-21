@@ -19,7 +19,6 @@ PROJECT = {
         {"id": "qa", "name": "QA", "focus": 1.0},
     ],
     "releases": ["MVP", "R2"],
-    "tracker": {"kind": "none"},
 }
 PLAN = {
     "schema_version": 1,
@@ -58,12 +57,10 @@ def plan(packages: list[dict], **overrides) -> Plan:
     return Plan.from_dict(plan_dict(packages, **overrides))
 
 
-def write_kickoff(root: Path, project=None, plan=None, features=None, state=None, tickets=None) -> Path:
+def write_kickoff(root: Path, project=None, plan=None, features=None, state=None) -> Path:
     k = root / KICKOFF_DIR
     write_yaml(k / "project.yaml", project or copy.deepcopy(PROJECT))
     write_yaml(k / "plan.yaml", plan or copy.deepcopy(PLAN))
     write_yaml(k / "features.yaml", features or copy.deepcopy(FEATURES))
     write_yaml(k / "state.yaml", state or copy.deepcopy(STATE))
-    if tickets is not None:
-        write_yaml(k / "tickets.yaml", tickets)
     return root

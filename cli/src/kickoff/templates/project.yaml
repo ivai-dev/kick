@@ -25,8 +25,6 @@ roles:
     duties: Test data, test automation, UAT support
 releases: [MVP, R2]
 hard_dates: {}
-tracker:
-  kind: none
 rules:
   owners_by_role: true
   synthetic_data_only: true

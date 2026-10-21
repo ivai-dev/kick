@@ -17,15 +17,15 @@ def commands() -> list:
     from .commands import (
         docs_cmd,
         ecc_cmd,
+        export_cmd,
         fe_cmd,
         schedule_cmd,
         state_cmd,
-        tickets_cmd,
         validate_cmd,
         workbook_cmd,
     )
 
-    return [schedule_cmd, validate_cmd, docs_cmd, workbook_cmd, tickets_cmd, state_cmd, fe_cmd, ecc_cmd, hook_cmd]
+    return [schedule_cmd, validate_cmd, docs_cmd, workbook_cmd, export_cmd, state_cmd, fe_cmd, ecc_cmd, hook_cmd]
 
 
 def build_parser() -> argparse.ArgumentParser:

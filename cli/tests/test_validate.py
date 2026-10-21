@@ -98,12 +98,12 @@ def test_forbidden_phrases_warn(tmp_path):
     assert any(line.startswith("warning: plan.yaml packages/0/desc: forbidden phrase") for line in out)
 
 
-def test_ticket_epic_and_sprint_must_exist(tmp_path):
-    ticket = {"title": "x", "type": "task", "epic": "E9", "sprint": "Nope"}
-    out = run(tmp_path, [pkg("1.1.1", ticket=ticket)],
+def test_item_epic_and_sprint_must_exist(tmp_path):
+    item = {"title": "x", "type": "task", "epic": "E9", "sprint": "Nope"}
+    out = run(tmp_path, [pkg("1.1.1", item=item)],
               sprints=[{"name": "S1", "start": "2026-09-28", "days": 10}])
-    assert "error: 1.1.1: ticket epic E9 is not in features.yaml" in out
-    assert "error: 1.1.1: ticket sprint 'Nope' is not in sprints" in out
+    assert "error: 1.1.1: item epic E9 is not in features.yaml" in out
+    assert "error: 1.1.1: item sprint 'Nope' is not in sprints" in out
 
 
 def test_untranslated_plan_text_warns_when_languages_differ(tmp_path):
@@ -125,3 +125,20 @@ def test_cli_exit_codes(tmp_path, capsys):
     assert "0 errors, 0 warnings" in capsys.readouterr().out
     write_kickoff(tmp_path, plan=plan_dict([pkg("1.1.1", deps=["2.2.2"])]))
     assert main(["--root", str(tmp_path), "validate"]) == 1
+
+
+def test_leftovers_of_ticket_management_are_warnings(tmp_path):
+    from helpers import pkg, plan_dict, project_dict, write_kickoff
+
+    from kickoff.validate import validate_root
+
+    item = {"title": "T", "type": "task", "epic": "E1"}
+    root = write_kickoff(tmp_path, project=project_dict(tracker={"kind": "none"}),
+                         plan=plan_dict([pkg("1.1.1", ticket=item)]),
+                         features={"schema_version": 1, "epics": [{"id": "E1", "name": "E"}]})
+    (root / ".kickoff" / "tickets.yaml").write_text("schema_version: 1\n", encoding="utf-8")
+    found = [str(f) for f in validate_root(root)]
+    assert "warning: tickets.yaml: kickoff no longer syncs a tracker; the file can be deleted" in found
+    assert any("project.yaml tracker" in f for f in found)
+    assert any("`ticket` is renamed `item` (1 packages, first 1.1.1)" in f for f in found)
+    assert not any(f.startswith("error") for f in found)

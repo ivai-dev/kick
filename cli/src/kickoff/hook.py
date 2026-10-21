@@ -20,7 +20,6 @@ from .validate import validate_root
 CLI_ONLY = {
     f"{KICKOFF_DIR}/state.yaml": "state.yaml is written by the kickoff CLI only: use kickoff phase, kickoff gate "
                                  "or kickoff fe record",
-    f"{KICKOFF_DIR}/tickets.yaml": "tickets.yaml is written by kickoff tickets only",
 }
 GATEGUARD_HINT = ("ECC GateGuard asks for facts before the first write of each file. If it gets in the way, offer "
                   "`kickoff ecc setup` (show `--dry` first; it exempts only kickoff documents). Never turn GateGuard "

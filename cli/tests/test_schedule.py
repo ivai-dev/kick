@@ -83,19 +83,6 @@ def test_other_modes_and_effort_rate():
     assert dates(s, "1.1.6") == (D(2027, 9, 28), D(2027, 10, 4))
 
 
-def test_actuals_override_and_push_successors():
-    p = plan([pkg("1.1.1", effort=2), pkg("1.1.2", effort=3)])
-    s = build_schedule(project(), p, {"1.1.1": {"started": "2026-09-28", "done": "2026-10-06"}})
-    assert dates(s, "1.1.1") == (D(2026, 9, 28), D(2026, 10, 6))
-    assert dates(s, "1.1.2") == (D(2026, 10, 7), D(2026, 10, 9))
-
-
-def test_done_before_planned_start_keeps_start_not_after_end():
-    p = plan([pkg("1.1.1", effort=5), pkg("1.1.2", effort=5)])
-    s = build_schedule(project(), p, {"1.1.2": {"done": "2026-09-30"}})
-    assert dates(s, "1.1.2") == (D(2026, 9, 30), D(2026, 9, 30))
-
-
 def test_rollup_and_gate():
     p = plan([pkg("1.1.1", effort=2), pkg("1.1.2", effort=3)], gates=[{"id": "G1", "name": "Done", "at": "1"}])
     s = build_schedule(project(), p)
@@ -121,8 +108,8 @@ def test_slip_report_lists_cut_candidates():
     assert lines[1] == "  cut candidate F1.1 Export: frees up to 3 person-days in 1.1.2"
 
 
-def test_baseline_ignores_done_and_actuals():
+def test_baseline_ignores_done():
     p = plan([pkg("1.1.1", effort=4, done=0.5), pkg("1.1.2", effort=3)])
-    s = build_schedule(project(), p, {"1.1.1": {"started": "2026-09-28", "done": "2026-10-06"}}, baseline=True)
+    s = build_schedule(project(), p, baseline=True)
     assert dates(s, "1.1.1") == (D(2026, 9, 28), D(2026, 10, 1))
     assert dates(s, "1.1.2") == (D(2026, 10, 2), D(2026, 10, 6))

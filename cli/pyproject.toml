@@ -23,7 +23,6 @@ testpaths = ["tests"]
 markers = [
     "docker: needs Docker",
     "browser: needs Edge or Chrome and network access to the CDN",
-    "github: needs a sandbox GitHub repository (env KICKOFF_SANDBOX=org/repo#project)",
     "ecc: checks the ECC plugin installed on this machine (skipped without it)",
 ]
 

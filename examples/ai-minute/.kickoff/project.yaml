@@ -148,32 +148,6 @@ releases:
   name: Bảo hành
 hard_dates:
   G5: 2026-11-27
-tracker:
-  kind: github
-  org: ivai-dev
-  repo: ai-minute
-  project: 1
-  assignee: hienlpv
-  milestone: MVP
-  blob_base: https://github.com/ivai-dev/ai-minute/blob/main
-  priority:
-    source: org-field
-    map:
-      P0: High
-      P1: Medium
-      P2: Low
-  issue_fields:
-    Priority:
-      id: IFSS_kgDOAr4JFQ
-      options:
-        High: IFSSO_kgDOBMzLIA
-        Medium: IFSSO_kgDOBMzLIQ
-        Low: IFSSO_kgDOBMzLIg
-        Urgent: IFSSO_kgDOBMzLHw
-    Start:
-      id: IFD_kgDOAr4JFg
-    Target:
-      id: IFD_kgDOAr4JFw
 rules:
   owners_by_role: true
   synthetic_data_only: true

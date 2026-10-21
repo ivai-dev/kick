@@ -4,7 +4,7 @@ duration = max(1, ROUND(effort * (1 - done) / focus, 0))
 start    = WORKDAY(MAX(plan_start - 1, previous package of the role, every dependency), 1, holidays)
 end      = WORKDAY(start, duration - 1, holidays)
 
-With baseline=True (done = 0, no actuals) it is the oracle of the estimate workbook's formulas.
+With baseline=True (done = 0) it is the oracle of the estimate workbook's formulas.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from datetime import date, timedelta
 
 from .calendar import WorkCalendar, edate_minus1
 from .errors import KickoffError
-from .model import Features, Plan, Project, code_key, to_date
+from .model import Features, Plan, Project, code_key
 
 
 class CycleError(KickoffError):
@@ -63,15 +63,10 @@ def role_queues(plan: Plan) -> dict[str, list[str]]:
     return queues
 
 
-def actuals_of(tickets: dict) -> dict:
-    return dict(tickets.get("actuals") or {})
-
-
-def build_schedule(project: Project, plan: Plan, actuals: dict | None = None, baseline: bool = False) -> Schedule:
-    """baseline=True: the plan as estimated; ignores `done` fractions and actuals."""
+def build_schedule(project: Project, plan: Plan, baseline: bool = False) -> Schedule:
+    """baseline=True: the plan as estimated; ignores `done` fractions."""
     cal = calendar_for(project)
     by = plan.by_code()
-    actuals = {} if baseline else (actuals or {})
     prev: dict[str, str | None] = {}
     for queue in role_queues(plan).values():
         for i, code in enumerate(queue):
@@ -96,11 +91,10 @@ def build_schedule(project: Project, plan: Plan, actuals: dict | None = None, ba
         if prev.get(code):
             base.append(solve(prev[code]))
         base += [solve(dep) for dep in p.deps]
-        act = actuals.get(code) or {}
         done = 0.0 if baseline else p.done
         duration = max(1, round_half_up(p.effort * (1 - done) / project.roles[p.role].focus))
-        s = to_date(act["started"]) if act.get("started") else cal.workday(max(base), 1)
-        e = to_date(act["done"]) if act.get("done") else cal.workday(s, duration - 1)
+        s = cal.workday(max(base), 1)
+        e = cal.workday(s, duration - 1)
         start[code], end[code] = min(s, e), e
         state[code] = "done"
         stack.pop()

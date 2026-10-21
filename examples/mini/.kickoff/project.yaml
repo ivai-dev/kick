@@ -38,8 +38,6 @@ roles:
 releases: [MVP, R2]
 hard_dates:
   G1: 2026-10-30
-tracker:
-  kind: none
 rules:
   owners_by_role: true
   synthetic_data_only: true
