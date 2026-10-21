@@ -11,11 +11,12 @@ import yaml
 from .errors import KickoffError
 from .model import KICKOFF_DIR, write_yaml
 
-PHASES = ["init", "discovery", "research", "feature-map", "ux-design", "prototype", "signoff", "solution", "plan",
-          "tickets"]
-GATES = {"C1": "Vision approved", "C2": "Draft scope approved", "C3": "Customer signed off the full feature set",
+PHASES = ["init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "prototype", "signoff",
+          "solution", "plan", "tickets"]
+GATES = {"C1": "Vision approved", "C2": "Draft scope approved", "CF": "Frontend foundation approved",
+         "C3": "Customer signed off the full feature set",
          "C4": "MVP locked", "C5": "Solution approved", "C6": "Plan baselined"}
-GATE_AFTER = {"C1": "discovery", "C2": "feature-map", "C3": "signoff", "C4": "signoff", "C5": "solution",
+GATE_AFTER = {"C1": "discovery", "C2": "feature-map", "CF": "fe-foundation", "C3": "signoff", "C4": "signoff", "C5": "solution",
               "C6": "plan"}
 REQUIRES: dict[str, tuple[list[str], list[str]]] = {
     "init": ([], []),
@@ -23,7 +24,8 @@ REQUIRES: dict[str, tuple[list[str], list[str]]] = {
     "research": (["discovery"], ["C1"]),
     "feature-map": (["discovery"], ["C1"]),
     "ux-design": (["feature-map"], ["C2"]),
-    "prototype": (["ux-design"], ["C2"]),
+    "fe-foundation": (["ux-design"], ["C2"]),
+    "prototype": (["fe-foundation"], ["CF"]),
     "signoff": (["prototype"], []),
     "feedback": (["prototype"], []),
     "solution": (["signoff"], ["C3", "C4"]),

@@ -11,14 +11,14 @@ from pathlib import Path, PurePosixPath
 
 from .ecc import doctor
 from .errors import KickoffError
+from .fe import KIT_PACKAGE, fe_root
 from .model import KICKOFF_DIR, ModelError, find_root, load_project, load_state
-from .proto import KIT_CORE_JS, proto_dir
 from .state import blockers, status_lines
 from .validate import validate_root
 
 CLI_ONLY = {
     f"{KICKOFF_DIR}/state.yaml": "state.yaml is written by the kickoff CLI only: use kickoff phase, kickoff gate "
-                                 "or kickoff proto record",
+                                 "or kickoff fe record",
     f"{KICKOFF_DIR}/tickets.yaml": "tickets.yaml is written by kickoff tickets only",
 }
 GATEGUARD_HINT = ("ECC GateGuard asks for facts before the first write of each file. If it gets in the way, offer "
@@ -89,7 +89,7 @@ def pre_write(payload: dict) -> tuple[int, str]:
     try:
         project = load_project(root)
         arch = _under(path, project.docs_dir(root) / "04-architecture")
-        kit = _under(path, proto_dir(root, project))
+        kit = _under(path, fe_root(root, project) / KIT_PACKAGE)
     except KickoffError:
         return 0, ""  # a broken project.yaml is validate's finding, not a reason to block every write
     if arch is not None and arch.parts[:1] != ("adr",):
@@ -99,10 +99,9 @@ def pre_write(payload: dict) -> tuple[int, str]:
             reasons = []
         if reasons:
             return 2, "architecture documents wait for C3 and C4: " + "; ".join(reasons)
-    if kit is not None and (str(kit) == "narrow.html" or kit.parts[:1] == ("test",)
-                            or (len(kit.parts) == 2 and kit.parts[0] == "js" and kit.suffix == ".js"
-                                and kit.stem in KIT_CORE_JS)):
-        return 2, "the kit core is replaced by kickoff proto update; extend the kit in project files"
+    if kit is not None and "node_modules" not in kit.parts:
+        return 2, ("packages/kit is plugin-owned and replaced by kickoff fe update; build in apps/web, "
+                   "packages/ui or packages/mocks")
     return 0, ""
 
 

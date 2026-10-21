@@ -34,9 +34,9 @@ def signed_off():
     (".kickoff/state.yaml", "state.yaml is written by the kickoff CLI only"),
     (".kickoff/tickets.yaml", "tickets.yaml is written by kickoff tickets only"),
     ("docs/04-architecture/system-architecture.md", "architecture documents wait for C3 and C4: phase signoff"),
-    ("docs/05-design/prototype/js/ui.js", "the kit core is replaced by kickoff proto update"),
-    ("docs/05-design/prototype/narrow.html", "the kit core"),
-    ("docs/05-design/prototype/test/logic.test.js", "the kit core"),
+    ("packages/kit/src/router.tsx", "packages/kit is plugin-owned and replaced by kickoff fe update"),
+    ("packages/kit/package.json", "packages/kit is plugin-owned"),
+    ("packages/kit/e2e/index.ts", "packages/kit is plugin-owned"),
 ])
 def test_pre_write_blocks(tmp_path, rel, reason):
     code, message = pre_write(edit(write_kickoff(tmp_path), rel))
@@ -48,7 +48,7 @@ def test_case_variants_meet_the_same_guard_on_windows(tmp_path):
     root = write_kickoff(tmp_path)
     assert pre_write(edit(root, ".kickoff/Tickets.yaml"))[0] == 2
     assert pre_write(edit(root, "Docs/04-Architecture/Data-Model.md"))[0] == 2
-    assert pre_write(edit(root, "docs/05-design/prototype/JS/UI.js"))[0] == 2
+    assert pre_write(edit(root, "Packages/Kit/src/Router.tsx"))[0] == 2
 
 
 def test_the_fast_path_ignores_files_outside_a_project(tmp_path, monkeypatch, capsys):
@@ -65,8 +65,9 @@ def test_a_non_object_payload_is_a_visible_non_blocking_error(monkeypatch, capsy
 
 @pytest.mark.parametrize("rel", [
     "docs/04-architecture/adr/0001-speech.md",
-    "docs/05-design/prototype/js/common.js",
-    "docs/05-design/prototype/js/ui/extra.js",
+    "apps/web/src/screens/sc-01.tsx",
+    "packages/ui/src/components/button.tsx",
+    "packages/kitchen/readme.md",
     ".kickoff/features.yaml",
     "README.md",
 ])
