@@ -4,7 +4,7 @@
 - **Owner:** Project lead
 - **Direction inputs:** product type {{product type}}; audiences {{audiences}}; keywords {{keywords}}; density per audience {{e.g. public 2–3, staff 4–5, kiosk 1–2}}, variance {{1–10}}, motion {{1–10}}
 
-The prototype copies the token values below into its tokens block; the names match the prototype kit, whose defaults (`../references/foundation-rules.md` of the ux-design skill) apply wherever this file says nothing. The product itself bundles its fonts and assets: the prototype loading fonts from a CDN does not relax that rule.
+`kickoff:fe-foundation` copies the token values below into `apps/web/src/styles/tokens.css`; the names are the CSS variables of `@app/ui` and `@kickoff/kit`, whose defaults (`../references/foundation-rules.md` of the ux-design skill) apply wherever this file says nothing. The FE v0 bundles its fonts and assets.
 
 ## Principles
 
@@ -103,7 +103,7 @@ Per component: purpose, props, states, keyboard and ARIA, density. Library-agnos
 | Dialog / confirm dialog | APG dialog / alertdialog; focus on the first field / on "Cancel" |
 | {{component}} | {{contract}} |
 
-[^impl]: Prototype implementation: KIT.ui on {{the kit's UI library and version}}, prototype tooling only.
+[^impl]: Implementation: `@app/ui` (shadcn on Radix, {{versions from the fe-foundation ADRs}}).
 
 ## Motion
 
