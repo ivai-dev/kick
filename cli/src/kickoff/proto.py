@@ -483,8 +483,11 @@ def _route_spec(route: str, screens: list[dict]) -> dict | None:
     return {"id": screen["id"], "role": role, "query": query, "label": label}
 
 
-def _screen_task(browser: _Browser, base: Path, spec: dict, kind: str, shots: Path | None) -> tuple[str | None, str | None]:
-    """(failure, warning) of one dump: errors, readiness, the runtime audit (data-audit-fail / -warn)."""
+def _screen_task(
+    browser: _Browser, base: Path, spec: dict, kind: str, shots: Path | None, scale: int = 1
+) -> tuple[str | None, str | None]:
+    """(failure, warning) of one dump: errors, readiness, the runtime audit (data-audit-fail / -warn).
+    `scale` multiplies the time budgets (a retry after a transient failure gets more time)."""
     route = spec["label"]
     query = f"?{spec['query']}" if spec["query"] else ""
     hash_ = f"{spec['id']}-{spec['role']}-{'light' if kind == 'narrow' else kind}{query}"
@@ -492,13 +495,13 @@ def _screen_task(browser: _Browser, base: Path, spec: dict, kind: str, shots: Pa
         if kind == "narrow":
             shot = shots / f"{route}-narrow.png" if shots else None
             attrs = browser.dump(
-                (base / "narrow.html").as_uri() + "#" + hash_, 7000, size=(600, 844), file_access=True, shot=shot
+                (base / "narrow.html").as_uri() + "#" + hash_, 7000 * scale, size=(600, 844), file_access=True, shot=shot
             )
             if _attr(attrs, "ok") == "narrow":
                 return None, None
             return f"{route} narrow: {_attr(attrs, 'err') or '390 px check did not complete'}", None
         shot = shots / f"{route}-{kind}.png" if shots else None
-        attrs = browser.dump((base / "index.html").as_uri() + "#" + hash_, 5000, shot=shot)
+        attrs = browser.dump((base / "index.html").as_uri() + "#" + hash_, 5000 * scale, shot=shot)
     except ProtoError as exc:
         return f"{route} {kind}: {exc}", None
     err = _attr(attrs, "err")
@@ -511,16 +514,16 @@ def _screen_task(browser: _Browser, base: Path, spec: dict, kind: str, shots: Pa
     return (f"{route} {kind}: audit {audit}" if audit else None), (f"{route} {kind}: {warn}" if warn else None)
 
 
-def _scenario_task(browser: _Browser, base: Path, sid: str) -> str | None:
+def _scenario_task(browser: _Browser, base: Path, sid: str, scale: int = 1) -> str | None:
     try:
-        attrs = browser.dump((base / "index.html").as_uri() + f"#scn-{sid}", 10000)
+        attrs = browser.dump((base / "index.html").as_uri() + f"#scn-{sid}", 10000 * scale)
         err = _attr(attrs, "err")
         if err:
             return f"scenario {sid}: {err}"
         if _attr(attrs, "scenario") != "done":
             return f"scenario {sid}: did not finish ({_attr(attrs, 'scenario') or 'not started'})"
         attrs = browser.dump(
-            (base / "narrow.html").as_uri() + f"#scn-{sid}-light", 13000, size=(600, 844), file_access=True
+            (base / "narrow.html").as_uri() + f"#scn-{sid}-light", 13000 * scale, size=(600, 844), file_access=True
         )
     except ProtoError as exc:
         return f"scenario {sid}: {exc}"
@@ -673,6 +676,13 @@ def _cdp_selftest(exe: str, url: str, timeout: float = 60) -> str | None:
                 pass
 
 
+TRANSIENT = re.compile(
+    r"not ready|did not complete|timeout|timed out|is undefined|is not defined|failed to fetch|networkerror"
+    r"|error loading|importing a module script failed|no page",
+    re.IGNORECASE,
+)
+
+
 def check(
     root: Path,
     project: Project,
@@ -733,12 +743,28 @@ def check(
             list(pool.map(lambda sid: _scenario_task(browser, base, sid), scenarios)) if routes is None else []
         )
         selftest_result = selftest.result() if selftest else None
+    # The kit loads its libraries from a CDN at run time: a slow or failed fetch looks like a broken screen.
+    # Every failure that looks transient runs once more, one at a time with twice the time budget; a real
+    # defect fails again and is reported, a recovered one is reported as a warning.
+    retried: list[str] = []
+    for i, (fail, _) in enumerate(screen_results):
+        if fail and TRANSIENT.search(fail):
+            screen_results[i] = _screen_task(browser, base, *tasks[i], shots, scale=2)
+            retried += [fail] if not screen_results[i][0] else []
+    for i, fail in enumerate(scenario_results):
+        if fail and TRANSIENT.search(fail):
+            scenario_results[i] = _scenario_task(browser, base, scenarios[i], scale=2)
+            retried += [fail] if not scenario_results[i] else []
+    if selftest_result and TRANSIENT.search(selftest_result):
+        first, selftest_result = selftest_result, _cdp_selftest(exe, (base / "index.html").as_uri() + "#kit-selftest-light")
+        retried += [f"selftest: {first}"] if not selftest_result else []
     failures += [r[0] for r in screen_results if r[0]]
     failures += [r for r in scenario_results if r]
     if selftest_result:
         failures.append(f"selftest: {selftest_result}")
     if warnings is not None:
         warnings += [r[1] for r in screen_results if r[1]]
+        warnings += [f"passed on a retry after a transient failure: {f}" for f in retried]
     return failures
 
 

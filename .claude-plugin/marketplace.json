@@ -1,13 +1,13 @@
 {
   "name": "kickoff",
   "owner": { "name": "ivai-dev" },
-  "metadata": { "description": "Project kickoff workflow plugin", "version": "0.4.0" },
+  "metadata": { "description": "Project kickoff workflow plugin", "version": "0.4.1" },
   "plugins": [
     {
       "name": "kickoff",
       "source": "./",
       "description": "Project kickoff workflow with approval gates, a full-product prototype kit, a role-based estimate workbook and tracker sync.",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "strict": true
     }
   ]

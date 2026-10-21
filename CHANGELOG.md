@@ -2,6 +2,15 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.4.1] - 2026-10-21
+
+### Fixed
+
+- **`kickoff proto check` retries transient failures.** The kit loads its libraries from a CDN at run time, so a slow or failed fetch looked like a broken screen. This was seen on CI runners as "prototype not ready", "ui library: timeout" and "Cannot destructure property 'useState' of 'hooks'".
+  - A failure that looks transient (not ready, timeout, an undefined library global, a failed fetch) now runs once more, one at a time, with twice the time budget.
+  - A failure that repeats is reported as before. One that recovers is printed as `warn: passed on a retry after a transient failure: …`.
+- **`kickoff ecc setup --router` works outside a kickoff project.** The router table belongs to the user, not to a project; the GateGuard exemption still needs a project.
+
 ## [0.4.0] - 2026-10-21
 
 ECC bridge. ECC (`ecc@ecc` 2.2.3 or later) is now a required companion plugin. Kickoff keeps the gates, state, IDs, documents, plan and tickets; ECC does research, options and reviews, and takes over after tickets. The prototype kit is unchanged (0.5.0 replaces it). Spec: docs/plans/2026-10-21-kickoff-v0.4.0.md.
