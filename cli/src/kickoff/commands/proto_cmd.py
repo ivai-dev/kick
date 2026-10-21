@@ -1,10 +1,11 @@
-"""kickoff proto new | update | check | lint | bundle"""
+"""kickoff proto new | update | check | lint | record | bundle"""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from ..model import load_project, resolve_root
+from ..errors import KickoffError
+from ..model import KICKOFF_DIR, load_project, load_state, resolve_root, write_yaml
 from ..proto import BrowserNotFound, bundle, check, lint, migration_notes, new_prototype, update_prototype
 
 
@@ -33,6 +34,11 @@ def register(sub) -> None:
 
     a = actions.add_parser("lint", help="check the foundation rules (L1–L18), count font sizes, weights, inline styles and raw colours; flag forbidden text")
     a.set_defaults(func=run_lint)
+
+    a = actions.add_parser("record", help="record the published prototype link and version in state.yaml")
+    a.add_argument("--artifact", required=True, help="the Artifact link or the bundle path")
+    a.add_argument("--version", type=int, default=None, help="version number (default: the recorded version + 1)")
+    a.set_defaults(func=run_record)
 
     a = actions.add_parser("bundle", help="write the prototype as one self-contained HTML file")
     a.add_argument("--out", type=Path, default=None, help="output file (default: <proto.dir>/dist/prototype.html)")
@@ -91,6 +97,19 @@ def run_lint(args) -> int:
     for failure in failures:
         print(failure)
     return 1 if failures else 0
+
+
+def run_record(args) -> int:
+    root = resolve_root(args.root)
+    state = load_state(root)
+    current = (state.get("prototype") or {}).get("version")
+    version = args.version if args.version is not None else (current or 0) + 1
+    if version < 1 or (current is not None and version < current):
+        raise KickoffError(f"version {version} is lower than the recorded version {current}")
+    state["prototype"] = {"artifact": args.artifact, "version": version}
+    write_yaml(root / KICKOFF_DIR / "state.yaml", state)
+    print(f"prototype v{version}: {args.artifact}")
+    return 0
 
 
 def run_bundle(args) -> int:

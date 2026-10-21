@@ -192,6 +192,40 @@ def check_phrases(project: Project, raw: dict[str, dict]) -> list[Finding]:
     return out
 
 
+DOC_SUFFIXES = {".md", ".yaml", ".yml", ".js", ".html", ".txt"}
+PLACEHOLDER_SUFFIXES = {".md", ".yaml", ".yml"}  # `{{` is ordinary code in JS and HTML (htm style objects)
+FENCE = re.compile(r"^\s*(```|~~~)")
+
+
+def _doc_files(paths: list[Path]) -> list[Path]:
+    out: list[Path] = []
+    for p in paths:
+        if p.is_dir():
+            out += sorted(f for f in p.rglob("*") if f.is_file() and f.suffix in DOC_SUFFIXES)
+        elif p.is_file():
+            out.append(p)
+        else:
+            raise KickoffError(f"no such file or folder: {p}")
+    return out
+
+
+def check_docs(project: Project, paths: list[Path]) -> tuple[list[str], int]:
+    """`{{` placeholders outside code fences (Markdown and YAML) and forbidden phrases (every file):
+    (findings as `path:line: problem`, number of files read)."""
+    patterns = [re.compile(p, re.I) for p in project.rules.get("forbidden_phrases") or []]
+    files = _doc_files(paths)
+    out: list[str] = []
+    for f in files:
+        fenced = False
+        for n, line in enumerate(f.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+            if FENCE.match(line):
+                fenced = not fenced
+            elif "{{" in line and not fenced and f.suffix in PLACEHOLDER_SUFFIXES:
+                out.append(f"{f}:{n}: placeholder {{{{…}}}}")
+            out += [f"{f}:{n}: forbidden phrase /{pat.pattern}/" for pat in patterns if pat.search(line)]
+    return out, len(files)
+
+
 def validate_root(root: Path) -> list[Finding]:
     raw: dict[str, dict] = {}
     out: list[Finding] = []
