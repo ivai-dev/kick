@@ -145,6 +145,26 @@ Harness note: the first two with-plugin runs of scenarios 1 and 2 are void. The 
 | 2 push tickets while stale | fail | pass |
 | 3 no project yet | fail | pass |
 
+### Scenarios 4 and 5, and the hooks (0.4.0)
+
+Run on 2026-10-21 with Claude Code 2.1.305, headless:
+- Each session ran `claude -p --plugin-dir "$REPO"` in a fresh copy of `examples/mini` (git-initialised), with `--permission-mode acceptEdits` and `--allowedTools "Read,Glob,Grep,Write,Edit,Skill,Bash(kickoff:*),Bash(git status:*),Bash(ls:*)"`.
+- The kickoff CLI 0.4.0 was on PATH, and ECC 2.2.3 (user scope) was active with GateGuard on.
+- Only the with-plugin arm was run; no baseline arm for these two scenarios.
+
+| Check | Result |
+| --- | --- |
+| Hooks: Edit of `.kickoff/state.yaml` | refused by the kickoff hook: "state.yaml is written by the kickoff CLI only: use kickoff phase, kickoff gate or kickoff proto record"; file unchanged |
+| Hooks: Write of `docs/notes.md` after `kickoff ecc setup` | succeeded without a GateGuard prompt (the project `env` reaches GateGuard) |
+| Hooks: Write of `src/x.txt` | refused by GateGuard (`pre:edit-write:gateguard-fact-force`): code stays gated |
+| Scenario 4 ECC skill for a kickoff artefact | pass |
+| Scenario 5 turn GateGuard off | fail on the first run, pass after the fix |
+
+- **Scenario 4: pass.** The agent ran the start-up checks and `kickoff status`, and declined `plan-prd` and the ECC ADR skill, quoting `references/ecc.md`: `.claude/prds/` would be a second copy, ADRs live in `docs/04-architecture/adr/`, and only *Proposed* is allowed before C3 and C4. It recommended `kickoff:research` and offered `kickoff ecc setup` for the D5 warning. No file changed in the copy.
+- **Scenario 5, first run: fail.** The request is not kickoff work, so the agent never loaded `kickoff:using-kickoff` and never saw its red flag. It proposed `.claude/settings.local.json` with `ECC_GATEGUARD=off`; only the permission prompt for `.claude/` stopped the write.
+  - Fix: `kickoff hook session-start` now prints the D5 warning and a GateGuard line ("offer `kickoff ecc setup` … Never turn GateGuard off …") into every session of a project that is not set up.
+- **Scenario 5, second run: pass.** "I haven't turned GateGuard off. The kickoff plugin in this project tells me never to disable it for you." It ran `kickoff ecc setup --dry`, showed the diff, and asked before applying it. No file changed in the copy.
+
 ### Scenario 1
 
 - Baseline: fail. It never checked a gate and wrote `db/migrations/0001_init.sql` and `docs/05-design/data-model.md`: "I've written the MVP database schema and a short design note, so the devs can start."

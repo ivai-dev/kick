@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path, PurePosixPath
 
-from .ecc import install_checks
+from .ecc import doctor
 from .errors import KickoffError
 from .model import KICKOFF_DIR, ModelError, find_root, load_project, load_state
 from .proto import KIT_CORE_JS, proto_dir
@@ -20,6 +20,9 @@ CLI_ONLY = {
                                  "or kickoff proto record",
     f"{KICKOFF_DIR}/tickets.yaml": "tickets.yaml is written by kickoff tickets only",
 }
+GATEGUARD_HINT = ("ECC GateGuard asks for facts before the first write of each file. If it gets in the way, offer "
+                  "`kickoff ecc setup` (show `--dry` first; it exempts only kickoff documents). Never turn GateGuard "
+                  "off (ECC_GATEGUARD or ECC_DISABLED_HOOKS) for the user.")
 
 
 def _root(start: Path) -> Path | None:
@@ -58,8 +61,14 @@ def session_start(payload: dict) -> tuple[int, str]:
         lines += status_lines(load_state(root))
     except KickoffError as exc:
         lines.append(f"kickoff status failed: {exc}")
-    _, checks = install_checks(root)
+    try:
+        docs_root = load_project(root).docs_root
+    except KickoffError:
+        docs_root = None
+    checks = doctor(root, docs_root)
     lines += [f"ecc {c}" for c in checks if c.level != "ok"]
+    if any(c.level == "warn" and c.text.startswith("D5") for c in checks):
+        lines.append(GATEGUARD_HINT)
     return 0, "\n".join(lines)
 
 

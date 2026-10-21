@@ -96,6 +96,16 @@ def test_session_start_prints_status_and_the_ecc_failure(tmp_path):
     assert text.startswith("kickoff project detected: use the kickoff:using-kickoff skill.")
     assert "\nNext: " in text
     assert "ecc fail: D1 ECC is not installed" in text
+    assert "ecc warn: D5" in text and "Never turn GateGuard off" in text
+
+
+def test_session_start_drops_the_gateguard_hint_once_the_project_is_set_up(tmp_path):
+    root = write_kickoff(tmp_path)
+    (root / ".claude").mkdir()
+    (root / ".claude" / "settings.json").write_text(
+        json.dumps({"env": {"GATEGUARD_EXEMPT_GLOBS": ".kickoff/**,docs/**,AGENTS.md"}}), encoding="utf-8")
+    _, text = session_start({"cwd": str(root)})
+    assert "D5" not in text and "GateGuard" not in text
 
 
 def run_hook(monkeypatch, capsys, event, payload):
