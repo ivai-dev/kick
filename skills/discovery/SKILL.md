@@ -40,8 +40,9 @@ Turns the customer's material into a vision and scope the project lead can appro
 5. **Write `<docs_root>/01-discovery/vision-scope.md`** from `templates/vision-scope.md`, sections in this order: Summary, Users and roles, Problem, Goals and success criteria, Scope by release, Out of scope, Constraints, Decisions, Timeline. Scope covers the full product across all releases from `project.yaml`, not only the MVP. Decisions are numbered `D1`, `D2`, … with date and source; the Timeline lists the hard dates.
 6. **Write `<docs_root>/01-discovery/stakeholders.md`** from `templates/stakeholders.md`: table Name/role, Organisation, Interest, Influence, Contact channel. Use roles only when the documents give no names; never invent a name.
 7. **Write `<docs_root>/01-discovery/open-questions.md`** from `templates/open-questions.md`: one row per unknown with ID (`Q1`, `Q2`, …), Question, Why it matters, Blocks (phase or WBS code), Needed by (date), Owner (role), Status. Every question gets a needed-by date: the latest date an answer still lets the blocked work start on time. Then the "Decision log" section: one dated entry per decision, `D<n>` with date, decision, source and what it changes. A decision found in the inputs goes in the log the day it is found.
-8. **Verify** (section below), then `kickoff phase done discovery` and commit `docs: discovery — vision, scope, stakeholders and open questions`.
-9. **Ask the project lead to approve C1** (Vision): show the summary, the decisions and the questions due first. Only after an explicit yes, record it with `kickoff gate approve C1 --by "Project lead" --evidence "<commit or record link>"` (the commit of step 8, or the meeting record where the lead approved), and commit `chore: approve C1`. If the lead asks for changes, make them, verify again and repeat step 8 and this step.
+8. **Product lens:** invoke `ecc:product-lens` and run its four diagnostics over the draft `vision-scope.md`, as a lens only. It must not write `PRODUCT-BRIEF.md` (`../using-kickoff/references/ecc.md`). Each gap it finds (the why, the user, the wedge, the success measure) becomes a `Q<n>` in `open-questions.md`, or is answered in `vision-scope.md` with its source.
+9. **Verify** (section below), then `kickoff phase done discovery` and commit `docs: discovery — vision, scope, stakeholders and open questions`.
+10. **Ask the project lead to approve C1** (Vision): show the summary, the decisions and the questions due first. Only after an explicit yes, record it with `kickoff gate approve C1 --by "Project lead" --evidence "<commit or record link>"` (the commit of step 9, or the meeting record where the lead approved), and commit `chore: approve C1`. If the lead asks for changes, make them, verify again and repeat step 9 and this step.
 
 ## Outputs
 
@@ -52,11 +53,10 @@ Turns the customer's material into a vision and scope the project lead can appro
 
 ## Verify
 
-1. Search the three files for `{{`: no placeholder is left.
+1. `kickoff check-docs <docs_root>/01-discovery` prints `check-docs passed` (no placeholder, no forbidden phrase). Owners are roles, not people.
 2. Every row of the open-questions table has a Needed by date, a Blocks entry and an Owner role; every decision has a date and a source.
-3. Every unknown from step 3 is a question in `open-questions.md` or is answered in `vision-scope.md`.
-4. Search the three files with each pattern of `rules.forbidden_phrases` in `project.yaml`: no match. Owners are roles, not people.
-5. `kickoff validate` reports `0 errors`.
+3. Every unknown from step 3 and every product-lens gap from step 8 is a question in `open-questions.md` or is answered in `vision-scope.md`.
+4. `kickoff validate` reports `0 errors`.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
 

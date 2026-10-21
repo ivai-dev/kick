@@ -78,10 +78,9 @@ After the customer has signed off (C3), scope changes go through `kickoff:feedba
 
 1. `kickoff validate` reports `0 errors`; explain every warning.
 2. `kickoff docs --check` prints `documents up to date` (exit 0).
-3. Search `nfr.md` for `{{`: no placeholder is left.
+3. `kickoff check-docs <docs_root>/02-requirements/nfr.md .kickoff/features.yaml` prints `check-docs passed` (no placeholder, no forbidden phrase). Owners and verifiers are roles.
 4. Every release in `project.yaml` has at least one feature, or `vision-scope.md` says why not. Every active feature has a release, a priority and platforms.
 5. Every removed feature has `removed_by` naming a `D<n>` that exists in the Decision log.
-6. Search `features.yaml` and `nfr.md` with each pattern of `rules.forbidden_phrases` in `project.yaml`: no match. Owners and verifiers are roles.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
 

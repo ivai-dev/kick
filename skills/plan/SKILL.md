@@ -59,7 +59,8 @@ Builds `.kickoff/plan.yaml` with the project lead (phases, groups and work packa
    ```
 
 4. **Validate:** `kickoff validate`. Fix every error; a dependency cycle is fixed in `deps` or `order_after`, never worked around. Explain every warning to the lead (missing translations, features without a package).
-5. **Schedule:** `kickoff schedule` prints each gate's date (and its hard date). Report them. Exit 3 means a hard date slips: follow the slip decision procedure in `references/estimation.md` with the lead. Never edit dates by hand to hide a slip.
+5. **Schedule:** `kickoff schedule` prints each gate's date (and its hard date). Report them. Exit 3 means a hard date slips: follow the slip decision procedure in `references/estimation.md` with the lead. Before you present the `cut_order` options, run `ecc:council` on them and give the lead its verdict with the dissent (`../using-kickoff/references/ecc.md`). Never edit dates by hand to hide a slip.
+   **Baseline only:** once the schedule passes, run an `ecc:planner` agent as a read-only reviewer. Give it the paths of `plan.yaml`, the signed-off `features.yaml`, `system-architecture.md` and `data-model.md`, and ask for missing work only, not a new plan. Each gap becomes a package (shown with the Bounded approval method) or a ruling.
 6. **Estimate workbook:** `kickoff workbook --verify` writes `<docs_root>/06-planning/<project>-estimate.xlsx` (WBS, effort and schedule as formulas; the baseline, no progress) and recalculates it with LibreOffice in Docker. Expected: `verify: OK, zero error cells and every row matches the baseline schedule`. Without Docker it prints that the recalculation was skipped: report it as skipped. Sending the workbook to the customer is publishing: ask the lead first.
 7. **Plan prose:** read `<docs_root>/06-planning/plan.md` if it exists. `kickoff docs` (run by earlier phases) already creates this file as a bare skeleton, so it counts as not written yet when it is missing **or** holds nothing but that skeleton: the title (`# Plan`, or its repository-language form from `docs.py`), then `## Gates`, `## Phases` and `## Sprints`, each followed only by a `<!-- kickoff:begin <name> -->` … `<!-- kickoff:end <name> -->` block (empty or already filled with a generated table), and no other text outside the blocks. In both cases write the whole file from `templates/plan.md` (it has the same three blocks, so no generated table is lost). If the file has any other prose, keep that prose and the markers and edit only what changed. Sections: Goal and milestones, Delivery strategy, Team and focus, Feature sign-off, Sprints, Scope-cut order, Assumptions, Risks summary. Write prose only outside the `<!-- kickoff:begin <name> -->` … `<!-- kickoff:end <name> -->` blocks (`gates`, `phases`, `sprints`).
 8. **Documents:** `kickoff docs` fills those blocks (also in a plan.md just written from the template, where they are still empty) and regenerates `feature-map.md`, `wbs.md` and `risk-register.md`.
@@ -79,9 +80,8 @@ Builds `.kickoff/plan.yaml` with the project lead (phases, groups and work packa
 2. `kickoff schedule` exits 0, or exits 3 with the lead's slip decision recorded as a `D<n>`.
 3. `kickoff workbook --verify` prints `verify: OK, zero error cells and every row matches the baseline schedule`, or the Docker-skipped line, reported as skipped.
 4. `kickoff docs --check` prints `documents up to date`.
-5. Search `plan.md` for `{{`: no placeholder is left.
+5. `kickoff check-docs <docs_root>/06-planning .kickoff/plan.yaml` prints `check-docs passed`: no placeholder, and no forbidden phrase in the plan documents or the `ticket` blocks. Owners are roles.
 6. Every active feature has a `wbs` entry, and every ticketed package names an epic and a sprint that exist (`kickoff validate` checks both).
-7. Search `plan.md`, `wbs.md`, `risk-register.md` and the `ticket` blocks with each pattern of `rules.forbidden_phrases` in `project.yaml`: no match. Owners are roles.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
 

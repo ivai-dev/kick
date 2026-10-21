@@ -22,7 +22,7 @@ Write `<folder>/BRIEF.md` before starting any reviewer. Every reviewer reads it 
 - **Decisions already taken** (`D<n>` from the Decision log): do not reopen; build on them.
 - **Where things are:** ux-spec, design-system, Decision log, prototype files (shared pieces, screen modules, data, scenarios), screenshot folders.
 - **Rules for every reviewer:**
-  - read-only on the repository; write only your own files in the review folder;
+  - read-only on the repository; return your report as your final answer (the caller saves it in the review folder);
   - research first: learn from best-in-class examples for your viewpoint and cite the URLs;
   - be concrete: screen ID, element, what is wrong, why it matters for that role, the change (a layout sketch in words or ASCII, the exact wording in the UI language);
   - rank every finding: **P1** blocks or floods the user, **P2** confuses or slows, **P3** polish;
@@ -30,6 +30,23 @@ Write `<folder>/BRIEF.md` before starting any reviewer. Every reviewer reads it 
   - propose guidance devices from `../../ux-design/references/guidance-library.md` where they help, and say where not to add them;
   - respect the decisions and the kit; a decision you think is wrong goes into a short separate section;
   - synthetic data only; no forbidden phrases (`rules.forbidden_phrases`).
+
+## Agents
+
+The reviewers and the integrator are plugin agents with read-only tools. Run them with the Agent tool, the reviewers in parallel in one message. Each agent returns its report as text, and you save it under the file name given below.
+
+| Role in the loop | Agent |
+| --- | --- |
+| One audience or role group | `kickoff:viewpoint-reviewer` (name the group in the prompt) |
+| Craft and micro-detail auditor | `kickoff:craft-auditor` |
+| IA and guidance designer | `kickoff:ia-reviewer` |
+| Lens reviewer (foundation pass) | `kickoff:viewpoint-reviewer` with the lens named in the prompt |
+| Integrator | `kickoff:integrator` |
+
+Give every agent:
+- the path of `BRIEF.md` and of the screenshot folder;
+- the absolute paths of the references it needs (this skill's folder and `../../ux-design/references/`);
+- for the craft auditor, also the paths of ECC's `accessibility` and `frontend-a11y` skills, from `kickoff ecc root` (`<root>/skills/<name>/SKILL.md`).
 
 ## 3. Viewpoint reviewers
 
@@ -60,7 +77,7 @@ Then one **screen audit** per screen group, written from a brief with: the job a
 
 ## 4. Cross-review
 
-Each reviewer reads the other reports and writes `<folder>/x-r<n>.md`: what it agrees with, what it disagrees with and why, conflicts between reports, what everyone missed, and rank changes. One round is enough.
+Run each reviewer agent again, given the other reports; save its answer as `<folder>/x-r<n>.md`. It covers: what it agrees with, what it disagrees with and why, conflicts between reports, what everyone missed, and rank changes. One round is enough.
 
 ## 5. Integrator plan
 
