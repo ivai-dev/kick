@@ -13,7 +13,7 @@ After updating: run `uv tool install --force "<plugin root>/cli"`, then `kickoff
 - **`kickoff ecc` commands:**
   - `root`: locates ECC from `installed_plugins.json` (project scope first) or `KICKOFF_ECC_ROOT`.
   - `doctor`: checks D1–D6: installed, version, the components kickoff uses, the hook profile, the GateGuard exemption and the router route.
-  - `setup [--router] [--dry]`: exempts `.kickoff/**`, `docs_root` and `AGENTS.md` from GateGuard in `.claude/settings.json`; with `--router`, it also adds the kickoff route to the ecc-router table.
+  - `setup [--router] [--dry]`: exempts `.kickoff/**`, `docs_root` and `AGENTS.md` from GateGuard in `.claude/settings.json` (or in `settings.local.json` when that file holds the value); with `--router`, it also adds the kickoff route to the ecc-router table.
   - `run <script>`: runs an ECC script from the ECC folder, with the project as the current folder.
 - **`kickoff hook session-start | pre-write | post-write`,** wired in `hooks/hooks.json`:
   - pre-write refuses hand edits of `state.yaml` and `tickets.yaml`, architecture documents outside `adr/` before C3 and C4, and edits of the kit core;
@@ -32,7 +32,11 @@ After updating: run `uv tool install --force "<plugin root>/cli"`, then `kickoff
   - solution gets its options from an `ecc:architect` agent and reviews from `ecc:security-reviewer` and `ecc:database-reviewer` before C5;
   - plan runs `ecc:council` on slip options and an `ecc:planner` review of the baseline WBS.
 - **Verify sections** use `kickoff check-docs` in place of manual searches.
-- **Hooks:** the SessionStart hook calls `kickoff hook session-start`, and falls back to `kickoff status` with an older CLI. Hooks report a block as a JSON decision with exit 0, so an older CLI can never block a write.
+- **Hooks:**
+  - The SessionStart hook calls `kickoff hook session-start`, and falls back to `kickoff status` with an older CLI. It prints the GateGuard rule in projects that `kickoff ecc setup` has not configured.
+  - Hooks report a block as a JSON decision with exit 0, so an older CLI can never block a write.
+  - Outside a kickoff project, `kickoff hook` returns before importing anything beyond the standard library.
+  - Path guards ignore letter case on Windows.
 
 ## [0.3.1] - 2026-10-21
 

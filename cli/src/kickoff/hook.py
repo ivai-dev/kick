@@ -6,6 +6,7 @@ exit 0 (see commands/hook_cmd.py). A tree without .kickoff/ is never touched."""
 
 from __future__ import annotations
 
+import os
 from pathlib import Path, PurePosixPath
 
 from .ecc import doctor
@@ -46,10 +47,13 @@ def _target(payload: dict) -> tuple[Path, Path] | None:
 
 
 def _under(path: Path, folder: Path) -> PurePosixPath | None:
+    """`path` relative to `folder`, case-folded where the file system ignores case (Windows), so `Tickets.yaml`
+    meets the same guard as `tickets.yaml`; None when `path` is outside `folder`."""
     try:
-        return PurePosixPath(path.relative_to(folder.resolve()).as_posix())
+        rel = path.relative_to(folder.resolve())
     except ValueError:
         return None
+    return PurePosixPath(os.path.normcase(str(rel)).replace(os.sep, "/"))
 
 
 def session_start(payload: dict) -> tuple[int, str]:

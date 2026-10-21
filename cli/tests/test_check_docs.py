@@ -24,6 +24,22 @@ def test_findings_are_listed_with_file_and_line(tmp_path, capsys):
     assert out.rstrip().endswith("2 findings")
 
 
+def test_nested_and_mixed_fences(tmp_path, capsys):
+    root = project_with_rules(tmp_path)
+    doc = root / "guide.MD"
+    doc.write_text("````md\n```\n{{inside}}\n```\n````\n~~~\n```\n{{tilde}}\n~~~\nOwner: {{after}}\n", encoding="utf-8")
+    assert main(["--root", str(root), "check-docs", str(doc), str(doc)]) == 1
+    out = capsys.readouterr().out
+    assert out.count("placeholder") == 1 and f"{doc}:10:" in out  # duplicates collapse, fences hold
+
+
+def test_an_invalid_forbidden_phrase_is_reported(tmp_path, capsys):
+    root = write_kickoff(tmp_path, project=project_dict(rules={"forbidden_phrases": ["(oops"]}))
+    (root / "a.md").write_text("x\n", encoding="utf-8")
+    assert main(["--root", str(root), "check-docs", str(root / "a.md")]) == 2
+    assert "invalid regular expression" in capsys.readouterr().err
+
+
 def test_clean_files_pass(tmp_path, capsys):
     root = project_with_rules(tmp_path)
     doc = root / "docs" / "plan.md"

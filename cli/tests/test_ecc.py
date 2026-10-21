@@ -80,6 +80,38 @@ def test_highest_user_version_wins_and_stale_paths_are_skipped(tmp_path, cfg):
     assert ecc.find_install().version == "2.10.0"
 
 
+def test_local_scope_and_a_project_path_above_the_kickoff_folder(tmp_path, cfg):
+    user = fake_ecc(tmp_path / "u", "2.4.0")
+    local = fake_ecc(tmp_path / "l", "2.2.3")
+    repo = tmp_path / "repo"
+    (repo / "product").mkdir(parents=True)
+    register(cfg, entry(user, "2.4.0"), entry(local, "2.2.3", "local", repo))
+    assert ecc.find_install(repo / "product").root == local
+    assert ecc.find_install(tmp_path / "other").root == user
+
+
+@pytest.mark.parametrize("data", [[], {"plugins": []}, {"plugins": {"ecc@ecc": {"x": 1}}},
+                                  {"plugins": {"ecc@ecc": ["junk", 3]}}])
+def test_malformed_install_records_mean_not_installed(cfg, data):
+    p = cfg / "plugins" / "installed_plugins.json"
+    p.parent.mkdir(parents=True)
+    p.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ecc.EccError, match="ECC is not installed"):
+        ecc.find_install()
+
+
+@pytest.mark.parametrize(("value", "key"), [("2.2.3", (2, 2, 3)), ("v2.10.1-rc.1", (2, 10, 1)), ("a1b2c3d4", None),
+                                            ("unknown", None), ("", None)])
+def test_version_key(value, key):
+    assert ecc.version_key(value) == key
+
+
+def test_doctor_warns_on_a_non_version(tmp_path, cfg, capsys):
+    register(cfg, entry(fake_ecc(tmp_path / "e", "x"), "a1b2c3d4"))
+    code, out = doctor_out(capsys)
+    assert code == 0 and "warn: D2 ECC version 'a1b2c3d4' is not a version number" in out
+
+
 def test_not_installed(cfg):
     with pytest.raises(ecc.EccError, match="ECC is not installed"):
         ecc.find_install()
@@ -134,7 +166,7 @@ def test_doctor_warns_about_project_setup_and_the_router(tmp_path, cfg, installe
     code, out = doctor_out(capsys, tmp_path / "proj")
     assert code == 0
     assert "warn: D4" in out
-    assert "warn: D5 GATEGUARD_EXEMPT_GLOBS lacks .kickoff/**, docs/**, AGENTS.md" in out
+    assert "warn: D5 GATEGUARD_EXEMPT_GLOBS in .claude/settings.json lacks .kickoff/**, docs/**, AGENTS.md" in out
     assert "warn: D6" in out
 
 
@@ -171,6 +203,45 @@ def test_setup_refuses_invalid_json(tmp_path, cfg, installed, capsys):
     assert main(["--root", str(root), "ecc", "setup"]) == 2
     assert "invalid JSON, nothing written" in capsys.readouterr().err
     assert (root / ".claude" / "settings.json").read_text(encoding="utf-8") == "{oops"
+
+
+@pytest.mark.parametrize(("settings", "message"), [
+    ({"env": None}, "\"env\" is not an object"),
+    ({"env": ["x"]}, "\"env\" is not an object"),
+    ({"env": {"GATEGUARD_EXEMPT_GLOBS": False}}, "is not a string"),
+    ([1], "expected a JSON object"),
+])
+def test_setup_refuses_odd_shapes_without_writing(tmp_path, cfg, installed, capsys, settings, message):
+    root = write_kickoff(tmp_path / "proj")
+    path = root / ".claude" / "settings.json"
+    path.parent.mkdir()
+    path.write_text(json.dumps(settings), encoding="utf-8")
+    assert main(["--root", str(root), "ecc", "setup"]) == 2
+    assert message in capsys.readouterr().err
+    assert json.loads(path.read_text(encoding="utf-8")) == settings
+
+
+def test_doctor_survives_odd_settings(tmp_path, cfg, installed, capsys):
+    root = write_kickoff(tmp_path / "proj")
+    (root / ".claude").mkdir()
+    (root / ".claude" / "settings.json").write_text(json.dumps({"env": {"GATEGUARD_EXEMPT_GLOBS": ["x"]}}),
+                                                    encoding="utf-8")
+    code, out = doctor_out(capsys, root)
+    assert code == 0 and "warn: D5" in out
+
+
+def test_setup_updates_the_local_file_when_it_holds_the_value(tmp_path, cfg, installed, capsys):
+    root = write_kickoff(tmp_path / "proj")
+    (root / ".claude").mkdir()
+    local = root / ".claude" / "settings.local.json"
+    local.write_text(json.dumps({"env": {"GATEGUARD_EXEMPT_GLOBS": "tmp/**"}}), encoding="utf-8")
+    assert main(["--root", str(root), "ecc", "setup"]) == 0
+    assert json.loads(local.read_text(encoding="utf-8"))["env"]["GATEGUARD_EXEMPT_GLOBS"] == \
+        "tmp/**,.kickoff/**,docs/**,AGENTS.md"
+    assert not (root / ".claude" / "settings.json").exists()
+    capsys.readouterr()
+    assert main(["--root", str(root), "ecc", "doctor"]) == 0
+    assert "ok: D5" in capsys.readouterr().out
 
 
 def test_setup_router_adds_the_block_once_under_the_planning_lane(tmp_path, cfg, installed):

@@ -104,7 +104,9 @@ def run_record(args) -> int:
     state = load_state(root)
     current = (state.get("prototype") or {}).get("version")
     version = args.version if args.version is not None else (current or 0) + 1
-    if version < 1 or (current is not None and version < current):
+    if version < 1:
+        raise KickoffError(f"version {version}: versions start at 1")
+    if current is not None and version < current:
         raise KickoffError(f"version {version} is lower than the recorded version {current}")
     state["prototype"] = {"artifact": args.artifact, "version": version}
     write_yaml(root / KICKOFF_DIR / "state.yaml", state)

@@ -61,12 +61,23 @@ def config_dir() -> Path:
     return Path(env) if env else Path.home() / ".claude"
 
 
-def version_key(value: str) -> tuple[int, ...]:
-    return tuple(int(n) for n in re.findall(r"\d+", value or "")[:3]) or (0,)
+VERSION = re.compile(r"^v?(\d+(?:\.\d+)*)")
 
 
-def _same_path(a: str | Path, b: Path) -> bool:
-    return os.path.normcase(str(Path(a).resolve())) == os.path.normcase(str(b.resolve()))
+def version_key(value: str) -> tuple[int, ...] | None:
+    """(2, 2, 3) for "2.2.3" or "v2.2.3-rc.1"; None when the value is not a version (a commit SHA, "unknown")."""
+    m = VERSION.match((value or "").strip()) if isinstance(value, str) else None
+    return tuple(int(n) for n in m.group(1).split(".")[:3]) if m else None
+
+
+def _norm(p: str | Path) -> str:
+    return os.path.normcase(str(Path(p).resolve()))
+
+
+def _covers(project_path: str, project: Path) -> bool:
+    """True when the entry's project folder is `project` or one of its parents (a git root above .kickoff/)."""
+    base, here = _norm(project_path), _norm(project)
+    return here == base or here.startswith(base.rstrip(os.sep) + os.sep)
 
 
 def _manifest_version(root: Path) -> str:
@@ -87,19 +98,22 @@ def find_install(project: Path | None = None) -> Install:
         return Install(root, _manifest_version(root))
     path = config_dir() / "plugins" / "installed_plugins.json"
     try:
-        entries = json.loads(path.read_text(encoding="utf-8")).get("plugins", {}).get(PLUGIN_KEY) or []
+        data = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
-        entries = []
+        data = {}
     except ValueError as exc:
         raise EccError(f"{path}: invalid JSON: {exc}") from exc
-    entries = [e for e in entries if e.get("installPath") and Path(e["installPath"]).is_dir()]
-    local = [e for e in entries if e.get("scope") == "project" and project and e.get("projectPath")
-             and _same_path(e["projectPath"], project)]
-    pool = local or [e for e in entries if e.get("scope") == "user"]
+    plugins = data.get("plugins") if isinstance(data, dict) else None
+    entries = plugins.get(PLUGIN_KEY) if isinstance(plugins, dict) else None
+    entries = [e for e in entries if isinstance(e, dict)] if isinstance(entries, list) else []
+    entries = [e for e in entries if isinstance(e.get("installPath"), str) and Path(e["installPath"]).is_dir()]
+    here = [e for e in entries if e.get("scope") in ("project", "local") and project is not None
+            and isinstance(e.get("projectPath"), str) and _covers(e["projectPath"], project)]
+    pool = here or [e for e in entries if e.get("scope") in ("user", "managed", None)]
     if not pool:
         raise EccError(f"ECC is not installed (no {PLUGIN_KEY} in installed_plugins.json)")
-    best = max(pool, key=lambda e: version_key(e.get("version", "")))
-    return Install(Path(best["installPath"]), best.get("version", ""))
+    best = max(pool, key=lambda e: version_key(str(e.get("version", ""))) or (0,))
+    return Install(Path(best["installPath"]), str(best.get("version", "")))
 
 
 def component_path(root: Path, kind: str, name: str) -> Path:
@@ -120,19 +134,33 @@ def exempt_globs(docs_root: str) -> list[str]:
     return [".kickoff/**", f"{docs_root.strip('/')}/**", "AGENTS.md"]
 
 
-def _settings_env(project: Path) -> dict:
-    env: dict = {}
-    for name in ("settings.json", "settings.local.json"):
-        try:
-            data = json.loads((project / ".claude" / name).read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
-        env.update(data.get("env") or {})
-    return env
+SETTINGS_FILES = ("settings.local.json", "settings.json")  # the first file that sets a key wins
 
 
-def _split(value: str) -> list[str]:
-    return [g.strip() for g in (value or "").split(",") if g.strip()]
+def _read_env(path: Path) -> dict:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    env = data.get("env") if isinstance(data, dict) else None
+    return env if isinstance(env, dict) else {}
+
+
+def _exempt_source(project: Path) -> Path:
+    """The project settings file whose GATEGUARD_EXEMPT_GLOBS is in effect (settings.json when none sets it)."""
+    for name in SETTINGS_FILES:
+        path = project / ".claude" / name
+        if EXEMPT_ENV in _read_env(path):
+            return path
+    return project / ".claude" / "settings.json"
+
+
+def _split(value) -> list[str]:
+    if isinstance(value, list):
+        value = ",".join(v for v in value if isinstance(v, str))
+    if not isinstance(value, str):
+        return []
+    return [g.strip() for g in value.split(",") if g.strip()]
 
 
 def router_table() -> Path:
@@ -147,7 +175,10 @@ def install_checks(project: Path | None) -> tuple[Install | None, list[Check]]:
         return None, [Check("fail", f"D1 {exc}")]
     out = [Check("ok", f"D1 ECC {install.version or '(version unknown)'} at {install.root}")]
     v = version_key(install.version)
-    if v < version_key(MIN_ECC):
+    if v is None:
+        out.append(Check("warn", f"D2 ECC version {install.version or '(none)'!r} is not a version number; "
+                                 f"kickoff needs {MIN_ECC} or later"))
+    elif v < version_key(MIN_ECC):
         out.append(Check("fail", f"D2 ECC {install.version or '?'} is older than {MIN_ECC}: update the ecc plugin"))
     elif v[:2] > version_key(TESTED_ECC)[:2]:
         out.append(Check("warn", f"D2 ECC {install.version} is newer than the tested {TESTED_ECC}"))
@@ -165,9 +196,11 @@ def doctor(project: Path | None, docs_root: str | None) -> list[Check]:
     if any("session:start" in d for d in disabled):
         out.append(Check("warn", "D4 ECC_DISABLED_HOOKS turns off ECC's session:start hook (no instincts at start)"))
     if project is not None and docs_root is not None:
-        have = set(_split(_settings_env(project).get(EXEMPT_ENV, "")))
+        source = _exempt_source(project)
+        have = set(_split(_read_env(source).get(EXEMPT_ENV)))
         lack = [g for g in exempt_globs(docs_root) if g not in have]
-        out.append(Check("warn", f"D5 {EXEMPT_ENV} lacks {', '.join(lack)}: run kickoff ecc setup") if lack
+        out.append(Check("warn", f"D5 {EXEMPT_ENV} in .claude/{source.name} lacks {', '.join(lack)}: "
+                                 "run kickoff ecc setup") if lack
                    else Check("ok", "D5 GateGuard exempts kickoff documents"))
     table = router_table()
     if table.is_file() and ROUTER_BEGIN not in table.read_text(encoding="utf-8"):
@@ -184,7 +217,8 @@ class Change:
 
 
 def settings_change(project: Path, docs_root: str) -> Change | None:
-    path = project / ".claude" / "settings.json"
+    """Add the kickoff globs to the settings file whose value is in effect (settings.local.json when it sets one)."""
+    path = _exempt_source(project)
     old = path.read_text(encoding="utf-8") if path.exists() else ""
     try:
         data = json.loads(old) if old.strip() else {}
@@ -193,7 +227,12 @@ def settings_change(project: Path, docs_root: str) -> Change | None:
     if not isinstance(data, dict):
         raise EccError(f"{path}: expected a JSON object, nothing written")
     env = data.setdefault("env", {})
-    globs = _split(env.get(EXEMPT_ENV, ""))
+    if not isinstance(env, dict):
+        raise EccError(f"{path}: \"env\" is not an object, nothing written")
+    value = env.get(EXEMPT_ENV, "")
+    if not isinstance(value, str):
+        raise EccError(f"{path}: env.{EXEMPT_ENV} is not a string of comma-separated globs, nothing written")
+    globs = _split(value)
     added = [g for g in exempt_globs(docs_root) if g not in globs]
     if not added:
         return None
@@ -218,8 +257,11 @@ def router_change() -> Change | None:
 
 
 def write_change(change: Change) -> None:
+    """Write through a temporary file in the same folder, so a crash never leaves a truncated settings file."""
     change.path.parent.mkdir(parents=True, exist_ok=True)
-    change.path.write_text(change.new, encoding="utf-8", newline="\n")
+    tmp = change.path.with_name(change.path.name + ".kickoff-tmp")
+    tmp.write_text(change.new, encoding="utf-8", newline="\n")
+    os.replace(tmp, change.path)
 
 
 # ---------------------------------------------------------------- patched handoffs

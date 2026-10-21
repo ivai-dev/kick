@@ -43,6 +43,26 @@ def test_pre_write_blocks(tmp_path, rel, reason):
     assert code == 2 and reason in message
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="case-insensitive file system only")
+def test_case_variants_meet_the_same_guard_on_windows(tmp_path):
+    root = write_kickoff(tmp_path)
+    assert pre_write(edit(root, ".kickoff/Tickets.yaml"))[0] == 2
+    assert pre_write(edit(root, "Docs/04-Architecture/Data-Model.md"))[0] == 2
+    assert pre_write(edit(root, "docs/05-design/prototype/JS/UI.js"))[0] == 2
+
+
+def test_the_fast_path_ignores_files_outside_a_project(tmp_path, monkeypatch, capsys):
+    import kickoff.hook  # noqa: F401  (only proves the fast path returns before the handlers run)
+
+    code, out = run_hook(monkeypatch, capsys, "pre-write", edit(tmp_path, ".kickoff/state.yaml"))
+    assert (code, out.out, out.err) == (0, "", "")
+
+
+def test_a_non_object_payload_is_a_visible_non_blocking_error(monkeypatch, capsys):
+    code, out = run_hook(monkeypatch, capsys, "pre-write", b"[1, 2]")
+    assert code == 1 and "not a JSON object" in out.err
+
+
 @pytest.mark.parametrize("rel", [
     "docs/04-architecture/adr/0001-speech.md",
     "docs/05-design/prototype/js/common.js",
