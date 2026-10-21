@@ -12,6 +12,9 @@ Working rules for everyone who changes this repository. Keep this file short and
 | --- | --- | --- |
 | `.kickoff/` | Project settings, features, plan, state and ticket map (source of truth for the plan) | Project lead |
 | `docs/` | Discovery, requirements, research, architecture, design and planning documents | Project lead |
+| `apps/web/` | The FE v0: screens (`src/screens/`), the screen registry and scenarios (`src/kickoff/`), tokens (`src/styles/tokens.css`) | Frontend developer |
+| `packages/ui/`, `packages/mocks/` | Shared UI components (shadcn on Radix) and the mock data layer behind the API client | Frontend developer |
+| `packages/kit/` | `@kickoff/kit`, plugin-owned: router, shells, prototype bar, checks; replaced by `kickoff fe update`, never edited | — |
 | `{{path}}` | {{contents: filled when the code structure exists}} | {{role}} |
 
 ## Security rules

@@ -5,7 +5,7 @@ description: Use when defining a project's information architecture, screen inve
 
 # UX design
 
-Turns the approved feature map into the UX specification (roles, shell and home per role, IA per role, every screen of every release and platform, behaviour rules, states, copy, accessibility) and the design system the prototype is built with. A concept round with the lead comes before the design system. `kickoff proto new` and `kickoff proto check` read the screen inventory of `ux-spec.md`, so its table format is exact.
+Turns the approved feature map into the UX specification (roles, shell and home per role, IA per role, every screen of every release and platform, behaviour rules, states, copy, accessibility) and the design system the prototype is built with. A concept round with the lead comes before the design system. `kickoff fe new` and `kickoff fe check` read the screen inventory of `ux-spec.md`, so its table format is exact.
 
 ## When to use
 

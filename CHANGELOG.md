@@ -2,6 +2,44 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-10-21
+
+FE foundation. The prototype is now the real frontend (FE v0): a pnpm monorepo in the project repository, built with React, TypeScript, Vite, Tailwind, shadcn/ui, TanStack Router, Query and Table, React Hook Form with zod, and i18next. A mock data layer sits behind a typed API client, which the real API replaces after sign-off. The HTML prototype kit is removed. Spec: docs/plans/2026-10-21-kickoff-v0.5.0.md.
+
+**Breaking:**
+- `kickoff proto …` is gone.
+- Projects that built their prototype on the kit stay on 0.4.x, or move to the FE v0: `kickoff fe new`, then rebuild the screens on `@app/ui`.
+- `project.yaml` `proto` settings are read for one release (`ux_spec`, `forbidden`); new projects use `fe`.
+
+### Added
+
+- **Phase and gate:** new phase `fe-foundation` and gate CF ("Frontend foundation approved", project lead). It decides the presentation stack and the frontend features as *Accepted* ADRs, scaffolds the FE v0, and builds the reference screens. `prototype` now needs CF.
+- **`kickoff fe` commands:**
+  - `new [--force]`: scaffold, and generate the screen registry, scenarios and stubs from the ux-spec;
+  - `update [--dry]`: replace the plugin-owned `packages/kit`;
+  - `check [--skip-e2e] [--shots DIR]`: typecheck, lint, tests, build, the e2e sweep, ux-spec coverage and `fe.forbidden`; exit 4 when pnpm or a browser is missing;
+  - `bundle`: the one-file customer build for the Artifact;
+  - `record`.
+- **The FE v0 template** (`cli/src/kickoff/templates/fe`): `apps/web`, `packages/ui` (shadcn components, `DataTable`, `FilterBar`, page header, empty state, combobox), `packages/mocks` (zod contract, seeded generator with stress fixtures, in-memory repository, `ApiClient`), and the plugin-owned `packages/kit` (`@kickoff/kit`).
+  - **Router and shells:** hash routes `#/<role>/<screen>?<params>` with a role guard; the `app` and `site` shells.
+  - **Prototype bar:** role, screens, theme, density, release scope, scenario player; hidden with `?demo=0`.
+  - **Components and styles:** `Rel`, `Placeholder`, and the foundation CSS (density, type roles, motion, no forced upper-case in Vietnamese).
+  - **Checks:** the Playwright sweep (screens × roles × 1440/390 px × light/dark: errors, one `h1`, no sideways scroll, axe; scenarios; the single file from `file://` and a sandboxed iframe), the manifest script, and the ESLint rules.
+  - **Versions:** pinned with `minimumReleaseAge` of 14 days and a committed lockfile.
+- **ECC frontend components** in the manifest and the skills: `react-patterns`, `vite-patterns`, `react-testing`, `contract-first`, `make-interfaces-feel-better`, `motion-foundations`, `ui-demo`, and the `react-reviewer` agent.
+- **CI job `fe`:** scaffolds `examples/mini` and runs `kickoff fe check` end to end.
+
+### Changed
+
+- **Core principle:** the presentation stack is the one stack decision before C3 and C4 (gate CF). Backend, database, architecture, hosting and integrations stay locked.
+- **`kickoff:prototype`:** rewritten for the FE v0. The screen checklist, design review loop and lessons now point at the FE v0 checks.
+- **Other skills:** `ux-design`, `feedback`, `signoff`, `solution`, `init`, the conventions, the AGENTS template and the review agents describe the FE v0.
+- **Pre-write hook:** guards `packages/kit` in place of the kit core.
+
+### Removed
+
+- The HTML prototype kit (Preact and htm, Web Awesome), `kickoff proto new|update|check|lint|bundle|record`, and the CI `kit` job.
+
 ## [0.4.1] - 2026-10-21
 
 ### Fixed

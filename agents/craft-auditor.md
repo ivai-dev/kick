@@ -23,7 +23,7 @@ You audit the craft and micro-detail of a product prototype (or concept artboard
 - **Colour:** in light and in dark.
 - **Accessibility:** contrast, target sizes, focus order, labels, names of icon-only controls, reduced motion.
 
-Collect every UI string from the prototype's project scripts (Grep over `js/*.js`, never the kit core) and read them line by line.
+Collect every UI string from the FE v0 (Grep over `apps/web/src`, `packages/ui/src` and the i18n files; `packages/kit` is the plugin's) and read them line by line.
 
 ## Rules
 

@@ -46,6 +46,11 @@ ECC's own approvals do not approve a kickoff gate. That includes the plan approv
 | discovery, before C1 | `ecc:product-lens` (diagnostics only) | the draft `vision-scope.md` | gaps in the why, the user, the wedge, the success measure | `Q<n>` rows in `open-questions.md` |
 | research, step 3 | `ecc:search-first` (always), `ecc:deep-research` (when its firecrawl or exa MCP server is connected) | each technical unknown | existing tools, vendors and sources | the validation plan and the ADR Context, with cited sources |
 | research, step 3 | `ecc:council` | a decision whose options stay close on cost and risk | a verdict with dissent | the ADR "Alternatives considered" |
+| fe-foundation, step 2 | `ecc:search-first`, `ecc:council` | a library choice or a close call | candidates with licence and maintenance; a verdict | the presentation ADR |
+| fe-foundation, steps 5–6 | `ecc:contract-first`, `ecc:react-patterns`, `ecc:vite-patterns`, `ecc:react-testing` | the entities, the reference screens | patterns, contract shape, tests | `packages/mocks`, `apps/web` |
+| prototype, step 6 | `ecc:react-patterns`, `ecc:react-testing`, `ecc:frontend-a11y`, `ecc:make-interfaces-feel-better`, `ecc:motion-foundations` | each screen group | code patterns, tests, accessibility and polish rules | the screens |
+| prototype, step 7 | `ecc:react-reviewer` agent (read-only) | the changed files of a screen group | findings by severity | fixes, or rulings |
+| prototype, step 10 | `ecc:ui-demo` | the scenarios | walkthrough videos | the workshop pack |
 | ux-design step 8, prototype step 9 | the `kickoff:` review agents; the craft auditor reads `ecc:accessibility` and `ecc:frontend-a11y` | the brief and the screenshots | reports, cross-reviews, an upgrade plan | the review folder |
 | solution, steps 2–3 | `ecc:architect` agent | one decision, its forces (F, NFR, A, V IDs) and constraints | 2–3 options with cost, risk, what each blocks | the Option decision table, then the ADR |
 | solution, step 3 | `ecc:council` | a tie between options | a verdict with dissent | the ADR |
