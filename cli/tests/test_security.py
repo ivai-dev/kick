@@ -40,14 +40,14 @@ def test_inside_root_rejects_escapes_and_absolute_paths(tmp_path, value):
 @pytest.mark.parametrize("value", BAD)
 def test_schema_rejects_unsafe_paths(value):
     for key, data in (("docs_root", {"docs_root": value}), ("fe.dir", {"fe": {"dir": value}}),
-                      ("fe.app", {"fe": {"app": value}}), ("fe.ux_spec", {"fe": {"ux_spec": value}}),
+                      ("fe.ux_spec", {"fe": {"ux_spec": value}}),
                       ("proto.ux_spec", {"proto": {"ux_spec": value}})):
         errors = schema_errors("project", project_dict(**data))
         assert errors and key.split(".")[-1] in errors[0], (key, value)
 
 
 def test_schema_accepts_ordinary_relative_paths():
-    data = project_dict(docs_root="docs/sub", fe={"dir": ".", "app": "apps/web", "ux_spec": "a..b/ux.md"})
+    data = project_dict(docs_root="docs/sub", fe={"dir": ".", "ux_spec": "a..b/ux.md"})
     assert schema_errors("project", data) == []
 
 
@@ -87,12 +87,11 @@ def copy_mini(tmp_path):
     return root
 
 
-@pytest.mark.parametrize(("key", "value"), [("dir", "../escaped"), ("app", "../../escaped")])
-def test_fe_new_refuses_a_directory_outside_the_project(tmp_path, key, value):
+def test_fe_new_refuses_a_directory_outside_the_project(tmp_path):
     root = copy_mini(tmp_path)
     project = load_project(root)
-    project.fe[key] = value  # what a hostile project.yaml would say (the schema also rejects it)
-    with pytest.raises(ModelError, match=f"fe.{key}"):
+    project.fe["dir"] = "../escaped"  # what a hostile project.yaml would say (the schema also rejects it)
+    with pytest.raises(ModelError, match="fe.dir"):
         new_fe(root, project)
     assert not (tmp_path / "escaped").exists()
 

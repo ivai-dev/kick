@@ -34,6 +34,5 @@ rules:
 security: []
 fe:
   dir: "."
-  app: apps/web
   ux_spec: docs/05-design/ux-spec.md
   forbidden: []

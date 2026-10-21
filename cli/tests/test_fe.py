@@ -77,6 +77,44 @@ def test_new_writes_the_template_and_the_generated_files(template, mini):
     assert (mini / ".gitignore").read_text(encoding="utf-8") == "node_modules\ndist\n"
 
 
+def test_force_keeps_the_generated_files_and_adds_new_screens(template, mini, capsys):
+    assert main(["--root", str(mini), "fe", "new"]) == 0
+    kickoff_dir = mini / "apps" / "web" / "src" / "kickoff"
+    (kickoff_dir / "config.ts").write_text((kickoff_dir / "config.ts").read_text(encoding="utf-8")
+                                           .replace('shell: "app", home: "a-01"', 'shell: "site", home: "a-01"'),
+                                           encoding="utf-8")
+    (kickoff_dir / "scenarios.ts").write_text("// the real journeys\n", encoding="utf-8")
+    spec = mini / "docs" / "05-design" / "ux-spec.md"
+    spec.write_text(spec.read_text(encoding="utf-8").replace(
+        "| A-01  | My loans       | member            | android  | MVP     |",
+        "| A-01  | My loans       | member            | android  | MVP     |\n| SC-04 | Fines | treasurer | web | R2 |"),
+        encoding="utf-8")
+    capsys.readouterr()
+    assert main(["--root", str(mini), "fe", "new", "--force"]) == 0
+    out = capsys.readouterr().out
+    assert 'shell: "site", home: "a-01"' in (kickoff_dir / "config.ts").read_text(encoding="utf-8")
+    assert (kickoff_dir / "scenarios.ts").read_text(encoding="utf-8") == "// the real journeys\n"
+    screens = (kickoff_dir / "screens.ts").read_text(encoding="utf-8")
+    assert screens.count('id: "sc-04"') == 1 and screens.rstrip().endswith("];")
+    assert (mini / "apps" / "web" / "src" / "screens" / "sc-04.tsx").exists()
+    assert "warn: role treasurer is in the ux-spec but not in apps/web/src/kickoff/config.ts" in out
+    assert main(["--root", str(mini), "fe", "new", "--force"]) == 0
+    assert (kickoff_dir / "screens.ts").read_text(encoding="utf-8").count('id: "sc-04"') == 1
+
+
+@pytest.mark.parametrize(("rows", "message"), [
+    ("| SC-01 | A | x | web | MVP |\n| sc 01 | B | x | web | MVP |", "both become the screen id 'sc-01'"),
+    ("| --- x --- | A | x | web | MVP |\n| ! | B | x | web | MVP |", "has no usable ID"),
+])
+def test_new_refuses_colliding_or_empty_ids(template, tmp_path, capsys, rows, message):
+    root = write_kickoff(tmp_path / "p")
+    (root / "docs" / "05-design").mkdir(parents=True)
+    (root / "docs" / "05-design" / "ux-spec.md").write_text(
+        "| ID | Screen | Roles | Platform | Release |\n| -- | -- | -- | -- | -- |\n" + rows + "\n", encoding="utf-8")
+    assert main(["--root", str(root), "fe", "new"]) == 2
+    assert message in capsys.readouterr().err
+
+
 def test_new_refuses_an_existing_app_and_force_keeps_project_files(template, mini, capsys):
     assert main(["--root", str(mini), "fe", "new"]) == 0
     button = mini / "packages" / "ui" / "src" / "button.tsx"
@@ -147,6 +185,7 @@ class FakeRun:
     def __call__(self, argv, cwd, env=None, **kw):
         script = argv[-1]
         self.calls.append((script, (env or {}).get("PW_CHANNEL")))
+        kw.pop("stdin", None), kw.pop("timeout", None)
         if script == "manifest":
             return subprocess.CompletedProcess(argv, 0, json.dumps(self.manifest), "")
         code = self.fail.get(script, 0)
@@ -198,6 +237,36 @@ def test_skip_e2e_and_a_missing_browser(ready):
                   manifest=full_manifest())
     with pytest.raises(fe.ToolMissing, match="no browser"):
         fe.check(ready, load_project(ready), run=run)
+
+
+def test_a_missing_browser_keeps_the_failures_already_found(ready):
+    run = FakeRun(fail={"lint": 1, "e2e": 1}, output="browserType.launch: Executable doesn't exist",
+                  manifest=full_manifest())
+    failures = fe.check(ready, load_project(ready), run=run)
+    assert failures[0].startswith("lint: failed") and failures[1].startswith("e2e: skipped (no browser")
+
+
+def test_a_hung_script_times_out(ready):
+    def run(argv, cwd, **kw):
+        assert kw["stdin"] is subprocess.DEVNULL and kw["timeout"] == fe.TIMEOUT
+        if argv[-1] == "build":
+            raise subprocess.TimeoutExpired(argv, fe.TIMEOUT)
+        return FakeRun(manifest=full_manifest())(argv, cwd, **kw)
+
+    failures = fe.check(ready, load_project(ready), run=run)
+    assert failures == [f"build: failed (exit 124)\n    timed out after {fe.TIMEOUT} s"]
+
+
+def test_forbidden_scan_skips_builds_and_refuses_bad_patterns(ready):
+    (ready / "apps" / "web" / "dist").mkdir(parents=True)
+    (ready / "apps" / "web" / "dist" / "x.js").write_text("VPN", encoding="utf-8")
+    (ready / "packages" / "ui" / "node_modules" / "y").mkdir(parents=True)
+    (ready / "packages" / "ui" / "node_modules" / "y" / "z.js").write_text("VPN", encoding="utf-8")
+    assert fe.scan_forbidden(ready, load_project(ready)) == []
+    project = load_project(ready)
+    project.fe["forbidden"] = ["(oops"]
+    with pytest.raises(fe.FeError, match="invalid regular expression"):
+        fe.scan_forbidden(ready, project)
 
 
 def test_check_needs_pnpm_and_installed_dependencies(ready, monkeypatch):

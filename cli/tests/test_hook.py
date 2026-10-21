@@ -21,6 +21,12 @@ def edit(root, rel):
     return {"cwd": str(root), "tool_name": "Edit", "tool_input": {"file_path": str(root / rel)}}
 
 
+def with_kit(root, name="@kickoff/kit"):
+    (root / "packages" / "kit").mkdir(parents=True, exist_ok=True)
+    (root / "packages" / "kit" / "package.json").write_text(json.dumps({"name": name}), encoding="utf-8")
+    return root
+
+
 def signed_off():
     gate = {"approved_by": "Customer", "date": date(2026, 10, 1), "evidence": "docs/signoff.md"}
     state = copy.deepcopy(STATE)
@@ -39,13 +45,13 @@ def signed_off():
     ("packages/kit/e2e/index.ts", "packages/kit is plugin-owned"),
 ])
 def test_pre_write_blocks(tmp_path, rel, reason):
-    code, message = pre_write(edit(write_kickoff(tmp_path), rel))
+    code, message = pre_write(edit(with_kit(write_kickoff(tmp_path)), rel))
     assert code == 2 and reason in message
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="case-insensitive file system only")
 def test_case_variants_meet_the_same_guard_on_windows(tmp_path):
-    root = write_kickoff(tmp_path)
+    root = with_kit(write_kickoff(tmp_path))
     assert pre_write(edit(root, ".kickoff/Tickets.yaml"))[0] == 2
     assert pre_write(edit(root, "Docs/04-Architecture/Data-Model.md"))[0] == 2
     assert pre_write(edit(root, "Packages/Kit/src/Router.tsx"))[0] == 2
@@ -73,6 +79,11 @@ def test_a_non_object_payload_is_a_visible_non_blocking_error(monkeypatch, capsy
 ])
 def test_pre_write_allows(tmp_path, rel):
     assert pre_write(edit(write_kickoff(tmp_path), rel)) == (0, "")
+
+
+def test_a_project_folder_named_packages_kit_is_not_guarded(tmp_path):
+    root = with_kit(write_kickoff(tmp_path), name="@acme/kit")
+    assert pre_write(edit(root, "packages/kit/src/index.ts")) == (0, "")
 
 
 def test_architecture_opens_after_c3_and_c4(tmp_path):

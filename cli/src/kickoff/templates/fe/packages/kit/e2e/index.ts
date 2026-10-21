@@ -93,7 +93,7 @@ export function sweep(test: TestType, options: SweepOptions) {
               const shots = process.env.KICKOFF_SHOTS; // `kickoff fe check --shots <dir>`: the design review set
               if (shots) {
                 mkdirSync(shots, { recursive: true });
-                await page.screenshot({ path: join(shots, `${screen.id}-${role}-${viewport.name}-${theme}.png`), fullPage: true });
+                await page.screenshot({ path: join(shots, `${screen.id}-${role}-${viewport.name}-${theme}.png`.replace(/[^\w.-]+/g, "_")), fullPage: true });
               }
 
               await expect(page.locator("h1"), "exactly one h1").toHaveCount(1);

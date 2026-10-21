@@ -6,12 +6,13 @@ exit 0 (see commands/hook_cmd.py). A tree without .kickoff/ is never touched."""
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path, PurePosixPath
 
 from .ecc import doctor
 from .errors import KickoffError
-from .fe import KIT_PACKAGE, fe_root
+from .fe import KIT_NAME, KIT_PACKAGE, fe_root
 from .model import KICKOFF_DIR, ModelError, find_root, load_project, load_state
 from .state import blockers, status_lines
 from .validate import validate_root
@@ -54,6 +55,14 @@ def _under(path: Path, folder: Path) -> PurePosixPath | None:
     except ValueError:
         return None
     return PurePosixPath(os.path.normcase(str(rel)).replace(os.sep, "/"))
+
+
+def _is_kickoff_kit(folder: Path) -> bool:
+    """Guard only the plugin's package, not a project folder that happens to be called packages/kit."""
+    try:
+        return json.loads((folder / "package.json").read_text(encoding="utf-8")).get("name") == KIT_NAME
+    except (OSError, ValueError, AttributeError):
+        return False
 
 
 def session_start(payload: dict) -> tuple[int, str]:
@@ -99,7 +108,7 @@ def pre_write(payload: dict) -> tuple[int, str]:
             reasons = []
         if reasons:
             return 2, "architecture documents wait for C3 and C4: " + "; ".join(reasons)
-    if kit is not None and "node_modules" not in kit.parts:
+    if kit is not None and "node_modules" not in kit.parts and _is_kickoff_kit(fe_root(root, project) / KIT_PACKAGE):
         return 2, ("packages/kit is plugin-owned and replaced by kickoff fe update; build in apps/web, "
                    "packages/ui or packages/mocks")
     return 0, ""

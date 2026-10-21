@@ -18,6 +18,9 @@ from .model import Project, inside_root
 # The template ships inside the package so `uv tool install` and wheels carry it.
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates" / "fe"
 KIT_PACKAGE = Path("packages") / "kit"  # plugin-owned: replaced by `kickoff fe update`, guarded by the hook
+APP = Path("apps") / "web"  # fixed: the template's lockfile importers and manifest script name it
+KIT_NAME = "@kickoff/kit"
+TIMEOUT = 1800  # seconds per pnpm script; a hung build or browser must not hang the check
 GENERATED = ("src/kickoff/config.ts", "src/kickoff/screens.ts", "src/kickoff/scenarios.ts")
 SKIP_PARTS = {"node_modules", "dist", "dist-artifact", "test-results", "playwright-report", ".vite", "__pycache__",
               ".turbo"}
@@ -51,8 +54,7 @@ def fe_root(root: Path, project: Project) -> Path:
 
 
 def app_dir(root: Path, project: Project) -> Path:
-    base = project.fe.get("dir", ".")
-    return inside_root(root, f"{base}/{project.fe.get('app', 'apps/web')}", "fe.app")
+    return fe_root(root, project) / APP
 
 
 def ux_spec_path(root: Path, project: Project) -> Path:
@@ -100,6 +102,17 @@ def parse_ux_spec(path: Path) -> list[dict]:
 
 def screen_id(code: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", code.lower()).strip("-")
+
+
+def _check_ids(rows: list[dict]) -> None:
+    seen: dict[str, str] = {}
+    for row in rows:
+        sid = screen_id(row["code"])
+        if not sid:
+            raise FeError(f"ux-spec screen {row['code']!r} ({row['name']!r}) has no usable ID")
+        if sid in seen:
+            raise FeError(f"ux-spec screens {seen[sid]!r} and {row['code']!r} both become the screen id {sid!r}")
+        seen[sid] = row["code"]
 
 
 def ui_language(project: Project) -> str:
@@ -201,26 +214,29 @@ def new_fe(root: Path, project: Project, force: bool = False) -> list[Path]:
     rows = parse_ux_spec(ux_spec_path(root, project))
     if not rows:
         raise FeError(f"no screens found in {ux_spec_path(root, project)}")
+    _check_ids(rows)
     if not (src / "package.json").is_file():
         raise FeError(f"FE template not found: {src}")
-    app_rel = Path(project.fe.get("app", "apps/web"))
-    sample = [app_rel / g for g in GENERATED]
+    sample = [APP / g for g in GENERATED]
     written: list[Path] = []
     for path in _template_files(src):
         rel = path.relative_to(src)
-        if rel.name == ".gitignore.kickoff" or rel in sample or rel.parent == app_rel / "src" / "screens":
+        if rel.name == ".gitignore.kickoff" or rel in sample or rel.parent == APP / "src" / "screens":
             continue
-        rel = Path(str(rel).replace("apps/web", str(app_rel).replace("\\", "/"), 1)) if app_rel != Path("apps/web") else rel
         target = dest / rel
         if target.exists() and force and KIT_PACKAGE not in rel.parents:
             continue  # project-owned files survive --force; only the kit package is refreshed
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(path, target)
         written.append(target)
+    kickoff_dir = app / "src" / "kickoff"
     for name, text in (("config.ts", config_ts(project, rows)), ("screens.ts", screens_ts(project, rows)),
                        ("scenarios.ts", scenarios_ts(project))):
-        _write(app / "src" / "kickoff" / name, text)
-        written.append(app / "src" / "kickoff" / name)
+        if not (kickoff_dir / name).exists():  # project-owned once written: --force never overwrites them
+            _write(kickoff_dir / name, text)
+            written.append(kickoff_dir / name)
+    if force:
+        written += _append_screens(kickoff_dir / "screens.ts", project, rows)
     for row in rows:
         stub = app / "src" / "screens" / f"{screen_id(row['code'])}.tsx"
         if not stub.exists():
@@ -235,6 +251,27 @@ def new_fe(root: Path, project: Project, force: bool = False) -> list[Path]:
             _write(gitignore, "\n".join([*have, *add]) + "\n")
             written.append(gitignore)
     return written
+
+
+def _append_screens(path: Path, project: Project, rows: list[dict]) -> list[Path]:
+    """Add the rows of ux-spec screens missing from an existing screens.ts before its closing `];`."""
+    text = path.read_text(encoding="utf-8")
+    missing = [r for r in rows if f'id: {_q(screen_id(r["code"]))}' not in text]
+    if not missing:
+        return []
+    lines = [line for line in screens_ts(project, missing).splitlines() if line.startswith("  { id: ")]
+    head, sep, tail = text.rpartition("];")
+    if not sep:
+        raise FeError(f"{path}: no closing `];`; add the rows for {', '.join(r['code'] for r in missing)} by hand")
+    _write(path, head.rstrip("\n") + "\n" + "\n".join(lines) + "\n" + sep + tail)
+    return [path]
+
+
+def new_roles(root: Path, project: Project) -> list[str]:
+    """Roles of the ux-spec that config.ts does not define (after `fe new --force`)."""
+    config = (app_dir(root, project) / "src" / "kickoff" / "config.ts").read_text(encoding="utf-8")
+    rows = parse_ux_spec(ux_spec_path(root, project))
+    return [r for r in _roles_in_order(project, rows) if f"id: {_q(r)}" not in config]
 
 
 def update_kit(root: Path, project: Project, dry: bool = False) -> list[tuple[str, str]]:
@@ -318,19 +355,33 @@ def coverage(rows: list[dict], manifest: dict) -> list[str]:
 
 
 def scan_forbidden(root: Path, project: Project) -> list[str]:
-    patterns = [re.compile(p, re.IGNORECASE) for p in forbidden_patterns(project)]
+    try:
+        patterns = [re.compile(p, re.IGNORECASE) for p in forbidden_patterns(project)]
+    except re.error as exc:
+        raise FeError(f"fe.forbidden in project.yaml: invalid regular expression: {exc}") from exc
     if not patterns:
         return []
     base = fe_root(root, project)
     out = []
     for folder in ("apps", "packages"):
-        for path in sorted((base / folder).rglob("*")) if (base / folder).is_dir() else []:
-            if not path.is_file() or path.suffix not in SOURCE_SUFFIXES or SKIP_PARTS.intersection(path.parts):
-                continue
-            for n, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
-                out += [f"forbidden: {path.relative_to(base).as_posix()}:{n}: /{p.pattern}/" for p in patterns
-                        if p.search(line)]
+        for dirpath, dirnames, filenames in os.walk(base / folder):
+            dirnames[:] = sorted(d for d in dirnames if d not in SKIP_PARTS)  # prune node_modules and builds
+            for name in sorted(filenames):
+                path = Path(dirpath) / name
+                if path.suffix not in SOURCE_SUFFIXES:
+                    continue
+                for n, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+                    out += [f"forbidden: {path.relative_to(base).as_posix()}:{n}: /{p.pattern}/" for p in patterns
+                            if p.search(line)]
     return out
+
+
+def _run(run: Runner, argv: list[str], cwd: Path, env: dict | None = None) -> subprocess.CompletedProcess:
+    try:
+        return run(argv, cwd=cwd, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                   stdin=subprocess.DEVNULL, timeout=TIMEOUT)
+    except subprocess.TimeoutExpired:
+        return subprocess.CompletedProcess(argv, 124, "", f"timed out after {TIMEOUT} s")
 
 
 def check(root: Path, project: Project, skip_e2e: bool = False, run: Runner = subprocess.run,
@@ -352,18 +403,20 @@ def check(root: Path, project: Project, skip_e2e: bool = False, run: Runner = su
             env["KICKOFF_SHOTS"] = str(shots.resolve())  # the e2e sweep writes one full-page screenshot per test
     failures: list[str] = []
     for script in scripts:
-        done = run([pnpm, "-s", script], cwd=base, env=env, capture_output=True, text=True, encoding="utf-8",
-                   errors="replace")
+        done = _run(run, [pnpm, "-s", script], base, env)
         if done.returncode == 0:
             continue
         output = (done.stdout or "") + (done.stderr or "")
         if script == "e2e" and re.search(r"Executable doesn't exist|browserType\.launch|is not found at|"
                                          r"Chromium distribution .* is not found", output):
-            raise ToolMissing("no browser for the e2e sweep: install Edge or Chrome, or run "
-                              "`pnpm --filter web exec playwright install chromium` and set PW_CHANNEL=chromium")
+            hint = ("no browser for the e2e sweep: install Edge or Chrome, or run "
+                    "`pnpm --filter web exec playwright install chromium` and set PW_CHANNEL=chromium")
+            if not failures:
+                raise ToolMissing(hint)
+            failures.append(f"e2e: skipped ({hint})")  # keep the failures already found
+            continue
         failures.append(f"{script}: failed (exit {done.returncode})\n{_tail(output)}")
-    done = run([pnpm, "-s", "manifest"], cwd=base, env=env, capture_output=True, text=True, encoding="utf-8",
-               errors="replace")
+    done = _run(run, [pnpm, "-s", "manifest"], base, env)
     try:
         manifest = json.loads(done.stdout) if done.returncode == 0 else None
     except ValueError:
@@ -378,8 +431,7 @@ def check(root: Path, project: Project, skip_e2e: bool = False, run: Runner = su
 
 def bundle(root: Path, project: Project, run: Runner = subprocess.run) -> Path:
     base = fe_root(root, project)
-    done = run([_pnpm(), "-s", "build:artifact"], cwd=base, capture_output=True, text=True, encoding="utf-8",
-               errors="replace")
+    done = _run(run, [_pnpm(), "-s", "build:artifact"], base)
     if done.returncode != 0:
         raise FeError(f"pnpm build:artifact failed (exit {done.returncode})\n{_tail((done.stdout or '') + (done.stderr or ''))}")
     out = app_dir(root, project) / "dist-artifact" / "index.html"

@@ -73,6 +73,23 @@ def test_the_phase_being_re_run_is_not_listed_as_a_later_stale_one():
     assert next_step(s) == "continue kickoff:research; then re-run stale: feature-map, plan"
 
 
+def test_a_prototype_built_before_0_5_does_not_need_fe_foundation():
+    s = fresh()
+    for p in ("init", "discovery", "research", "feature-map", "ux-design", "prototype"):
+        set_phase(s, p, "done")
+    for g in ("C1", "C2"):
+        approve(s, g, "Project lead", "x", date(2026, 9, 26))
+    assert blockers(s, "signoff") == [] and blockers(s, "prototype") == []
+    assert next_step(s) == "run kickoff:signoff"
+    s2 = fresh()
+    for p in ("discovery", "feature-map", "ux-design", "plan"):  # a draft plan is not a built prototype
+        set_phase(s2, p, "done")
+    for g in ("C1", "C2"):
+        approve(s2, g, "Project lead", "x", date(2026, 9, 26))
+    assert blockers(s2, "prototype") == ["phase fe-foundation is not done",
+                                         "gate CF (Frontend foundation approved) is not approved"]
+
+
 def test_stale_prerequisite_blocks_the_next_phase():
     s = fresh()
     for p in ("feature-map", "plan"):

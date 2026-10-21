@@ -25,7 +25,7 @@ Not for changes the team found itself before the prototype is shown: those re-ru
 
 - Workshop notes, the sign-off record `<docs_root>/01-discovery/signoff/YYYY-MM-DD-signoff-record.md` (its **Changes requested** table), e-mails, pasted remarks.
 - Comments on the prototype Artifact, read with the `ArtifactComments` tool on the link in `state.yaml` `prototype.artifact`.
-- The chain: `.kickoff/features.yaml`, `ux-spec.md` (`fe.ux_spec`, default `<docs_root>/05-design/ux-spec.md`), `design-system.md`, the FE v0 in `apps/web` and `packages/` (`fe.dir`, `fe.app`), `.kickoff/plan.yaml` (`cut_order`, gates), `.kickoff/project.yaml` (`hard_dates`, releases).
+- The chain: `.kickoff/features.yaml`, `ux-spec.md` (`fe.ux_spec`, default `<docs_root>/05-design/ux-spec.md`), `design-system.md`, the FE v0 in `apps/web` and `packages/` (`fe.dir`), `.kickoff/plan.yaml` (`cut_order`, gates), `.kickoff/project.yaml` (`hard_dates`, releases).
 - `<docs_root>/01-discovery/open-questions.md` (questions and the Decision log) and earlier sessions in `<docs_root>/01-discovery/feedback/` (the last `FB-<n>` used).
 - `templates/feedback-session.md` in this skill's folder.
 - Working methods: `../using-kickoff/references/methods.md`. Conventions: `../using-kickoff/references/conventions.md`. Lessons: `../using-kickoff/references/lessons.md`.

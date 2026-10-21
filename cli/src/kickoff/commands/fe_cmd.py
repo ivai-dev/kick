@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ..errors import KickoffError
-from ..fe import ToolMissing, bundle, check, migration_notes, new_fe, update_kit
+from ..fe import ToolMissing, bundle, check, migration_notes, new_fe, new_roles, update_kit
 from ..model import KICKOFF_DIR, load_project, load_state, resolve_root, write_yaml
 
 
@@ -15,7 +15,8 @@ def register(sub) -> None:
 
     a = actions.add_parser("new", help="copy the frontend template and write one screen stub per ux-spec row")
     a.add_argument("--force", action="store_true",
-                   help="regenerate config, screens and scenarios and refresh packages/kit; keeps project files")
+                   help="add stubs and screens.ts rows for new ux-spec screens and refresh packages/kit; "
+                        "keeps every project file, including config.ts and scenarios.ts")
     a.set_defaults(func=run_new)
 
     a = actions.add_parser("update", help="replace packages/kit with the plugin's copy; project files are kept")
@@ -41,8 +42,11 @@ def register(sub) -> None:
 
 def run_new(args) -> int:
     root = resolve_root(args.root)
-    for path in new_fe(root, load_project(root), force=args.force):
+    project = load_project(root)
+    for path in new_fe(root, project, force=args.force):
         print("wrote", path.relative_to(root).as_posix())
+    for role in new_roles(root, project):
+        print(f"warn: role {role} is in the ux-spec but not in apps/web/src/kickoff/config.ts; add it there")
     print("next: pnpm install, then kickoff fe check")
     return 0
 

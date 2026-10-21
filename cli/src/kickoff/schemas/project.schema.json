@@ -117,7 +117,6 @@
       "additionalProperties": false,
       "properties": {
         "dir": { "$ref": "#/$defs/relpath" },
-        "app": { "$ref": "#/$defs/relpath" },
         "ux_spec": { "$ref": "#/$defs/relpath" },
         "forbidden": { "type": "array", "items": { "type": "string" } }
       }
