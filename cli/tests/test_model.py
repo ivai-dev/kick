@@ -99,11 +99,13 @@ def test_features_and_text_i18n(tmp_path):
     assert text({"name": "Minutes"}, "name", "vi") == "Minutes"
 
 
-def test_item_block_and_the_legacy_ticket_key(tmp_path):
+def test_item_block_and_the_removed_ticket_key(tmp_path):
     item = {"title": "Loan desk", "type": "story", "epic": "E1", "ac": ["A loan is saved"]}
+    write_kickoff(tmp_path, plan=plan_dict([pkg("1.1.1", item=item)]))
+    assert load_plan(tmp_path).packages[0].item == item
     write_kickoff(tmp_path, plan=plan_dict([pkg("1.1.1", item=item), pkg("1.1.2", ticket=dict(item, title="Old"))]))
-    a, b = load_plan(tmp_path).packages
-    assert a.item == item and b.item["title"] == "Old"
+    with pytest.raises(ModelError, match="`ticket` block was renamed `item` in kickoff 0.6 and is no longer read"):
+        load_plan(tmp_path)
 
 
 def test_empty_plan_and_features_are_valid(tmp_path):

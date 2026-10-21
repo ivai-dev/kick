@@ -70,23 +70,6 @@
         "sprint": { "type": "string" }
       }
     },
-    "ticket": {
-      "description": "deprecated since kickoff 0.6: renamed item; read until 0.7",
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["title", "type", "epic"],
-      "properties": {
-        "title": { "type": "string" },
-        "type": { "enum": ["story", "task", "bug", "spike"] },
-        "epic": { "type": "string", "pattern": "^E[0-9]+$" },
-        "areas": { "type": "array", "items": { "type": "string" } },
-        "desc": { "type": "string" },
-        "ac": { "type": "array", "items": { "type": "string" } },
-        "sprint": { "type": "string" },
-        "status": { "type": "string" },
-        "milestone": { "type": "string" }
-      }
-    },
     "package": {
       "type": "object",
       "additionalProperties": false,
@@ -108,7 +91,6 @@
         "schedule": { "$ref": "#/$defs/schedule" },
         "effort_rate": { "type": ["number", "null"], "exclusiveMinimum": 0 },
         "item": { "$ref": "#/$defs/item" },
-        "ticket": { "$ref": "#/$defs/ticket" },
         "i18n": { "$ref": "#/$defs/i18n" }
       }
     }

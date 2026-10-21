@@ -10,6 +10,7 @@ Design studio. Products made with kickoff looked alike: the direction came from 
 - New required plugins: Anthropic `frontend-design` (`/plugin install frontend-design@claude-code-plugins`) and `impeccable` (`/plugin marketplace add pbakaus/impeccable`, then `/plugin install impeccable@impeccable`). `kickoff design doctor` checks them, and `using-kickoff` stops without them.
 - `ui-ux-pro-max` is optional and no longer chooses the direction.
 - `kickoff phase start` and `kickoff phase done` refuse a phase that `kickoff can` blocks.
+- The package `ticket` block (renamed `item` in 0.6) is no longer read: `plan.yaml` fails its schema with a hint to rename it to `item`.
 - Projects keep working without a migration: a project whose prototype had started (or whose sign-off or solution was done) before 0.7.0 skips `design-direction` and CD, and `kickoff status` says so.
 
 ### Added

@@ -134,11 +134,15 @@ def test_leftovers_of_ticket_management_are_warnings(tmp_path):
 
     item = {"title": "T", "type": "task", "epic": "E1"}
     root = write_kickoff(tmp_path, project=project_dict(tracker={"kind": "none"}),
-                         plan=plan_dict([pkg("1.1.1", ticket=item)]),
+                         plan=plan_dict([pkg("1.1.1", item=item)]),
                          features={"schema_version": 1, "epics": [{"id": "E1", "name": "E"}]})
     (root / ".kickoff" / "tickets.yaml").write_text("schema_version: 1\n", encoding="utf-8")
     found = [str(f) for f in validate_root(root)]
     assert "warning: tickets.yaml: kickoff no longer syncs a tracker; the file can be deleted" in found
     assert any("project.yaml tracker" in f for f in found)
-    assert any("`ticket` is renamed `item` (1 packages, first 1.1.1)" in f for f in found)
     assert not any(f.startswith("error") for f in found)
+    write_kickoff(root, project=project_dict(), plan=plan_dict([pkg("1.1.1", ticket=item)]),
+                  features={"schema_version": 1, "epics": [{"id": "E1", "name": "E"}]})
+    found = [str(f) for f in validate_root(root)]
+    assert len(found) == 1 and found[0].startswith("error: plan.yaml: plan.yaml: packages/0: Additional properties")
+    assert found[0].endswith("rename it")

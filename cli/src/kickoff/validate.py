@@ -253,14 +253,11 @@ def validate_root(root: Path) -> list[Finding]:
 
 
 def check_legacy(root: Path, raw: dict[str, dict]) -> list[Finding]:
-    """Leftovers of the ticket management that kickoff 0.6 removed: harmless, reported once each."""
+    """Leftovers of the ticket management that kickoff 0.6 removed: harmless, reported once each. (A package
+    `ticket` block is no longer read since 0.7: the plan schema rejects it with a rename hint.)"""
     out: list[Finding] = []
     if (root / ".kickoff" / "tickets.yaml").exists():
         out.append(Finding("warning", "tickets.yaml", "kickoff no longer syncs a tracker; the file can be deleted"))
     if raw.get("project", {}).get("tracker") is not None:
         out.append(Finding("warning", "project.yaml tracker", "ignored since kickoff 0.6; the setting can be deleted"))
-    legacy = [p["code"] for p in raw.get("plan", {}).get("packages") or [] if "ticket" in p]
-    if legacy:
-        out.append(Finding("warning", "plan.yaml", f"`ticket` is renamed `item` ({len(legacy)} packages, first "
-                                                   f"{legacy[0]}); kickoff 0.7 no longer reads `ticket`"))
     return out
