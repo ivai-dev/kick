@@ -87,9 +87,9 @@ Example:
 
 ```markdown
 - [ ] **Task 3: Meetings screen group**
-  - Files: `docs/05-design/prototype/js/meetings.js`, `docs/05-design/prototype/js/data.js`
+  - Files: `apps/web/src/screens/sc-03.tsx` … `sc-07.tsx`, `packages/mocks/src/contract/meeting.ts`
   - Inputs: `ux-spec.md` screens SC-03..SC-07, `design-system.md`
-  - Verify: `kickoff proto check`
+  - Verify: `kickoff fe check`
   - Expected: exit 0 and `prototype check passed` (all routes and scenarios, coverage complete)
 ```
 
@@ -120,7 +120,7 @@ Steps:
 
 1. Run every command listed in the skill's Verify section, in order.
 2. Read the real output and exit code of each. Do not infer a result from an earlier run or from the absence of an error message.
-3. Report each check as passed, failed (quote the failing lines) or skipped (say why: `kickoff proto check` exit 4 means no Edge or Chrome was found; `kickoff workbook --verify` without Docker says the recalculation was skipped). A skipped check is never reported as passed.
+3. Report each check as passed, failed (quote the failing lines) or skipped (say why: `kickoff fe check` exit 4 means pnpm or a browser for the e2e sweep is missing; `kickoff workbook --verify` without Docker says the recalculation was skipped). A skipped check is never reported as passed.
 4. With any failure, the phase is not done: fix it and run the checks again, or stop and report.
 5. When every check passes, run `kickoff phase done <phase>` and make a Conventional Commit. `feedback` is not a phase: it ends with its commit and the gate reopen, without `kickoff phase done`.
 

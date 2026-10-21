@@ -60,8 +60,8 @@ def test_commands_named_in_skills_exist():
     assert used <= top, sorted(used - top)
 
 
-def test_twelve_skills_and_two_commands():
-    assert len(SKILLS) == 12
+def test_thirteen_skills_and_two_commands():
+    assert len(SKILLS) == 13
     assert sorted(p.name for p in (ROOT / "commands").glob("*.md")) == ["kickoff-sync.md", "kickoff.md"]
 
 

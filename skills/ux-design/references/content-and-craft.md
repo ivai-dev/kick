@@ -6,7 +6,7 @@ Small things annoy users more than the overall layout: a wrong decimal mark, a s
 
 Run it on the concept artboards (ux-design), on each screen group before a publish, and as the craft auditor's part of the design review.
 
-1. **Collect the strings.** Every heading, button, label, hint, placeholder, empty state, toast, dialog, `aria-label`, `title` and `alt`, per screen. In a prototype, extract them from `js/*.js` with a read-only script into one file and read it line by line.
+1. **Collect the strings.** Every heading, button, label, hint, placeholder, empty state, toast, dialog, `aria-label`, `title` and `alt`, per screen. In the FE v0, extract them from `apps/web/src` and `packages/ui/src` with a read-only script into one file and read it line by line.
 2. **Research the register.** Read 3–5 sources in the UI language: public services and leading products for the same audience. Record one line per source (what it teaches) with its link.
 3. **Fix the voice** in one sentence ("a helpful clerk who speaks plainly to workers"), then one row per audience: form of address, greeting, verbs on buttons, the interaction verb per device ("tap" on touch screens, "click" or "select" on the web), words to avoid (slang, marketing, heavy officialese, English where a native word exists).
 4. **Walk every string** with the checklist below. Record each change as a row: Screen, Current, Problem, Proposed. Problem codes: *casual*, *formal*, *unclear*, *inconsistent*, *misleading*, *wrong term*, *grammar*, *mechanics*.
@@ -71,7 +71,7 @@ Name sizes by role, not by pixel, and give each density mode its own column (siz
 ### 2.3 Letter case
 
 - Sentence case everywhere: page titles, buttons, labels, table headers, menu items.
-- Small uppercase labels are allowed only for short eyebrows in languages without stacked diacritics. The `--cap-case` token in the prototype tokens block drives `.t-cap` and table headers: `uppercase` (kit default) or `none`. `kickoff proto new` sets `none` for Vietnamese; set it for any language whose capitals carry stacked marks.
+- Small uppercase labels are allowed only for short eyebrows in languages without stacked diacritics. The foundation CSS of `@kickoff/kit` removes uppercase transforms when `<html lang>` is Vietnamese; never add `uppercase` classes to labels in such a language, and extend the rule in `tokens.css` for any other language whose capitals carry stacked marks.
 - Follow the locale's rules for names of organisations and places. Vietnamese (Decree 30/2020): the generic noun stays lower case inside a line ("xã Hòa Mỹ"), the type of body is capitalised in an agency name ("Sở Tài chính").
 
 ### 2.4 Spacing rhythm
@@ -83,7 +83,7 @@ Name sizes by role, not by pixel, and give each density mode its own column (siz
 
 ### 2.5 Locale formats
 
-Format every number, date and unit with the locale in `KIT_CONFIG.locale` through the kit helpers; never build these strings by hand in a screen module. The copy guide names one format per thing.
+Format every number, date and unit with `config.locale` through one shared `Intl` formatter module in `apps/web`; never build these strings by hand in a screen. The copy guide names one format per thing.
 
 | Thing | en (en-US) | vi (vi-VN) |
 | --- | --- | --- |
@@ -134,6 +134,6 @@ A missing value in a table cell is "—"; an empty action cell stays blank.
 | Rule | Written in | Checked by |
 | --- | --- | --- |
 | Voice, terms, formats, punctuation, letter case | ux-spec Copy guide | copy review; prototype screen checklist |
-| Type per surface, weights, spacing, chips, buttons, icons | design-system Craft rules | `kickoff proto lint` (font sizes, weight 600, inline styles, raw colours); craft auditor in the design review |
-| Locale set for a non-English UI | `js/config.js` `locale` and `lang` | `kickoff proto lint` |
-| Forbidden words (screen codes, prototype words, infrastructure) | `proto.forbidden` in `project.yaml` | `kickoff proto lint` |
+| Type per surface, weights, spacing, chips, buttons, icons | design-system Craft rules | `kickoff fe check` (the kit's ESLint rules: raw colours, inline font styles, weights above 700); craft auditor in the design review |
+| Locale set for a non-English UI | `apps/web/src/kickoff/config.ts` `locale` and `lang` | `kickoff fe new` writes them from `languages.ui` |
+| Forbidden words (screen codes, prototype words, infrastructure) | `fe.forbidden` in `project.yaml` | `kickoff fe check` |

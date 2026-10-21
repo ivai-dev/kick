@@ -1,6 +1,6 @@
 # Foundation rules
 
-The rules the design system writes down and the prototype kit implements. Library-agnostic: sizes in CSS px, states, timings and ARIA patterns only; the product stack is chosen in `kickoff:solution`. Kiosk values are in the kiosk frame's layout px.
+The rules the design system writes down and the FE v0 implements with `@app/ui` (shadcn on Radix) and `@kickoff/kit` (shells, density, type roles, motion tokens). Stated in CSS px, states, timings and ARIA patterns; the presentation stack is chosen in `kickoff:fe-foundation`. Kiosk values are in the kiosk frame's layout px.
 
 ## Principles (each one is a test)
 

@@ -11,11 +11,12 @@ import yaml
 from .errors import KickoffError
 from .model import KICKOFF_DIR, write_yaml
 
-PHASES = ["init", "discovery", "research", "feature-map", "ux-design", "prototype", "signoff", "solution", "plan",
-          "tickets"]
-GATES = {"C1": "Vision approved", "C2": "Draft scope approved", "C3": "Customer signed off the full feature set",
+PHASES = ["init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "prototype", "signoff",
+          "solution", "plan", "tickets"]
+GATES = {"C1": "Vision approved", "C2": "Draft scope approved", "CF": "Frontend foundation approved",
+         "C3": "Customer signed off the full feature set",
          "C4": "MVP locked", "C5": "Solution approved", "C6": "Plan baselined"}
-GATE_AFTER = {"C1": "discovery", "C2": "feature-map", "C3": "signoff", "C4": "signoff", "C5": "solution",
+GATE_AFTER = {"C1": "discovery", "C2": "feature-map", "CF": "fe-foundation", "C3": "signoff", "C4": "signoff", "C5": "solution",
               "C6": "plan"}
 REQUIRES: dict[str, tuple[list[str], list[str]]] = {
     "init": ([], []),
@@ -23,7 +24,8 @@ REQUIRES: dict[str, tuple[list[str], list[str]]] = {
     "research": (["discovery"], ["C1"]),
     "feature-map": (["discovery"], ["C1"]),
     "ux-design": (["feature-map"], ["C2"]),
-    "prototype": (["ux-design"], ["C2"]),
+    "fe-foundation": (["ux-design"], ["C2"]),
+    "prototype": (["fe-foundation"], ["CF"]),
     "signoff": (["prototype"], []),
     "feedback": (["prototype"], []),
     "solution": (["signoff"], ["C3", "C4"]),
@@ -36,8 +38,19 @@ DOC_DIRS = ["01-discovery", "02-requirements", "03-research", "04-architecture/a
             "07-task-specs", "08-task-plans"]
 
 
+def legacy_fe(state: dict) -> bool:
+    """A project that finished its prototype before 0.5.0 never ran fe-foundation: the phase and gate CF count as
+    satisfied, so the project is not sent back to them."""
+    return "fe-foundation" not in state["phases"] and any(
+        state["phases"].get(p) == "done" for p in ("prototype", "signoff", "solution"))
+
+
 def _done(state: dict, phase: str) -> bool:
-    return state["phases"].get(phase) == "done"
+    return state["phases"].get(phase) == "done" or (phase == "fe-foundation" and legacy_fe(state))
+
+
+def _gate_ok(state: dict, gate: str) -> bool:
+    return gate in state["gates"] or (gate == "CF" and legacy_fe(state))
 
 
 def blockers(state: dict, phase: str, baseline: bool = False) -> list[str]:
@@ -47,7 +60,7 @@ def blockers(state: dict, phase: str, baseline: bool = False) -> list[str]:
     phases, gates = REQUIRES[key]
     out = [f"phase {p} is not done" for p in phases if not _done(state, p)]
     out += [f"phase {p} is stale: re-run it first" for p in phases if _done(state, p) and p in state["stale"]]
-    out += [f"gate {g} ({GATES[g]}) is not approved" for g in gates if g not in state["gates"]]
+    out += [f"gate {g} ({GATES[g]}) is not approved" for g in gates if not _gate_ok(state, g)]
     return out
 
 
@@ -89,7 +102,7 @@ def reopen(state: dict, gate: str, reason: str) -> list[str]:
             state["gates"].pop(g, None)
     state["phases"][phase] = "in_progress"
     later = PHASES[PHASES.index(phase) + 1:]
-    stale = [p for p in later if _done(state, p)]
+    stale = [p for p in later if state["phases"].get(p) == "done"]
     for p in stale:
         if p not in state["stale"]:
             state["stale"].append(p)
@@ -107,7 +120,7 @@ def next_step(state: dict) -> str:
         return f"continue kickoff:{in_progress[0]}{tail}"
     for gate, phase in GATE_AFTER.items():
         ready = all(g in state["gates"] for g in GATE_NEEDS.get(gate, []))
-        if _done(state, phase) and phase not in stale and gate not in state["gates"] and ready:
+        if _done(state, phase) and phase not in stale and not _gate_ok(state, gate) and ready:
             return (f"approve gate {gate} ({GATES[gate]}): kickoff gate approve {gate} --by <who> "
                     "--evidence <link>")
     for phase in stale:
@@ -125,12 +138,16 @@ def status_lines(state: dict) -> list[str]:
     lines = ["Phases:"]
     for p in PHASES:
         mark = state["phases"].get(p, "—")
+        if p == "fe-foundation" and legacy_fe(state):
+            mark = "skipped (prototype built before 0.5.0)"
         stale = "  (stale)" if p in state["stale"] else ""
         lines.append(f"  {p:<15} {mark}{stale}")
     lines.append("Gates:")
     for g, desc in GATES.items():
         a = state["gates"].get(g)
-        lines.append(f"  {g}  {desc:<42} " + (f"approved {a['date']} by {a['approved_by']}" if a else "open"))
+        state_ = (f"approved {a['date']} by {a['approved_by']}" if a
+                  else "not needed (prototype built before 0.5.0)" if g == "CF" and legacy_fe(state) else "open")
+        lines.append(f"  {g}  {desc:<42} " + state_)
     lines.append(f"Next: {next_step(state)}")
     return lines
 

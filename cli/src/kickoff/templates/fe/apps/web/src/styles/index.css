@@ -1,0 +1,9 @@
+/* Entry stylesheet. Order matters: Tailwind -> @app/ui tokens -> kit foundation -> project tokens. */
+@import "tailwindcss";
+@import "@app/ui/styles.css";
+@import "@kickoff/kit/foundation.css";
+@import "./tokens.css";
+
+/* Workspace packages are linked through node_modules, which Tailwind skips: scan them explicitly. */
+@source "../../../../packages/ui/src";
+@source "../../../../packages/kit/src";

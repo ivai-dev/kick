@@ -43,7 +43,7 @@ Not for changing an existing project's settings: edit `.kickoff/project.yaml` an
 | 7 | Tracker | `tracker` | `kind: github` or `none`. For GitHub: `org`, `repo`, `project` (Projects number), `assignee` (the account every issue is assigned to), `milestone`, `priority: {source: org-field, map: {P0: ..., P1: ..., P2: ..., blocker: ...}}`, and `issue_fields` ids if the organisation uses issue fields. |
 | 8 | Security rules | `security[]` | One sentence each, e.g. "Never log, print, or send to analytics any customer content." They are copied into `AGENTS.md`. |
 | 9 | Forbidden phrases | `rules.forbidden_phrases[]` | Regular expressions no document may match. Recommend `'\bClaude\b'` and `'AI[- ]assist'`. Keep `owners_by_role: true` and `synthetic_data_only: true`. |
-| 10 | Prototype folder | `proto.dir`, `proto.ux_spec`, `proto.forbidden[]` | Defaults `docs/05-design/prototype` and `docs/05-design/ux-spec.md`. `proto.forbidden`: regular expressions for development infrastructure that must never reach the UI (VPN names, private IP ranges such as `10\.8\.\d+\.\d+`, internal hosts). |
+| 10 | Frontend | `fe.dir`, `fe.ux_spec`, `fe.forbidden[]` | Defaults `.` (the repository root holds the pnpm workspace; the app is always `apps/web` under it) and `docs/05-design/ux-spec.md`. `fe.forbidden`: regular expressions for development infrastructure that must never reach the UI (VPN names, private IP ranges such as `10\.8\.\d+\.\d+`, internal hosts). |
 
 Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the lead wants another root, move the created folders and set `docs_root` to match.
 
@@ -81,7 +81,7 @@ Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the
 ## Lessons
 
 - Literal `\n` in a Bash heredoc became real newlines in JS: write every file with the file tools, not heredocs.
-- A development VPN name and IP range appeared in product UI: record such names in `proto.forbidden` now, so `kickoff proto lint` flags them later.
+- A development VPN name and IP range appeared in product UI: record such names in `fe.forbidden` now, so `kickoff fe check` flags them later.
 
 ## Handoff
 

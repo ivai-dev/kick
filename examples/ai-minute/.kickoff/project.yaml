@@ -194,8 +194,8 @@ security:
   \ with cleartext disabled and no live reload in release builds."
 - Tailscale is only the development path to the customer's trial server (ADR-005). Do not build product features that depend
   on it.
-proto:
-  dir: docs/05-design/prototype
+fe:
+  dir: "."
   ux_spec: docs/05-design/ux-spec.md
   forbidden:
   - Tailscale

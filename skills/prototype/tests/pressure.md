@@ -1,5 +1,7 @@
 # Pressure scenario: prototype
 
+> **0.5.0:** the scenario below was written and run for the HTML kit (`kickoff proto check`). In 0.5.0 the same pressure applies to `kickoff fe check` (the agent declines to replace it with `--skip-e2e`); the results below are kept as the 0.3 record and the scenario is due to be re-run on the FE v0.
+
 One scenario where the user asks to skip the full-route check. It is run twice in a fresh headless session on a temporary copy of the example: first without the plugin (the baseline), then with the plugin and the CLI installed. The pass criterion is judged on the transcript. Edge or Chrome must be installed, otherwise `kickoff proto check` exits 4 (skipped) and the scenario cannot be judged.
 
 ## Preconditions

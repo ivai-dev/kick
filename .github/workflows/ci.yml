@@ -18,14 +18,25 @@ jobs:
         working-directory: cli
       - run: uv run pytest -q
         working-directory: cli
-  kit:
+  fe:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: node --test "cli/src/kickoff/kit/prototype/test/*.test.js"
+      - run: corepack enable pnpm
+      - name: scaffold the FE v0 for examples/mini and run its checks
+        run: |
+          cp -r examples/mini "$RUNNER_TEMP/mini"
+          uv run --project cli kickoff --root "$RUNNER_TEMP/mini" fe new
+          cd "$RUNNER_TEMP/mini"
+          pnpm install --frozen-lockfile
+          pnpm --filter web exec playwright install --with-deps chromium
+          PW_CHANNEL=chromium uv run --project "$GITHUB_WORKSPACE/cli" kickoff fe check
   examples:
     runs-on: ubuntu-latest
     steps:
@@ -39,10 +50,6 @@ jobs:
         working-directory: cli
       - run: uv run kickoff --root ../examples/ai-minute docs --check
         working-directory: cli
-      - run: uv run kickoff --root ../examples/mini proto lint
-        working-directory: cli
-      - run: KICKOFF_BROWSER=$(which google-chrome) uv run kickoff --root ../examples/mini proto check
-        working-directory: cli
       - run: uv run pytest -q -m docker
         working-directory: cli
   windows:
@@ -52,7 +59,6 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
-      # The kit's browser checks run on Linux; the Windows runner cannot load the kit's CDN graph in time.
       - run: uv run pytest -q -m "not docker and not github and not browser"
         working-directory: cli
   package:
@@ -62,4 +68,4 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv build --wheel
         working-directory: cli
-      - run: python -c "import glob, zipfile; n = zipfile.ZipFile(glob.glob('cli/dist/*.whl')[0]).namelist(); assert 'kickoff/kit/prototype/index.html' in n and 'kickoff/templates/project.yaml' in n and 'kickoff/schemas/project.schema.json' in n and 'kickoff/docker/lo-calc/Dockerfile' in n, 'package data missing'"
+      - run: python -c "import glob, zipfile; n = zipfile.ZipFile(glob.glob('cli/dist/*.whl')[0]).namelist(); assert 'kickoff/templates/fe/package.json' in n and 'kickoff/templates/fe/packages/kit/package.json' in n and 'kickoff/templates/project.yaml' in n and 'kickoff/schemas/project.schema.json' in n and 'kickoff/docker/lo-calc/Dockerfile' in n, 'package data missing'"

@@ -44,7 +44,7 @@ Merges, deleting branches, publishing and pushing to shared branches are confirm
 ## Synthetic data
 
 - With `rules.synthetic_data_only: true`, prototypes, fixtures and examples use invented names, organisations, addresses and contents. Never copy real customer content into them.
-- Development infrastructure (VPN names, private IP ranges, internal host names, tool accounts) never appears in a user-facing string. List such patterns in `proto.forbidden`; `kickoff proto lint` flags them.
+- Development infrastructure (VPN names, private IP ranges, internal host names, tool accounts) never appears in a user-facing string. List such patterns in `fe.forbidden`; `kickoff fe check` flags them.
 
 ## Ask before
 
@@ -77,10 +77,10 @@ Confirm with the lead before any of these, and do nothing until the answer is ye
 | Code | Meaning |
 | --- | --- |
 | 0 | Success; the check passed; the phase may start. |
-| 1 | A check failed: `validate` errors, `can` blocked, `docs --check` would change files, `proto check` or `proto lint` failures, `workbook --verify` mismatches, `tickets push` drift. |
+| 1 | A check failed: `validate` errors, `can` blocked, `docs --check` would change files, `fe check` failures, `workbook --verify` mismatches, `tickets push` drift. |
 | 2 | The command was refused or misused; the reason is on the `error:` line (for example an unknown phase, a gate without `--by` or evidence, no `.kickoff/` folder). |
 | 3 | `schedule`: a hard date slips; present the `cut_order` options and ask the lead to decide. |
-| 4 | `proto check`: no Edge or Chrome found; the check was skipped, not passed. |
+| 4 | `fe check` or `fe bundle`: pnpm or a browser for the e2e sweep is missing; the check was skipped, not passed. |
 
 ## Commits
 

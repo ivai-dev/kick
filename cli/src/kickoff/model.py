@@ -142,6 +142,7 @@ class Project:
     rules: dict[str, Any]
     security: list[str]
     proto: dict[str, Any]
+    fe: dict[str, Any]
     date_format: str
 
     @classmethod
@@ -170,6 +171,7 @@ class Project:
             rules=d.get("rules") or {},
             security=d.get("security") or [],
             proto=d.get("proto") or {},
+            fe=d.get("fe") or {},
             date_format=d.get("date_format", "%d/%m/%Y"),
         )
 

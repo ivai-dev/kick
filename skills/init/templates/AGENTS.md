@@ -12,6 +12,9 @@ Working rules for everyone who changes this repository. Keep this file short and
 | --- | --- | --- |
 | `.kickoff/` | Project settings, features, plan, state and ticket map (source of truth for the plan) | Project lead |
 | `docs/` | Discovery, requirements, research, architecture, design and planning documents | Project lead |
+| `apps/web/` | The FE v0: screens (`src/screens/`), the screen registry and scenarios (`src/kickoff/`), tokens (`src/styles/tokens.css`) | Frontend developer |
+| `packages/ui/`, `packages/mocks/` | Shared UI components (shadcn on Radix) and the mock data layer behind the API client | Frontend developer |
+| `packages/kit/` | `@kickoff/kit`, plugin-owned: router, shells, prototype bar, checks; replaced by `kickoff fe update`, never edited | — |
 | `{{path}}` | {{contents: filled when the code structure exists}} | {{role}} |
 
 ## Security rules
@@ -62,7 +65,7 @@ The project uses two Claude Code plugins: kickoff, and ECC (`ecc@ecc`).
 - **Kickoff owns** the gates, `.kickoff/`, the IDs, the documents under `docs_root`, the plan, the schedule and the tickets.
 - **ECC does the work it is given:** research, options, reviews, and after tickets the build, review, QA and release (`orch-*`).
 - **ECC output becomes evidence:** its reports are saved under `docs_root` and cited when a gate is approved; they never approve a gate themselves.
-- **The CLI owns `.kickoff/state.yaml` and `.kickoff/tickets.yaml`:** a hook refuses hand edits; use `kickoff phase`, `kickoff gate`, `kickoff proto record` and `kickoff tickets`.
+- **The CLI owns `.kickoff/state.yaml` and `.kickoff/tickets.yaml`:** a hook refuses hand edits; use `kickoff phase`, `kickoff gate`, `kickoff fe record` and `kickoff tickets`.
 
 ## Definition of Done
 

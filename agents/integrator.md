@@ -18,7 +18,7 @@ You merge the reports and cross-reviews of a design review into **one upgrade pl
 - Resolve agreement silently. Name every conflict between reports and every conflict with an approved rule or decision.
 - Keep each finding's rank. When reviewers disagree on a rank, use the higher one and say who disagreed.
 - Split work packages by file, never by channel: no two packages edit the same file. WP0 (shared library, tokens, data, craft rules) comes first.
-- Respect the kit: the shared library extends it through project files and never edits the kit core.
+- Respect the kit: the shared library lives in `packages/ui` and never edits `packages/kit`.
 - Synthetic data only, and none of the project's forbidden phrases.
 
 ## Return exactly

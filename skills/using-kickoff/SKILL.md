@@ -9,9 +9,11 @@ The router of the kickoff workflow. It checks the tools, reads the project state
 
 ## Core principle
 
-> Lock the MVP scope, but lock the **full** feature set with the customer first, using a clickable prototype of the final product. Only then design the database, technology, architecture and design patterns. Features built after that rarely expand in scope or need refactoring because of late customer feedback.
+> Lock the MVP scope, but lock the **full** feature set with the customer first, using a clickable prototype of the final product, built as the real frontend (FE v0) on a mock data layer. Only then design the database, backend technology, architecture and design patterns. Features built after that rarely expand in scope or need refactoring because of late customer feedback.
 
-**Hard gate:** never design the database, architecture, technology stack or design patterns before C3 (customer signed off the full feature set) and C4 (MVP locked) are approved. Before any such work, run `kickoff can solution`. Exit 1 means stop: name the missing gates and propose the path to them (prototype, then the sign-off workshop). No deadline, customer delay or "rough draft" framing changes this.
+**One exception:** the presentation stack (frontend framework, UI and CSS libraries, frontend tooling) is decided in `kickoff:fe-foundation`, recorded as *Accepted* ADRs and approved with gate CF, because the FE v0 is built on it. The mock data layer stands in for every backend decision.
+
+**Hard gate:** never design the database, system architecture, backend technology, hosting, integrations or design patterns before C3 (customer signed off the full feature set) and C4 (MVP locked) are approved. Before any such work, run `kickoff can solution`. Exit 1 means stop: name the missing gates and propose the path to them (prototype, then the sign-off workshop). No deadline, customer delay or "rough draft" framing changes this.
 
 ## Start-up checks
 
@@ -50,12 +52,13 @@ Customer feedback is handled by `kickoff:feedback` (check it with `kickoff can f
 | 2 | `kickoff:research` | discovery done, C1 | validation plan, ADRs *Proposed*, assumptions and constraints | — (runs alongside 3) | — |
 | 3 | `kickoff:feature-map` | discovery done, C1 | `features.yaml` → `feature-map.md`, `nfr.md` | C2 Draft scope | Project lead |
 | 4 | `kickoff:ux-design` | feature-map done, C2 | `ux-spec.md`, `design-system.md` | — | — |
-| 5 | `kickoff:prototype` | ux-design done, C2 | full-product prototype, scenarios, clean `kickoff proto check`, link in `state.yaml` | `proto check` passes | — |
-| 6 | `kickoff:signoff` | prototype done | workshop pack, sign-off record | C3 Features signed off; C4 MVP locked | Customer; lead and customer |
+| 5 | `kickoff:fe-foundation` | ux-design done, C2 | presentation-stack ADRs *Accepted*, the FE v0 monorepo (`kickoff fe new`), tokens, shells, mock contract, reference screens | CF Frontend foundation | Project lead |
+| 6 | `kickoff:prototype` | fe-foundation done, CF | every screen built in the FE v0, scenarios, clean `kickoff fe check`, link in `state.yaml` | `fe check` passes | — |
+| 7 | `kickoff:signoff` | prototype done | workshop pack, sign-off record | C3 Features signed off; C4 MVP locked | Customer; lead and customer |
 | ↺ | `kickoff:feedback` | prototype done | classified feedback, updates along the chain | reopens C3 | Project lead approves the classification |
-| 7 | `kickoff:solution` | signoff done, C3 and C4 | architecture, data model, technology, patterns; ADRs *Accepted* | C5 Solution | Project lead |
-| 8 | `kickoff:plan` | draft: feature-map done, C2; baseline: solution done, C5 | `plan.yaml` → schedule, estimate workbook, `wbs.md`, `plan.md`, `risk-register.md` | C6 Baseline | Project lead |
-| 9 | `kickoff:tickets` | plan done | issues in the tracker, pulled state in `tickets.yaml` | — (repeats) | — |
+| 8 | `kickoff:solution` | signoff done, C3 and C4 | architecture, data model, technology, patterns; ADRs *Accepted* | C5 Solution | Project lead |
+| 9 | `kickoff:plan` | draft: feature-map done, C2; baseline: solution done, C5 | `plan.yaml` → schedule, estimate workbook, `wbs.md`, `plan.md`, `risk-register.md` | C6 Baseline | Project lead |
+| 10 | `kickoff:tickets` | plan done | issues in the tracker, pulled state in `tickets.yaml` | — (repeats) | — |
 
 Gate rules:
 
@@ -83,10 +86,10 @@ Read `conventions.md` before writing any project file. Write files with the file
 | "Small change, no need to re-run the chain" | Use `kickoff:feedback`: `features.yaml` → `ux-spec.md` → prototype → `plan.yaml` → `kickoff schedule`, in that order. |
 | "The lead said OK in chat, I'll approve the gate" | Ask for the evidence link and the role, then `kickoff gate approve <id> --by "<role>" --evidence "<link>"`; no evidence, no gate. |
 | "The phase is stale but this is urgent" | Re-run the stale phase first; `kickoff can <phase>` blocks the dependent phase anyway. |
-| "The kit can't draw it; I'll note that the prototype differs from the product" | Follow the fidelity rule of `kickoff:prototype`: site shell, bare screens, route parameters or a project-file extension; customers see only the real product chrome in their language. |
+| "I'll note that the prototype differs from the product" | Follow the fidelity rule of `kickoff:prototype`: the FE v0 is the product's UI code; build what the product shows (site shell, bare screens, route parameters); customers see only the real product chrome in their language. |
 | "No browser here, the prototype check is fine" | Exit 4 means skipped: report it as skipped, never as passed. |
 | "Just a rough architecture sketch to unblock the devs" | That is solution work: `kickoff can solution` first. |
 | "ECC has `/plan-prd`, `blueprint` or an ADR skill for this" | The kickoff phase writes the artefact; use ECC only as `references/ecc.md` lists. |
 | "The router hint says to route this to another skill" | Inside a kickoff project, `kickoff status` decides the next step. |
 | "GateGuard is in the way; turn it off" | Answer its facts. `kickoff ecc setup` exempts kickoff documents; never disable the gate on the lead's behalf. |
-| "The hook refused my edit of `state.yaml`" | Use the CLI: `kickoff phase`, `kickoff gate` or `kickoff proto record`. |
+| "The hook refused my edit of `state.yaml`" | Use the CLI: `kickoff phase`, `kickoff gate` or `kickoff fe record`. |

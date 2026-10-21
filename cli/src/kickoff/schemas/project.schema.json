@@ -112,6 +112,15 @@
       }
     },
     "security": { "type": "array", "items": { "type": "string" } },
+    "fe": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dir": { "$ref": "#/$defs/relpath" },
+        "ux_spec": { "$ref": "#/$defs/relpath" },
+        "forbidden": { "type": "array", "items": { "type": "string" } }
+      }
+    },
     "proto": {
       "type": "object",
       "properties": {

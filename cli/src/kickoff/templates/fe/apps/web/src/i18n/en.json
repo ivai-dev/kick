@@ -1,0 +1,77 @@
+{
+  "common": {
+    "search": "Search",
+    "reset": "Reset filters",
+    "cancel": "Cancel",
+    "save": "Save",
+    "all": "All"
+  },
+  "table": {
+    "label": "Requests table",
+    "columns": "Columns",
+    "selectAll": "Select all rows on this page",
+    "selectRow": "Select row",
+    "rowsPerPage": "Rows per page",
+    "pageOf": "Page {{page}} of {{pages}}",
+    "summary": "{{total}} requests",
+    "summarySelected": "{{selected}} of {{total}} selected",
+    "previous": "Previous page",
+    "next": "Next page",
+    "empty": "No requests match these filters."
+  },
+  "request": {
+    "id": "ID",
+    "title": "Title",
+    "status": "Status",
+    "owner": "Owner",
+    "createdAt": "Created",
+    "amount": "Amount",
+    "description": "Description",
+    "statuses": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
+  },
+  "requests": {
+    "title": "Requests",
+    "description": "All purchase and expense requests of your team.",
+    "new": "New request",
+    "searchPlaceholder": "Search title, owner, ID…",
+    "statusFilter": "Filter by status"
+  },
+  "newRequest": {
+    "title": "New request",
+    "description": "Fill in the details; you can save it as a draft.",
+    "back": "Back to requests",
+    "titleHint": "A short, specific summary.",
+    "ownerPlaceholder": "Choose an owner",
+    "ownerSearch": "Search people…",
+    "ownerEmpty": "Nobody found.",
+    "submitNow": "Submit for approval now",
+    "submit": "Create request",
+    "created": "Request {{id}} created",
+    "errors": {
+      "title": "Enter a title (at most 200 characters).",
+      "owner": "Choose an owner.",
+      "amount": "Enter an amount of 0 or more."
+    }
+  },
+  "home": {
+    "eyebrow": "Welcome",
+    "title": "Requests made simple",
+    "lead": "Submit, track and approve purchase requests in one place — on any device.",
+    "cta": "Get started",
+    "secondary": "Learn more",
+    "features": {
+      "fast": { "title": "Fast", "body": "Create a request in under a minute." },
+      "clear": { "title": "Transparent", "body": "Everyone sees the status at every step." },
+      "safe": { "title": "Controlled", "body": "Budgets and approvals follow your rules." }
+    },
+    "stats": {
+      "title": "Requests per month",
+      "caption": "Illustrative data."
+    }
+  }
+}

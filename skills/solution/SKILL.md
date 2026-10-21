@@ -5,7 +5,7 @@ description: Use when designing architecture, data model, technology stack or de
 
 # Solution
 
-Designs the architecture, data model, technology stack and design patterns for the feature set the customer signed off. It decides the *Proposed* ADRs on the evidence of the validation results, records every new decision as an ADR, and adds the work the architecture needs to the plan. This is the phase the core principle protects: it runs only after C3 and C4.
+Designs the architecture, data model, backend technology and design patterns for the feature set the customer signed off. The presentation stack is already decided (the *Accepted* ADRs of `kickoff:fe-foundation`), and the mock contract in `packages/mocks` is the first draft of the API. It decides the *Proposed* ADRs on the evidence of the validation results, records every new decision as an ADR, and adds the work the architecture needs to the plan. This is the phase the core principle protects: it runs only after C3 and C4.
 
 ## When to use
 

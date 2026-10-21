@@ -45,7 +45,7 @@ rules:
   synthetic_data_only: true
   forbidden_phrases: []
 security: []
-proto:
-  dir: docs/05-design/prototype
+fe:
+  dir: "."
   ux_spec: docs/05-design/ux-spec.md
   forbidden: ["\\bVPN\\b"]

@@ -5,7 +5,7 @@ description: Use when defining a project's information architecture, screen inve
 
 # UX design
 
-Turns the approved feature map into the UX specification (roles, shell and home per role, IA per role, every screen of every release and platform, behaviour rules, states, copy, accessibility) and the design system the prototype is built with. A concept round with the lead comes before the design system. `kickoff proto new` and `kickoff proto check` read the screen inventory of `ux-spec.md`, so its table format is exact.
+Turns the approved feature map into the UX specification (roles, shell and home per role, IA per role, every screen of every release and platform, behaviour rules, states, copy, accessibility) and the design system the prototype is built with. A concept round with the lead comes before the design system. `kickoff fe new` and `kickoff fe check` read the screen inventory of `ux-spec.md`, so its table format is exact.
 
 ## When to use
 
@@ -22,7 +22,7 @@ Turns the approved feature map into the UX specification (roles, shell and home 
 - `.kickoff/features.yaml` and `<docs_root>/02-requirements/feature-map.md`: epics, features, releases, platforms.
 - `<docs_root>/02-requirements/nfr.md`: accessibility, compatibility and localisation targets.
 - `<docs_root>/01-discovery/vision-scope.md`: users and roles, platforms, constraints; `open-questions.md` (Decision log).
-- `.kickoff/project.yaml`: `releases`, `languages.ui`, `proto.ux_spec` (default `<docs_root>/05-design/ux-spec.md`), `proto.forbidden`.
+- `.kickoff/project.yaml`: `releases`, `languages.ui`, `fe.ux_spec` (default `<docs_root>/05-design/ux-spec.md`), `fe.forbidden`.
 - `templates/ux-spec.md` and `templates/design-system.md` in this skill's folder.
 - `references/content-and-craft.md` (copy review, craft rules, locale formats), `references/guidance-library.md` (guidance devices, motion), `references/foundation-rules.md` (density modes, type roles, layout, overlays and consequences, motion, card anatomy, form grid) and `references/data-at-volume.md` (volumes and list functions per entity, stress fixtures) in this skill's folder.
 - Working methods: `../using-kickoff/references/methods.md`. Conventions: `../using-kickoff/references/conventions.md`.
@@ -52,7 +52,7 @@ Turns the approved feature map into the UX specification (roles, shell and home 
    ```
 
    - Roles are comma-separated role ids. Platform is `web`, `windows` or `android`. Release is a release id from `project.yaml`.
-   - List each role's home screen before its other screens: `kickoff proto new` makes the first screen that names a role that role's home.
+   - List each role's home screen before its other screens: `kickoff fe new` makes the first screen that names a role that role's home.
    - The roles of a screen are its access rule: the prototype's role guard refuses every other role.
    - A device view of a web screen (a kiosk, a full-screen start screen) is not a new row: note it under the screen in the Notes, as a route parameter the prototype will read (`?kiosk=1`).
 
@@ -63,7 +63,7 @@ Turns the approved feature map into the UX specification (roles, shell and home 
    - one integrated concept from `kickoff:integrator`.
 
    The agents are read-only and return their reports; save each one in the concept folder. Then run the copy review and declutter pass of `references/content-and-craft.md` on the artboard text. Log the direction as `D<n>` in the Decision log of `open-questions.md`, with its date and source.
-9. **Write `ux-spec.md`** at `proto.ux_spec` from `templates/ux-spec.md`, sections in this order: Roles and IA per role, Screen inventory, Navigation rules, Behaviour rules (numbered `BR-<n>`), States (empty, loading, error, offline), Copy guide, Accessibility. These rules are defaults; keep them unless the lead decides otherwise:
+9. **Write `ux-spec.md`** at `fe.ux_spec` from `templates/ux-spec.md`, sections in this order: Roles and IA per role, Screen inventory, Navigation rules, Behaviour rules (numbered `BR-<n>`), States (empty, loading, error, offline), Copy guide, Accessibility. These rules are defaults; keep them unless the lead decides otherwise:
    - navigation goes to distinct pages; filters stay in-page (never a menu item that reloads a near-identical page with a filter applied);
    - **one primary job per screen:** above the fold, at most the header, one guidance device from `references/guidance-library.md` and the start of the main content;
    - **one main action per screen** (one filled button); a screen offers only the actions possible now;
@@ -87,7 +87,7 @@ Turns the approved feature map into the UX specification (roles, shell and home 
 
 ## Outputs
 
-- `<docs_root>/05-design/ux-spec.md` (or the path in `proto.ux_spec`)
+- `<docs_root>/05-design/ux-spec.md` (or the path in `fe.ux_spec`)
 - `<docs_root>/05-design/design-system.md`
 - `<docs_root>/05-design/concept/`: the concept options and the integrated concept
 - `<docs_root>/01-discovery/open-questions.md`: the design direction as `D<n>`
@@ -102,7 +102,7 @@ Turns the approved feature map into the UX specification (roles, shell and home 
 4. The Copy guide has voice per audience, a term table, punctuation, letter case and formats for the UI locale; `design-system.md` has Craft rules.
 5. The Decision log has the design direction as `D<n>`.
 6. `kickoff check-docs <ux-spec.md> <design-system.md>` prints `check-docs passed` (no placeholder, no forbidden phrase).
-7. Search both files with each pattern of `proto.forbidden` in `project.yaml`: no match.
+7. Search both files with each pattern of `fe.forbidden` in `project.yaml`: no match.
 8. `kickoff validate` reports `0 errors`, and `kickoff docs --check` prints `documents up to date`.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
@@ -125,4 +125,4 @@ Turns the approved feature map into the UX specification (roles, shell and home 
 
 ## Handoff
 
-`kickoff:prototype`, which scaffolds the prototype from this screen inventory with `kickoff proto new`. `kickoff status` names it.
+`kickoff:fe-foundation`, which decides the presentation stack and scaffolds the FE v0 from this screen inventory with `kickoff fe new`; then `kickoff:prototype`. `kickoff status` names it.

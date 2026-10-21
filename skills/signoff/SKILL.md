@@ -17,12 +17,12 @@ Prepares the customer review workshop on the full-product prototype and records 
 
 - `kickoff can signoff` exits 0 (prototype done).
 - `.kickoff/state.yaml` has `prototype.artifact` (the published link or the bundle path) and `prototype.version`.
-- The prototype's scenarios run cleanly: the last `kickoff proto check` printed `prototype check passed`.
+- The prototype's scenarios run cleanly: the last `kickoff fe check` printed `fe check passed`.
 
 ## Inputs
 
 - `.kickoff/features.yaml` and `<docs_root>/02-requirements/feature-map.md`: the feature set to sign off, by release.
-- The prototype: link and version in `.kickoff/state.yaml`, scenarios in `<proto.dir>/js/scenarios.js`.
+- The prototype: link and version in `.kickoff/state.yaml`, scenarios in `apps/web/src/kickoff/scenarios.ts`.
 - `<docs_root>/01-discovery/open-questions.md`: questions due and the Decision log.
 - `.kickoff/plan.yaml`: the workshop package, risks, gates, `cut_order`; `.kickoff/project.yaml`: `hard_dates`, `releases`.
 - Workshop notes, minutes, e-mails or signed documents after the workshop.
@@ -42,12 +42,12 @@ Prepares the customer review workshop on the full-product prototype and records 
 3. **Write the workshop pack** at `<docs_root>/01-discovery/signoff/YYYY-MM-DD-workshop-pack.md` from `templates/workshop-pack.md`, in the language the lead asks for (customer deliverables). Sections:
    - **Goal:** sign off the full feature set across all releases, and lock the MVP.
    - **Agenda** with timings.
-   - **Demo script:** one row per scenario, with its link `#scn-<id>` (appended to the prototype link) and the feature IDs it shows. Every feature in `features.yaml` is shown by a scenario or listed for a walk-through.
+   - **Demo script:** one row per scenario, with its link `#/<role>/<first screen>?scenario=<id>` (appended to the FE v0 link; the demo bar plays the steps) and the feature IDs it shows. Every feature in `features.yaml` is shown by a scenario or listed for a walk-through.
    - **Decisions the customer must take:** a table of ID (the `Q<n>` the decision answers), Decision, Options, Recommended, Deadline.
    - **Open questions due:** questions from `open-questions.md` whose needed-by date falls before or soon after the workshop.
    - **Scope-cut order if dates are fixed:** the `cut_order` of `plan.yaml` with the effort each cut frees, as `kickoff schedule` reports it.
 
-   The prototype and any screenshots in the pack (from `kickoff proto check --shots`) show the real product chrome and the customer's language, with no screen codes in the product UI and no "differs from the product" note (the fidelity rule of `kickoff:prototype`). If they do not, fix the prototype first.
+   The prototype and any screenshots in the pack (taken from the FE v0 with the demo bar hidden, `?demo=0`) show the real product chrome and the customer's language, with no screen codes in the product UI and no "differs from the product" note (the fidelity rule of `kickoff:prototype`). If they do not, fix the prototype first.
 4. Commit `docs: sign-off workshop pack`. Sending the pack or the prototype link to the customer is publishing: ask the lead first.
 
 ### After the workshop
@@ -81,7 +81,7 @@ Prepares the customer review workshop on the full-product prototype and records 
 
 1. `kickoff check-docs <workshop pack> <sign-off record>` prints `check-docs passed` (no placeholder, no forbidden phrase). Attendees and owners are roles.
 2. Every active feature in `features.yaml` at the referenced commit appears in the record, as signed off or as a change requested.
-3. Every scenario in the demo script exists in `js/scenarios.js`, and `kickoff proto check` prints `prototype check passed` (it runs every scenario; exit 4 is a skipped check, not a pass).
+3. Every scenario in the demo script exists in `apps/web/src/kickoff/scenarios.ts`, and `kickoff fe check` prints `fe check passed` (its e2e sweep walks every scenario; exit 4 is a skipped check, not a pass).
 4. `kickoff validate` reports `0 errors`; `kickoff schedule` exits 0, or exits 3 with the lead's slip decision recorded as a `D<n>`; `kickoff docs --check` prints `documents up to date`.
 5. Every decision in the record is in the Decision log with its date and source.
 
