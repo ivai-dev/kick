@@ -2,9 +2,10 @@
 
 - **Version:** {{version}} ({{date}})
 - **Owner:** Project lead
-- **Direction inputs:** product type {{product type}}; audiences {{audiences}}; keywords {{keywords}}; density per audience {{e.g. public 2–3, staff 4–5, kiosk 1–2}}, variance {{1–10}}, motion {{1–10}}
+- **Inputs:** product type {{product type}}; audiences {{audiences}}; density per audience {{e.g. staff compact, public comfortable, phone touch, kiosk}}
+- **Visual direction:** {{set by kickoff:design-direction: the locked direction id and its ADR}}
 
-`kickoff:fe-foundation` copies the token values below into `apps/web/src/styles/tokens.css`; the names are the CSS variables of `@app/ui` and `@kickoff/kit`, whose defaults (`../references/foundation-rules.md` of the ux-design skill) apply wherever this file says nothing. The FE v0 bundles its fonts and assets.
+`kickoff:fe-foundation` copies the structural values below (density, type roles, spacing, motion) into `apps/web/src/styles/tokens.css`. The colour, font, radius and signature rows are written by `kickoff:design-direction` from the direction the customer approved (`apps/web/src/styles/directions/<id>.css`, brand colours in terms of `--brand-h` and `--brand-c`); until then they read `set by kickoff:design-direction`. The names are the CSS variables of `@app/ui` and `@kickoff/kit`, whose defaults (`../references/foundation-rules.md` of the ux-design skill) apply wherever this file says nothing. The FE v0 bundles its fonts and assets.
 
 ## Principles
 

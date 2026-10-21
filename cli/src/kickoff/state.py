@@ -11,13 +11,14 @@ import yaml
 from .errors import KickoffError
 from .model import KICKOFF_DIR, write_yaml
 
-PHASES = ["init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "prototype", "signoff",
-          "solution", "plan"]
+PHASES = ["init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "design-direction",
+          "prototype", "signoff", "solution", "plan"]
 GATES = {"C1": "Vision approved", "C2": "Draft scope approved", "CF": "Frontend foundation approved",
+         "CD": "Customer approved the design direction",
          "C3": "Customer signed off the full feature set",
          "C4": "MVP locked", "C5": "Solution approved", "C6": "Plan baselined"}
-GATE_AFTER = {"C1": "discovery", "C2": "feature-map", "CF": "fe-foundation", "C3": "signoff", "C4": "signoff", "C5": "solution",
-              "C6": "plan"}
+GATE_AFTER = {"C1": "discovery", "C2": "feature-map", "CF": "fe-foundation", "CD": "design-direction",
+              "C3": "signoff", "C4": "signoff", "C5": "solution", "C6": "plan"}
 REQUIRES: dict[str, tuple[list[str], list[str]]] = {
     "init": ([], []),
     "discovery": (["init"], []),
@@ -25,7 +26,8 @@ REQUIRES: dict[str, tuple[list[str], list[str]]] = {
     "feature-map": (["discovery"], ["C1"]),
     "ux-design": (["feature-map"], ["C2"]),
     "fe-foundation": (["ux-design"], ["C2"]),
-    "prototype": (["fe-foundation"], ["CF"]),
+    "design-direction": (["fe-foundation"], ["CF"]),
+    "prototype": (["design-direction"], ["CD"]),
     "signoff": (["prototype"], []),
     "feedback": (["prototype"], []),
     "solution": (["signoff"], ["C3", "C4"]),
@@ -37,19 +39,40 @@ DOC_DIRS = ["01-discovery", "02-requirements", "03-research", "04-architecture/a
             "07-task-specs", "08-task-plans"]
 
 
-def legacy_fe(state: dict) -> bool:
-    """A project that finished its prototype before 0.5.0 never ran fe-foundation: the phase and gate CF count as
-    satisfied, so the project is not sent back to them."""
-    return "fe-foundation" not in state["phases"] and any(
-        state["phases"].get(p) == "done" for p in ("prototype", "signoff", "solution"))
+# A phase added in a later release, for projects that were past it when it arrived:
+# phase -> (its gate, the release, phases that show the project is past it, and whether "started" is enough)
+LEGACY = {
+    "fe-foundation": ("CF", "0.5.0", "prototype built", False),
+    "design-direction": ("CD", "0.7.0", "prototype started", True),
+}
+
+
+def legacy(state: dict, phase: str) -> bool:
+    """True when `phase` never ran because the project was past it before the release that added it: the phase and
+    its gate count as satisfied, so the project is not sent back to them."""
+    if phase not in LEGACY or phase in state["phases"]:
+        return False
+    started = LEGACY[phase][3]
+    proto = state["phases"].get("prototype")
+    return (proto is not None if started else proto == "done") or any(
+        state["phases"].get(p) == "done" for p in ("signoff", "solution"))
+
+
+def legacy_note(phase: str) -> str:
+    _, release, what, _ = LEGACY[phase]
+    return f"{what} before {release}"
+
+
+def _legacy_gate(state: dict, gate: str) -> bool:
+    return any(g == gate and legacy(state, p) for p, (g, *_rest) in LEGACY.items())
 
 
 def _done(state: dict, phase: str) -> bool:
-    return state["phases"].get(phase) == "done" or (phase == "fe-foundation" and legacy_fe(state))
+    return state["phases"].get(phase) == "done" or legacy(state, phase)
 
 
 def _gate_ok(state: dict, gate: str) -> bool:
-    return gate in state["gates"] or (gate == "CF" and legacy_fe(state))
+    return gate in state["gates"] or _legacy_gate(state, gate)
 
 
 def blockers(state: dict, phase: str, baseline: bool = False) -> list[str]:
@@ -138,15 +161,15 @@ def status_lines(state: dict) -> list[str]:
     lines = ["Phases:"]
     for p in PHASES:
         mark = state["phases"].get(p, "—")
-        if p == "fe-foundation" and legacy_fe(state):
-            mark = "skipped (prototype built before 0.5.0)"
+        if legacy(state, p):
+            mark = f"skipped ({legacy_note(p)})"
         stale = "  (stale)" if p in state["stale"] else ""
-        lines.append(f"  {p:<15} {mark}{stale}")
+        lines.append(f"  {p:<16} {mark}{stale}")
     lines.append("Gates:")
     for g, desc in GATES.items():
         a = state["gates"].get(g)
         state_ = (f"approved {a['date']} by {a['approved_by']}" if a
-                  else "not needed (prototype built before 0.5.0)" if g == "CF" and legacy_fe(state) else "open")
+                  else f"not needed ({legacy_note(GATE_AFTER[g])})" if _legacy_gate(state, g) else "open")
         lines.append(f"  {g}  {desc:<42} " + state_)
     lines.append(f"Next: {next_step(state)}")
     return lines

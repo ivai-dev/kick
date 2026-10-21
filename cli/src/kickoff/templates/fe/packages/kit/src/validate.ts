@@ -37,6 +37,15 @@ export function validateKickoff({ config, screens, scenarios = [], screenModules
     if (!config.releases.includes(screen.rel)) problems.push(`screen ${screen.id} has unknown release "${screen.rel}"`);
   }
 
+  const directionIds = new Set<string>();
+  for (const direction of config.directions ?? []) {
+    if (directionIds.has(direction.id)) problems.push(`duplicate direction id "${direction.id}"`);
+    directionIds.add(direction.id);
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(direction.id)) problems.push(`direction id "${direction.id}" must be lower-case kebab`);
+  }
+  if (config.direction && directionIds.size && !directionIds.has(config.direction))
+    problems.push(`config.direction "${config.direction}" is not in config.directions`);
+
   for (const role of config.roles) {
     const home = screenById.get(role.home);
     if (!home) problems.push(`role ${role.id} home "${role.home}" is not a screen`);

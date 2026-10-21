@@ -12,6 +12,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
+from . import design
 from .errors import KickoffError
 from .model import Project, inside_root
 
@@ -384,8 +385,80 @@ def _run(run: Runner, argv: list[str], cwd: Path, env: dict | None = None) -> su
         return subprocess.CompletedProcess(argv, 124, "", f"timed out after {TIMEOUT} s")
 
 
+CSS_COMMENT = re.compile(r"/\*.*?\*/", re.S)
+CSS_RULE = re.compile(r"([^{}]+)\{([^{}]*)\}")
+CSS_VAR = re.compile(r"(--[\w-]+)\s*:")
+
+
+def direction_vars(css: str, d: str) -> tuple[set[str] | None, set[str] | None]:
+    """The custom properties of a direction file's light block and dark block (None when a block is missing)."""
+    light = f':root[data-direction="{d}"]'
+    dark = f'{light}[data-theme="dark"]'
+    found: dict[str, set[str]] = {}
+    for selectors, body in CSS_RULE.findall(CSS_COMMENT.sub("", css)):
+        for sel in (s.strip() for s in selectors.split(",")):
+            if sel in (light, dark):
+                found.setdefault(sel, set()).update(CSS_VAR.findall(body))
+    return found.get(light), found.get(dark)
+
+
+def direction_problems(app: Path, manifest: dict, need_lock: bool) -> list[str]:
+    """Every offered (or locked) direction has its CSS file with a dark block, imported by directions.css; after
+    kickoff:design-direction a direction is locked."""
+    offered = [d for d in manifest.get("directions") or [] if isinstance(d, str)]
+    locked = manifest.get("direction") if isinstance(manifest.get("direction"), str) else None
+    styles = app / "src" / "styles"
+    entry = styles / "directions.css"
+    imports = CSS_COMMENT.sub("", entry.read_text(encoding="utf-8-sig")) if entry.is_file() else ""
+    out = []
+    for d in offered or ([locked] if locked else []):
+        rel = f"apps/web/src/styles/directions/{d}.css"
+        path = styles / "directions" / f"{d}.css"
+        if not path.is_file():
+            out.append(f"direction {d}: missing {rel}")
+            continue
+        light, dark = direction_vars(path.read_text(encoding="utf-8-sig"), d)
+        dark_sel = f':root[data-direction="{d}"][data-theme="dark"]'
+        if light is None:
+            out.append(f'direction {d}: {rel} has no :root[data-direction="{d}"] block')
+        elif dark is None:
+            out.append(f"direction {d}: {rel} has no dark block ({dark_sel})")
+        elif light - dark:
+            # Same specificity as the dark tokens and loaded later: a light value missing in dark leaks into dark.
+            out.append(f"direction {d}: the dark block ({dark_sel}) lacks {', '.join(sorted(light - dark))}")
+        if f"directions/{d}.css" not in imports:
+            out.append(f"direction {d}: not imported in apps/web/src/styles/directions.css")
+    if need_lock and not locked:
+        out.append("direction: kickoff:design-direction is done but none is locked; set `direction` in "
+                   "apps/web/src/kickoff/config.ts to the direction the customer approved (gate CD)")
+    return out
+
+
+def detect(root: Path, project: Project, run: Runner = subprocess.run) -> list[str]:
+    """impeccable's deterministic detector over the project's own UI code (exit 2 = findings)."""
+    command = design.detector(root)
+    if command is None:
+        return ["detect: impeccable's detector not found; install impeccable (kickoff design doctor), "
+                "or pass --skip-detect (reported as skipped)"]
+    base = fe_root(root, project)
+    targets = [p for p in (app_dir(root, project) / "src", base / "packages" / "ui" / "src") if p.is_dir()]
+    env = {**os.environ, "IMPECCABLE_NO_TELEMETRY": "1"}
+    try:
+        done = _run(run, [*command, "detect", *(p.relative_to(base).as_posix() for p in targets)], base, env)
+    except OSError as exc:  # a launcher that does not exist or cannot start
+        return [f"detect: could not run {' '.join(command)}: {exc}"]
+    if done.returncode == 0:
+        return []
+    output = (done.stderr or "") + (done.stdout or "")
+    if done.returncode == 2:
+        return ["detect: impeccable found AI-default patterns; fix them, or rule one out with a reason in "
+                f".impeccable/config.json detector.ignoreRules\n{_tail(output)}"]
+    return [f"detect: failed (exit {done.returncode})\n{_tail(output)}"]
+
+
 def check(root: Path, project: Project, skip_e2e: bool = False, run: Runner = subprocess.run,
-          shots: Path | None = None) -> list[str]:
+          shots: Path | None = None, skip_detect: bool = False, direction: str | None = None,
+          need_lock: bool = False) -> list[str]:
     """Run the frontend checks; return failures (empty = pass). Raises ToolMissing when the check cannot run."""
     base = fe_root(root, project)
     if not (base / "package.json").is_file() or not app_dir(root, project).is_dir():
@@ -401,6 +474,8 @@ def check(root: Path, project: Project, skip_e2e: bool = False, run: Runner = su
             env["PW_CHANNEL"] = channel
         if shots is not None:
             env["KICKOFF_SHOTS"] = str(shots.resolve())  # the e2e sweep writes one full-page screenshot per test
+        if direction:
+            env["KICKOFF_DIRECTION"] = direction
     failures: list[str] = []
     for script in scripts:
         done = _run(run, [pnpm, "-s", script], base, env)
@@ -425,6 +500,11 @@ def check(root: Path, project: Project, skip_e2e: bool = False, run: Runner = su
         failures.append(f"manifest: failed (exit {done.returncode})\n{_tail((done.stdout or '') + (done.stderr or ''))}")
     else:
         failures += coverage(parse_ux_spec(ux_spec_path(root, project)), manifest)
+        failures += direction_problems(app_dir(root, project), manifest, need_lock)
+        if direction and direction not in (manifest.get("directions") or []) + [manifest.get("direction")]:
+            failures.append(f"direction {direction}: not in config.ts directions")
+    if not skip_detect:
+        failures += detect(root, project, run)
     failures += scan_forbidden(root, project)
     return failures
 

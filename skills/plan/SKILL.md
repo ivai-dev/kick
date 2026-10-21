@@ -45,7 +45,7 @@ Builds `.kickoff/plan.yaml` with the project lead (phases, groups and work packa
    - **Risks** (`R<n>`, `p` and `i` from 1 to 5, mitigation, trigger, status); keep the late-sign-off risk and the workshop package that `kickoff:signoff` added. **Assumptions** from research stay; add new ones with the same fields.
    - **Sprints** (`name`, `start`, `days`) and **`cut_order`**: feature IDs in the order the lead would give them up, first candidates first.
    - Text is in the workbook language; when `languages.repo` differs, add `i18n: {<repo>: {name: "..."}}`.
-3. **Item blocks:** every package the team will track as a work item gets an `item` block in the repository language (`kickoff export` hands it over; a `ticket` block from before 0.6 is read the same way, with a warning):
+3. **Item blocks:** every package the team will track as a work item gets an `item` block in the repository language (`kickoff export` hands it over; a `ticket` block from before 0.6 is no longer read: `kickoff validate` names it, and you rename it to `item`):
 
    ```yaml
    item:
@@ -96,4 +96,4 @@ Builds `.kickoff/plan.yaml` with the project lead (phases, groups and work packa
 
 ## Handoff
 
-Draft: continue the design phases (`kickoff:ux-design`, `kickoff:fe-foundation`, `kickoff:prototype`, `kickoff:signoff`). Baseline with C6: the kickoff is complete. Run `kickoff export` and give the lead `wbs.csv`, `wbs.json` and `wbs-items.md` (`<docs_root>/06-planning/export/`) to import into the team's tracker or to hand to an ECC session; kickoff itself creates no issues. `kickoff:feedback` handles later customer feedback.
+Draft: continue the design phases (`kickoff:ux-design`, `kickoff:fe-foundation`, `kickoff:design-direction`, `kickoff:prototype`, `kickoff:signoff`). Baseline with C6: the kickoff is complete. Run `kickoff export` and give the lead `wbs.csv`, `wbs.json` and `wbs-items.md` (`<docs_root>/06-planning/export/`) to import into the team's tracker or to hand to an ECC session; kickoff itself creates no issues. `kickoff:feedback` handles later customer feedback.

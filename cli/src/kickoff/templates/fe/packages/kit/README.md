@@ -91,13 +91,15 @@ A thin, collapsible bar above the shell — not product chrome. Hide it with `?d
 
 - **Role** — switch role, lands on its home.
 - **Screens** — index of all screens, filter is diacritic-insensitive ("don hang" finds "Đơn hàng").
+- **Direction** — shown while `config.directions` offers two or more and `config.direction` locks none → `<html data-direction>`. Each direction is `apps/web/src/styles/directions/<id>.css` with a light block `:root[data-direction="<id>"]` and a dark block `:root[data-direction="<id>"][data-theme="dark"]` (repeat every variable), imported by `directions.css`. Once `config.direction` is set, that direction applies everywhere and the switch is hidden.
+- **Tweaks** — brand hue (`--brand-h`, 0–360), colour strength (`--brand-c`, 0–0.3), corner radius (`--radius`, 0–1.5 rem) and motion (off / calm / lively: the `--duration-*` tokens), set inline on `<html>`; a live contrast reading of the primary button's text (warns below 4.5:1); Reset; and a link that carries the look (`?look=<id>&tweak=h:24,c:0.12,r:0.75,m:calm`) for the customer to send back. Write brand-coloured tokens in terms of `--brand-h` and `--brand-c` so the panel can move them.
 - **Theme** light/dark → `<html data-theme>`.
 - **Density** compact/comfortable/touch → `<html data-density>` (defaults to the role's density) and the `--control-h*` tokens.
 - **Scope** → `<html data-scope>`: *all releases*; *MVP only* (`<Rel>` blocks and nav items of later releases are hidden); *tag later releases* (outlined and labelled).
 - **Scenario player** — pick a scenario, then previous/next walks its steps (each step navigates to its screen with its params, as the scenario's role).
 
-Theme, density, scope and collapsed state persist in `localStorage` (failures are ignored,
-e.g. in sandboxed iframes). URL overrides for one visit: `?theme=dark&density=touch&scope=mvp&scenario=<id>&step=<n>`.
+Theme, density, scope, direction, tweaks and collapsed state persist in `localStorage` (failures are ignored,
+e.g. in sandboxed iframes). URL overrides for one visit: `?theme=dark&density=touch&scope=mvp&scenario=<id>&step=<n>&look=<id>&tweak=<…>`.
 
 ## Styles
 

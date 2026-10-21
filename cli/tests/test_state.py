@@ -86,8 +86,56 @@ def test_a_prototype_built_before_0_5_does_not_need_fe_foundation():
         set_phase(s2, p, "done")
     for g in ("C1", "C2"):
         approve(s2, g, "Project lead", "x", date(2026, 9, 26))
-    assert blockers(s2, "prototype") == ["phase fe-foundation is not done",
-                                         "gate CF (Frontend foundation approved) is not approved"]
+    assert blockers(s2, "design-direction") == ["phase fe-foundation is not done",
+                                                "gate CF (Frontend foundation approved) is not approved"]
+    assert blockers(s2, "prototype") == ["phase design-direction is not done",
+                                         "gate CD (Customer approved the design direction) is not approved"]
+
+
+def test_a_prototype_started_before_0_7_does_not_need_design_direction():
+    s = fresh()
+    for p in ("init", "discovery", "research", "feature-map", "ux-design", "fe-foundation"):
+        set_phase(s, p, "done")
+    for g in ("C1", "C2", "CF"):
+        approve(s, g, "Project lead", "x", date(2026, 10, 1))
+    assert next_step(s) == "run kickoff:design-direction"
+    set_phase(s, "prototype", "in_progress")  # a 0.6 project in the middle of its prototype
+    assert blockers(s, "prototype") == [] and blockers(s, "signoff") == ["phase prototype is not done"]
+    lines = "\n".join(status_lines(s))
+    assert "skipped (prototype started before 0.7.0)" in lines
+    assert "not needed (prototype started before 0.7.0)" in lines
+    assert next_step(s) == "continue kickoff:prototype"
+
+
+def test_design_direction_and_cd_gate_the_prototype():
+    s = fresh()
+    for p in ("init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "design-direction"):
+        set_phase(s, p, "done")
+    for g in ("C1", "C2", "CF"):
+        approve(s, g, "Project lead", "x", date(2026, 10, 1))
+    assert next_step(s).startswith("approve gate CD (Customer approved the design direction)")
+    assert blockers(s, "prototype") == ["gate CD (Customer approved the design direction) is not approved"]
+    approve(s, "CD", "Customer", "docs/05-design/codesign-2026-10-20.md", date(2026, 10, 20))
+    assert blockers(s, "prototype") == [] and next_step(s) == "run kickoff:prototype"
+    assert reopen(s, "CD", "customer wants a warmer direction") == []
+    assert s["phases"]["design-direction"] == "in_progress"
+
+
+def test_phase_start_refuses_a_blocked_phase(tmp_path, capsys):
+    root = tmp_path
+    assert main(["--root", str(root), "init", "--name", "Library Loans"]) == 0
+    state = load_state(root)
+    state["phases"] = {p: "done" for p in ("init", "discovery", "feature-map", "ux-design", "fe-foundation")}
+    state["gates"] = {g: {"approved_by": "Lead", "date": date(2026, 10, 1), "evidence": "x"} for g in ("C1", "C2", "CF")}
+    from kickoff.model import write_yaml
+    write_yaml(root / ".kickoff" / "state.yaml", state)
+    assert main(["--root", str(root), "phase", "start", "prototype"]) == 2
+    assert "cannot start prototype: phase design-direction is not done" in capsys.readouterr().err
+    assert "prototype" not in load_state(root)["phases"]  # no legacy pass through a skipped gate
+    assert main(["--root", str(root), "phase", "done", "prototype"]) == 2
+    assert "cannot finish prototype: phase design-direction is not done" in capsys.readouterr().err
+    assert "prototype" not in load_state(root)["phases"]
+    assert main(["--root", str(root), "phase", "start", "design-direction"]) == 0
 
 
 def test_stale_prerequisite_blocks_the_next_phase():
@@ -103,10 +151,10 @@ def test_stale_prerequisite_blocks_the_next_phase():
 
 def test_the_last_step_hands_the_wbs_over():
     s = fresh()
-    for p in ("init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "prototype", "signoff",
-              "solution", "plan"):
+    for p in ("init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "design-direction",
+              "prototype", "signoff", "solution", "plan"):
         set_phase(s, p, "done")
-    for g in ("C1", "C2", "CF", "C3", "C4", "C5", "C6"):
+    for g in ("C1", "C2", "CF", "CD", "C3", "C4", "C5", "C6"):
         approve(s, g, "Project lead", "x", date(2026, 10, 1))
     assert next_step(s).startswith("done: plan baselined;") and "kickoff export" in next_step(s)
     s["phases"]["tickets"] = "done"  # a state.yaml from before 0.6 keeps loading and is ignored
@@ -160,7 +208,7 @@ def test_cli_init_and_status(tmp_path, capsys):
     assert main(["--root", str(tmp_path), "init", "--name", "Again"]) == 2
     capsys.readouterr()
     assert main(["--root", str(tmp_path), "status"]) == 0
-    assert "init            in_progress" in capsys.readouterr().out
+    assert "init             in_progress" in capsys.readouterr().out
     assert main(["--root", str(tmp_path), "can", "solution"]) == 1
     assert main(["--root", str(tmp_path), "phase", "done", "init"]) == 0
     assert main(["--root", str(tmp_path), "validate"]) == 0

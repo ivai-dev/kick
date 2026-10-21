@@ -31,6 +31,7 @@ import {
 } from "./components/system";
 import { Placeholder } from "./components/Placeholder";
 import { demoStore, useDemo } from "./demo-store";
+import { activeDirection, applyLook } from "./look";
 import {
   KickoffContext,
   parseSearch,
@@ -122,6 +123,7 @@ export function createKickoffApp({
     if (query) demoStore.applyParams(parseSearch(query));
     const state = demoStore.get();
     applyHtml(config.lang, state.theme, state.density ?? defaultRole.density ?? "comfortable", state.scope);
+    applyLook(activeDirection(config, state.direction), state.tweak);
   }
 
   function Frame({ role, current, children }: { role: RoleDef; current?: string | null; children: ReactNode }) {
@@ -136,9 +138,12 @@ export function createKickoffApp({
     const theme = useDemo((s) => s.theme);
     const density = useDemo((s) => s.density) ?? role.density ?? "comfortable";
     const scope = useDemo((s) => s.scope);
+    const direction = activeDirection(config, useDemo((s) => s.direction));
+    const tweak = useDemo((s) => s.tweak);
 
     useEffect(() => demoStore.applyParams(search), [search]);
     useLayoutEffect(() => applyHtml(config.lang, theme, density, scope), [theme, density, scope]);
+    useLayoutEffect(() => applyLook(direction, tweak), [direction, tweak]);
 
     return (
       <KickoffContext.Provider value={runtime}>

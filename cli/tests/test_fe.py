@@ -183,7 +183,7 @@ class FakeRun:
         self.fail, self.output, self.manifest, self.calls = fail or {}, output, manifest, []
 
     def __call__(self, argv, cwd, env=None, **kw):
-        script = argv[-1]
+        script = "detect" if "detect" in argv else argv[-1]
         self.calls.append((script, (env or {}).get("PW_CHANNEL")))
         kw.pop("stdin", None), kw.pop("timeout", None)
         if script == "manifest":
@@ -198,6 +198,7 @@ def ready(template, mini, monkeypatch):
     (mini / "node_modules").mkdir()
     monkeypatch.setattr(fe.shutil, "which", lambda name: "/usr/bin/pnpm" if name == "pnpm" else None)
     monkeypatch.setenv("PW_CHANNEL", "chromium")
+    monkeypatch.setenv("KICKOFF_IMPECCABLE", "impeccable-fake")
     return mini
 
 
@@ -218,7 +219,7 @@ def test_check_runs_every_script_then_coverage(ready, tmp_path):
     fe.check(ready, load_project(ready), run=lambda argv, cwd, env=None, **kw: seen.setdefault(argv[-1], env) and None
              or FakeRun(manifest=full_manifest())(argv, cwd, env), shots=tmp_path / "shots")
     assert seen["e2e"]["KICKOFF_SHOTS"] == str((tmp_path / "shots").resolve())
-    assert [c[0] for c in run.calls] == ["typecheck", "lint", "test", "build", "e2e", "manifest"]
+    assert [c[0] for c in run.calls] == ["typecheck", "lint", "test", "build", "e2e", "manifest", "detect"]
     assert run.calls[4][1] == "chromium"
 
 
@@ -244,6 +245,92 @@ def test_a_missing_browser_keeps_the_failures_already_found(ready):
                   manifest=full_manifest())
     failures = fe.check(ready, load_project(ready), run=run)
     assert failures[0].startswith("lint: failed") and failures[1].startswith("e2e: skipped (no browser")
+
+
+def test_the_detector_runs_on_the_project_ui_code(ready, monkeypatch):
+    calls = []
+
+    def run(argv, cwd, env=None, **kw):
+        if "detect" in argv:
+            calls.append((argv, env))
+            return subprocess.CompletedProcess(argv, 2, "", "apps/web/src/screens/sc-01.tsx:4 side-tab border\n")
+        return FakeRun(manifest=full_manifest())(argv, cwd, env, **kw)
+
+    failures = fe.check(ready, load_project(ready), run=run)
+    assert failures[0].startswith("detect: impeccable found AI-default patterns") and "side-tab" in failures[0]
+    argv, env = calls[0]
+    assert argv[:2] == ["impeccable-fake", "detect"] and argv[2:] == ["apps/web/src", "packages/ui/src"]
+    assert env["IMPECCABLE_NO_TELEMETRY"] == "1"
+    calls.clear()
+    assert fe.check(ready, load_project(ready), run=run, skip_detect=True) == [] and calls == []
+
+
+def test_a_missing_detector_is_a_failure_unless_skipped(ready, monkeypatch):
+    monkeypatch.delenv("KICKOFF_IMPECCABLE")
+    monkeypatch.setattr(fe.design, "detector", lambda project=None: None)
+    failures = fe.check(ready, load_project(ready), run=FakeRun(manifest=full_manifest()))
+    assert failures == ["detect: impeccable's detector not found; install impeccable (kickoff design doctor), "
+                        "or pass --skip-detect (reported as skipped)"]
+
+
+def test_directions_need_their_css_and_a_lock_after_the_phase(ready):
+    styles = ready / "apps" / "web" / "src" / "styles"
+    manifest = {**full_manifest(), "directions": ["ledger", "harbour"], "direction": None}
+    run = FakeRun(manifest=manifest)
+    (styles / "directions").mkdir(parents=True)
+    (styles / "directions" / "ledger.css").write_text(':root[data-direction="ledger"] { --brand-h: 30; }\n',
+                                                      encoding="utf-8")
+    (styles / "directions.css").write_text('@import "./directions/ledger.css";\n', encoding="utf-8")
+    failures = fe.check(ready, load_project(ready), run=run, need_lock=True)
+    assert failures == [
+        'direction ledger: apps/web/src/styles/directions/ledger.css has no dark block '
+        '(:root[data-direction="ledger"][data-theme="dark"])',
+        "direction harbour: missing apps/web/src/styles/directions/harbour.css",
+        "direction: kickoff:design-direction is done but none is locked; set `direction` in "
+        "apps/web/src/kickoff/config.ts to the direction the customer approved (gate CD)",
+    ]
+    (styles / "directions" / "ledger.css").write_text(
+        ':root[data-direction="ledger"] { --brand-h: 30; }\n'
+        ':root[data-direction="ledger"][data-theme="dark"] { --brand-h: 30; }\n', encoding="utf-8")
+    locked = FakeRun(manifest={**full_manifest(), "directions": ["ledger"], "direction": "ledger"})
+    assert fe.check(ready, load_project(ready), run=locked, need_lock=True) == []
+
+
+def test_a_dark_block_must_repeat_the_light_variables_and_comments_do_not_count(ready):
+    styles = ready / "apps" / "web" / "src" / "styles"
+    (styles / "directions").mkdir(parents=True)
+    (styles / "directions" / "ledger.css").write_text(
+        '/* :root[data-direction="ledger"][data-theme="dark"] { --radius: 0; } */\n'
+        ':root[data-direction="ledger"] { --brand-h: 30; --radius: 0.25rem; }\n'
+        ':root[data-direction="ledger"][data-theme="dark"] { --brand-h: 30; }\n', encoding="utf-8")
+    (styles / "directions.css").write_text('/* @import "./directions/ledger.css"; */\n', encoding="utf-8")
+    run = FakeRun(manifest={**full_manifest(), "directions": ["ledger"], "direction": "ledger"})
+    assert fe.check(ready, load_project(ready), run=run) == [
+        'direction ledger: the dark block (:root[data-direction="ledger"][data-theme="dark"]) lacks --radius',
+        "direction ledger: not imported in apps/web/src/styles/directions.css",
+    ]
+
+
+def test_a_detector_that_cannot_start_is_a_failure_not_a_crash(ready):
+    def run(argv, cwd, env=None, **kw):
+        if "detect" in argv:
+            raise FileNotFoundError(2, "No such file or directory")
+        return FakeRun(manifest=full_manifest())(argv, cwd, env, **kw)
+
+    failures = fe.check(ready, load_project(ready), run=run)
+    assert failures == ["detect: could not run impeccable-fake: [Errno 2] No such file or directory"]
+
+
+def test_the_sweep_runs_in_a_chosen_direction(ready):
+    seen = {}
+
+    def run(argv, cwd, env=None, **kw):
+        seen.setdefault(argv[-1], env)
+        return FakeRun(manifest={**full_manifest(), "directions": [], "direction": None})(argv, cwd, env, **kw)
+
+    failures = fe.check(ready, load_project(ready), run=run, direction="ledger")
+    assert seen["e2e"]["KICKOFF_DIRECTION"] == "ledger"
+    assert failures == ["direction ledger: not in config.ts directions"]
 
 
 def test_a_hung_script_times_out(ready):
@@ -289,13 +376,13 @@ def test_check_scans_forbidden_text(ready):
     (["lint: failed (exit 1)"], 1, "1 failures"),
 ])
 def test_check_command_exit_codes(mini, monkeypatch, capsys, result, code, line):
-    monkeypatch.setattr("kickoff.commands.fe_cmd.check", lambda root, project, skip_e2e=False, shots=None: result)
+    monkeypatch.setattr("kickoff.commands.fe_cmd.check", lambda root, project, **kw: result)
     assert main(["--root", str(mini), "fe", "check"]) == code
     assert line in capsys.readouterr().out
 
 
 def test_check_command_exit_4_when_skipped(mini, monkeypatch, capsys):
-    def missing(root, project, skip_e2e=False, shots=None):
+    def missing(root, project, **kw):
         raise fe.ToolMissing("pnpm not found")
 
     monkeypatch.setattr("kickoff.commands.fe_cmd.check", missing)

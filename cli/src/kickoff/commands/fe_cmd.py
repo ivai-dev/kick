@@ -29,6 +29,9 @@ def register(sub) -> None:
                    help="skip the browser sweep (quick work inside a task; never a task's verification)")
     a.add_argument("--shots", type=Path, default=None,
                    help="folder for a screenshot of every screen x role x width x theme (git-ignored; design review)")
+    a.add_argument("--direction", default=None, help="run the sweep in this direction (an id in config.ts directions)")
+    a.add_argument("--skip-detect", action="store_true",
+                   help="skip impeccable's anti-pattern detector (CI without the plugin); reported as skipped")
     a.set_defaults(func=run_check)
 
     a = actions.add_parser("bundle", help="build the one-file customer build (apps/web/dist-artifact/index.html)")
@@ -64,8 +67,10 @@ def run_update(args) -> int:
 
 def run_check(args) -> int:
     root = resolve_root(args.root)
+    need_lock = load_state(root)["phases"].get("design-direction") == "done"
     try:
-        failures = check(root, load_project(root), skip_e2e=args.skip_e2e, shots=args.shots)
+        failures = check(root, load_project(root), skip_e2e=args.skip_e2e, shots=args.shots,
+                         skip_detect=args.skip_detect, direction=args.direction, need_lock=need_lock)
     except ToolMissing as exc:
         print(f"error: {exc}")
         print("check skipped, not passed")
@@ -75,7 +80,8 @@ def run_check(args) -> int:
     if failures:
         print(f"{len(failures)} failures")
         return 1
-    print("fe check passed" + (" (e2e skipped)" if args.skip_e2e else ""))
+    skipped = [name for name, flag in (("e2e", args.skip_e2e), ("detect", args.skip_detect)) if flag]
+    print("fe check passed" + (f" ({', '.join(skipped)} skipped)" if skipped else ""))
     return 0
 
 

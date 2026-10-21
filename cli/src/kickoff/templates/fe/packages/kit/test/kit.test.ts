@@ -6,6 +6,9 @@ import tseslint from "typescript-eslint";
 import { describe, expect, it } from "vitest";
 
 import kickoffRules from "../eslint/index.js";
+import { contrastRatio } from "../src/contrast";
+import { formatTweak, parseTweak } from "../src/demo-store";
+import { activeDirection } from "../src/look";
 import { navGroups } from "../src/nav";
 import { foldText, matchesQuery } from "../src/text";
 import type { KickoffConfig, ScreenDef } from "../src/types";
@@ -118,9 +121,56 @@ describe("manifest script", () => {
       cwd: root,
       encoding: "utf8",
     });
-    const manifest = JSON.parse(out) as { screens: Array<{ id: string }>; scenarios: string[] };
+    const manifest = JSON.parse(out) as {
+      screens: Array<{ id: string }>;
+      scenarios: string[];
+      directions: string[];
+      direction: string | null;
+    };
     expect(manifest.screens.length).toBeGreaterThan(0);
+    expect(Array.isArray(manifest.directions)).toBe(true);
+    expect(manifest.direction === null || typeof manifest.direction === "string").toBe(true);
     expect(Object.keys(manifest.screens[0]!).sort()).toEqual(["code", "id", "platforms", "rel", "roles"]);
     expect(Array.isArray(manifest.scenarios)).toBe(true);
+  });
+});
+
+describe("directions and tweaks", () => {
+  const offered: KickoffConfig = {
+    ...config,
+    directions: [
+      { id: "ledger", name: "Ledger" },
+      { id: "harbour", name: "Harbour" },
+    ],
+  };
+
+  it("uses the locked direction, else the pick, else the first offered", () => {
+    expect(activeDirection(config, null)).toBeNull();
+    expect(activeDirection(offered, null)).toBe("ledger");
+    expect(activeDirection(offered, "harbour")).toBe("harbour");
+    expect(activeDirection(offered, "gone")).toBe("ledger");
+    expect(activeDirection({ ...offered, direction: "harbour" }, "ledger")).toBe("harbour");
+  });
+
+  it("parses tweaks within bounds and drops the rest", () => {
+    expect(parseTweak("h:400,c:0.5,r:-1,m:calm")).toEqual({ h: 360, c: 0.3, r: 0, m: "calm" });
+    expect(parseTweak("h:abc,x:1,m:wild")).toEqual({});
+    expect(parseTweak(null)).toEqual({});
+    expect(formatTweak(parseTweak("h:24.4,c:0.12,r:0.75,m:lively"))).toBe("h:24,c:0.12,r:0.75,m:lively");
+    expect(formatTweak({})).toBe("");
+  });
+
+  it("reads WCAG contrast", () => {
+    expect(contrastRatio([255, 255, 255], [0, 0, 0])).toBeCloseTo(21, 5);
+    expect(contrastRatio([118, 118, 118], [255, 255, 255])).toBeCloseTo(4.54, 2);
+  });
+
+  it("validates direction ids and the lock", () => {
+    expect(validateKickoff({ config: { ...offered, direction: "nope" }, screens })).toContain(
+      'config.direction "nope" is not in config.directions',
+    );
+    expect(validateKickoff({ config: { ...offered, directions: [{ id: "A b", name: "x" }] }, screens })).toContain(
+      'direction id "A b" must be lower-case kebab',
+    );
   });
 });

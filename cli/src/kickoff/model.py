@@ -90,7 +90,9 @@ def load_raw(root: Path, kind: str) -> dict:
     data = read_yaml(root / KICKOFF_DIR / f"{kind}.yaml")
     errors = schema_errors(kind, data)
     if errors:
-        raise ModelError(f"{kind}.yaml: " + "; ".join(errors[:10]))
+        hint = ("; the package `ticket` block was renamed `item` in kickoff 0.6 and is no longer read since 0.7: "
+                "rename it" if kind == "plan" and any("'ticket' was unexpected" in e for e in errors) else "")
+        raise ModelError(f"{kind}.yaml: " + "; ".join(errors[:10]) + hint)
     return data
 
 
@@ -214,7 +216,7 @@ class Package:
     status: str = "todo"
     schedule: tuple = ("seq",)
     effort_rate: float | None = None
-    item: dict | None = None  # work-item detail for `kickoff export` (legacy key: ticket)
+    item: dict | None = None  # work-item detail for `kickoff export`
     i18n: dict = field(default_factory=dict)
 
     @property
@@ -239,7 +241,7 @@ class Package:
             status=d.get("status", "todo"),
             schedule=parse_schedule(d.get("schedule")),
             effort_rate=d.get("effort_rate"),
-            item=d.get("item") or d.get("ticket"),
+            item=d.get("item"),
             i18n=d.get("i18n") or {},
         )
 

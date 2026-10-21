@@ -26,6 +26,8 @@ export interface SweepOptions {
   axeImpacts?: string[];
   /** Absolute path of the single-file build; adds file:// and sandboxed-iframe tests. */
   artifact?: string;
+  /** Direction to sweep in (`kickoff fe check --direction <id>` sets KICKOFF_DIRECTION). */
+  direction?: string;
 }
 
 export const defaultViewports = [
@@ -78,7 +80,9 @@ export function sweep(test: TestType, options: SweepOptions) {
     themes = ["light", "dark"],
     axeImpacts = ["serious", "critical"],
     artifact,
+    direction = process.env.KICKOFF_DIRECTION || undefined,
   } = options;
+  const look: Record<string, string> = direction ? { look: direction } : {};
 
   test.describe("kickoff sweep", () => {
     for (const screen of screens) {
@@ -88,7 +92,7 @@ export function sweep(test: TestType, options: SweepOptions) {
             test(`${screen.code} ${screen.name} | ${role} | ${viewport.name} | ${theme}`, async ({ page }) => {
               const errors = watchErrors(page);
               await page.setViewportSize({ width: viewport.width, height: viewport.height });
-              await page.goto(screenUrl(role, screen.id, undefined, { demo: "0", theme }));
+              await page.goto(screenUrl(role, screen.id, undefined, { demo: "0", theme, ...look }));
               await waitForScreen(page, screen.id);
               const shots = process.env.KICKOFF_SHOTS; // `kickoff fe check --shots <dir>`: the design review set
               if (shots) {
@@ -99,6 +103,11 @@ export function sweep(test: TestType, options: SweepOptions) {
               await expect(page.locator("h1"), "exactly one h1").toHaveCount(1);
               await expect(page.locator("main"), "exactly one main").toHaveCount(1);
               expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
+              if (direction) {
+                expect(await page.evaluate(() => document.documentElement.dataset.direction), "direction").toBe(
+                  options.config.direction ?? direction,
+                );
+              }
 
               if (viewport.width <= 480) {
                 const overflow = await page.evaluate(() => {

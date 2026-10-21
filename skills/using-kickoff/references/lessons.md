@@ -1,6 +1,6 @@
 # Lessons encoded as checks
 
-Each row is a mistake made on a real project and the check that now prevents it: rows 1–13 come from AI Minute (a meeting-minutes product), rows 14–27 from a public employment portal with a Vietnamese UI (job seekers, employers, staff and commune kiosks), rows 28–30 from running kickoff next to the ECC plugin. Phase skills quote the rows that apply to them in their **Lessons** section.
+Each row is a mistake made on a real project and the check that now prevents it: rows 1–13 come from AI Minute (a meeting-minutes product), rows 14–27 from a public employment portal with a Vietnamese UI (job seekers, employers, staff and commune kiosks), rows 28–30 from running kickoff next to the ECC plugin, row 31 from comparing the products kickoff made. Phase skills quote the rows that apply to them in their **Lessons** section.
 
 | Lesson | Where it is enforced |
 | --- | --- |
@@ -34,6 +34,7 @@ Each row is a mistake made on a real project and the check that now prevents it:
 | ECC's GateGuard stopped the first write of every kickoff document | `kickoff ecc setup` exempts `.kickoff/**`, `docs_root` and `AGENTS.md`; `ecc doctor` D5 |
 | ECC handoffs were broken: `plan-orchestrate` emits an unloaded `/orchestrate`, and the `epic-*` commands use a script path relative to the current folder | `kickoff ecc run`; `references/ecc.md` never uses `plan-orchestrate` |
 | The installed plugin (0.3.0) lagged the repository (0.3.1) and the CLI matched the old one | start-up check 1 compares the CLI with `plugin.json`; install from the marketplace with auto-update |
+| Products made with kickoff looked alike: `ui-ux-pro-max --design-system` gave two of four B2B briefs the same `#2563EB`, the template defaulted to blue and Segoe UI, and only the lead saw the concepts | `kickoff:design-direction` and gate CD (the customer chooses among 2–3 directions on the real screens); neutral template tokens; `kickoff fe check` runs impeccable's detector and fails without a locked direction; the `kickoff:art-director` reviewer |
 
 ## Which skill applies each row
 
@@ -67,3 +68,4 @@ Each row is a mistake made on a real project and the check that now prevents it:
 28. GateGuard friction: `init` runs `kickoff ecc setup` after the lead's yes; `using-kickoff` offers it when `kickoff ecc doctor` warns D5.
 29. Broken ECC handoffs: every skill calls ECC scripts through `kickoff ecc run` and follows `references/ecc.md`.
 30. Version drift: `using-kickoff` start-up check 1; the release checklist reinstalls the CLI.
+31. Look-alike products: `ux-design` takes no look from a catalogue; `fe-foundation` keeps the tokens neutral; `design-direction` builds 2–3 directions from the product's world and the customer locks one (CD); `prototype` plans every screen with `frontend-design` and polishes with impeccable; the art director reviews distinctiveness.

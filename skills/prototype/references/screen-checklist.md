@@ -1,7 +1,7 @@
 # Screen checklist
 
 Walk this list before every publish, screen group by screen group:
-- run it after `kickoff fe check` passes and before the `ui-ux-pro-max` pre-delivery checklist;
+- run it after `kickoff fe check` passes and before `/impeccable audit` and `/impeccable polish`;
 - tick each item in the build plan, or record a ruling (`Ruling: <decision> — <why> — <cost if wrong>`) when an item is knowingly left open.
 
 Routes are `#/<role>/<screen>?<params>`, for example `#/librarian/sc-02?status=late` or `#/guest/sc-08?kiosk=1`. Per-visit overrides: `demo=0` hides the prototype bar, `theme=dark`, `density=touch`, `scope=mvp` (or `tags`), `scenario=<id>&step=<n>`. Screenshots come from `kickoff fe check --shots <folder>`.
@@ -37,4 +37,4 @@ Routes are `#/<role>/<screen>?<params>`, for example `#/librarian/sc-02?status=l
 | 27 | **Focus and scroll after every route.** A new screen starts at its top with focus on its one `h1`; Back returns to the scroll position. | Try Back on each list → detail path. |
 | 28 | **Motion only in the changed region,** ≤ 300 ms, transform and opacity, from the motion tokens; reduced motion respected. | Watch one route, one panel and one toast with reduced motion on and off. |
 | 29 | **Data at volume.** Every list shows its total, searches, filters, sorts and pages to its realistic volume through the API, and keeps its state in the URL. | Compare each list with its screen brief (`../../ux-design/references/data-at-volume.md`). |
-| 30 | **Per-screen `ui-ux-pro-max` brainstorm recorded.** Every screen's brief or the build plan lists its 2–4 queries with what was taken or rejected and why. | Read the build plan: no screen without its brainstorm log. |
+| 30 | **Per-screen design plan recorded.** Every screen's brief or the build plan has its `frontend-design` plan, what the test against the design brief changed, and where the direction's signature appears. | Read the build plan: no screen without its design plan. |

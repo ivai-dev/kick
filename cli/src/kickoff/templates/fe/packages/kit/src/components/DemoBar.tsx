@@ -4,11 +4,13 @@ import { Popover } from "radix-ui";
 import { ChevronLeftIcon, ChevronRightIcon, ChevronUpIcon, FlaskConicalIcon, ListIcon } from "lucide-react";
 
 import { demoStore, useDemo } from "../demo-store";
+import { activeDirection } from "../look";
 import { isFirstRelease } from "../nav";
 import { go, useKickoff } from "../runtime";
 import { fill } from "../strings";
 import { cx, matchesQuery } from "../text";
 import type { Density, Scope, Theme } from "../types";
+import { Tweaks } from "./Tweaks";
 
 const control =
   "h-7 rounded border border-input bg-background px-1.5 text-caption text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
@@ -189,8 +191,8 @@ function ScenarioPlayer() {
 }
 
 /**
- * Prototype bar: role switcher, screen index, theme, density, release scope,
- * scenario player. Not product chrome; hidden with ?demo=0.
+ * Prototype bar: role switcher, screen index, direction (while none is locked), tweaks, theme, density,
+ * release scope, scenario player. Not product chrome; hidden with ?demo=0.
  */
 export function DemoBar() {
   const { config, scenarios, strings } = useKickoff();
@@ -199,6 +201,8 @@ export function DemoBar() {
   const theme = useDemo((state) => state.theme);
   const density = useDemo((state) => state.density);
   const scope = useDemo((state) => state.scope);
+  const direction = activeDirection(config, useDemo((state) => state.direction));
+  const offered = config.direction ? [] : (config.directions ?? []);
   const { role } = useCurrentRole();
 
   if (!visible) return null;
@@ -239,6 +243,15 @@ export function DemoBar() {
           }}
         />
         <ScreenIndex />
+        {offered.length > 1 && (
+          <DemoSelect
+            label={strings.direction}
+            value={direction ?? ""}
+            options={offered.map((d) => ({ value: d.id, label: d.summary ? `${d.name} · ${d.summary}` : d.name }))}
+            onChange={(id) => demoStore.set({ direction: id })}
+          />
+        )}
+        <Tweaks direction={direction} />
         <DemoSelect<Theme>
           label={strings.theme}
           value={theme}

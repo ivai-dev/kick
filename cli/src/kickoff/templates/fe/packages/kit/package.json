@@ -1,6 +1,6 @@
 {
   "name": "@kickoff/kit",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
   "description": "Plugin-owned runtime for kickoff FE v0: router, shells, demo bar, release scope, checks. Replaced wholesale on plugin update; do not edit in projects.",
