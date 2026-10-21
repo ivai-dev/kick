@@ -7,11 +7,22 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .commands import docs_cmd, proto_cmd, schedule_cmd, state_cmd, tickets_cmd, validate_cmd, workbook_cmd
+from .commands import (
+    docs_cmd,
+    ecc_cmd,
+    hook_cmd,
+    proto_cmd,
+    schedule_cmd,
+    state_cmd,
+    tickets_cmd,
+    validate_cmd,
+    workbook_cmd,
+)
 from .errors import KickoffError
 
 # Command modules, each with register(subparsers) and run(args) -> int. Later tasks append here.
-COMMANDS: list = [schedule_cmd, validate_cmd, docs_cmd, workbook_cmd, tickets_cmd, state_cmd, proto_cmd]
+COMMANDS: list = [schedule_cmd, validate_cmd, docs_cmd, workbook_cmd, tickets_cmd, state_cmd, proto_cmd, ecc_cmd,
+                  hook_cmd]
 
 
 def build_parser() -> argparse.ArgumentParser:
