@@ -56,8 +56,9 @@ def run_doctor(args) -> int:
 
 
 def run_setup(args) -> int:
-    root = resolve_root(args.root)
-    changes = [settings_change(root, load_project(root).docs_root)]
+    # The router table is the user's, so `--router` works anywhere; the GateGuard exemption needs a project.
+    root = _project(args) if args.router else resolve_root(args.root)
+    changes = [settings_change(root, load_project(root).docs_root)] if root else []
     if args.router:
         changes.append(router_change())
     changes = [c for c in changes if c]

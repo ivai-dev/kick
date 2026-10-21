@@ -258,6 +258,17 @@ def test_setup_router_adds_the_block_once_under_the_planning_lane(tmp_path, cfg,
     assert "kickoff:using-kickoff" in text
 
 
+def test_setup_router_works_outside_a_project(tmp_path, cfg, installed, capsys, monkeypatch):
+    table = cfg / ecc.ROUTER_TABLE
+    table.parent.mkdir(parents=True)
+    table.write_text("# Table\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    assert main(["ecc", "setup", "--router"]) == 0
+    assert ecc.ROUTER_BEGIN in table.read_text(encoding="utf-8")
+    assert not (tmp_path / ".claude").exists()
+    assert main(["ecc", "setup"]) == 2  # the GateGuard exemption still needs a project
+
+
 def test_setup_router_without_the_router_is_refused(tmp_path, cfg, installed, capsys):
     root = write_kickoff(tmp_path / "proj")
     assert main(["--root", str(root), "ecc", "setup", "--router"]) == 2
