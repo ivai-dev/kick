@@ -1,6 +1,6 @@
 # Design review loop
 
-A structured review of the whole prototype from several viewpoints, merged into one plan the lead decides on, then built in work packages. Run it once after the first full build (every screen registered, `kickoff fe check` passes) and before the sign-off workshop; run it again when the lead asks for a deeper pass. `kickoff:ux-design` runs the same loop at concept scale on the concept artboards.
+A structured review of the whole prototype from several viewpoints, merged into one plan the lead decides on, then built in work packages. Run it once after the first full build (every screen registered, `kickoff fe check` passes) and before the sign-off workshop; run it again when the lead asks for a deeper pass. `kickoff:design-direction` runs the same loop at concept scale on the directions, with `kickoff:art-director` in the set.
 
 The lead does not need to be a designer: the reviewers bring the expertise, and the lead decides only the conflicts the integrator names.
 
@@ -40,23 +40,26 @@ The reviewers and the integrator are plugin agents with read-only tools. Run the
 | One audience or role group | `kickoff:viewpoint-reviewer` (name the group in the prompt) |
 | Craft and micro-detail auditor | `kickoff:craft-auditor` |
 | IA and guidance designer | `kickoff:ia-reviewer` |
+| Distinctiveness and brand fit | `kickoff:art-director` |
 | Lens reviewer (foundation pass) | `kickoff:viewpoint-reviewer` with the lens named in the prompt |
 | Integrator | `kickoff:integrator` |
 
 Give every agent:
 - the path of `BRIEF.md` and of the screenshot folder;
 - the absolute paths of the references it needs (this skill's folder and `../../ux-design/references/`);
-- for the craft auditor, also the paths of ECC's `accessibility` and `frontend-a11y` skills, from `kickoff ecc root` (`<root>/skills/<name>/SKILL.md`).
+- for the craft auditor, also the paths of ECC's `accessibility` and `frontend-a11y` skills, from `kickoff ecc root` (`<root>/skills/<name>/SKILL.md`);
+- for the art director, the paths of `design-brief.md`, `directions.md` and the `frontend-design` skill's `SKILL.md` (the folder `kickoff design doctor` prints for G1).
 
 ## 3. Viewpoint reviewers
 
-Start 4–5 reviewers in parallel, each with its own viewpoint and its own report `<folder>/r<n>-<viewpoint>.md`:
+Start 5–6 reviewers in parallel, each with its own viewpoint and its own report `<folder>/r<n>-<viewpoint>.md`:
 
 | Reviewer | Looks at |
 | --- | --- |
 | One per audience or role group (2–3) | Each role's journeys, home, navigation and wording, from that audience's skills and devices (for example: public and self-service users; business users; staff and approvers) |
 | Craft and micro-detail auditor | Wording, register, term table, characters and punctuation, numbers, dates and units, letter case, line breaks, type sizes and weights, spacing, buttons, chips, icons, colour in light and dark (`../../ux-design/references/content-and-craft.md`). Extracts every UI string from `apps/web/src` and the i18n files with read-only searches and reads them line by line |
 | IA and guidance designer | Navigation map per role, naming, home shapes, one job per screen, guidance devices and where they go, motion and illustrations |
+| Art director | Whether the screens belong to this product and no other: the swap test, the world of the design brief, the signature on every screen group, restraint, the AI-default clusters |
 
 Each report holds: the research with sources; the ten changes that matter most; a findings table per screen (Screen, Element, Problem, Why for this role, Change, Rank); look-alike blocks and texts; decisions to revisit.
 
@@ -73,7 +76,7 @@ For a foundation pass (fonts, density, overlays, motion), run lens reviewers in 
 | Motion | route, overlay and list motion, interruptions, reduced motion, layout shift |
 | Foundation | `@kickoff/kit`, `@app/ui` and their gaps: what the kit or the shared library should own versus each screen |
 
-Then one **screen audit** per screen group, written from a brief with: the job and the user of each screen; the data inventory with volumes (`../../ux-design/references/data-at-volume.md`); the functions each list needs; the layout per width; the states; the gaps against the foundation rules; and each screen's `ui-ux-pro-max` log (queries, what was taken, what was rejected and why).
+Then one **screen audit** per screen group, written from a brief with: the job and the user of each screen; the data inventory with volumes (`../../ux-design/references/data-at-volume.md`); the functions each list needs; the layout per width; the states; the gaps against the foundation rules; and each screen's design plan (the `frontend-design` plan and what the test against the design brief changed).
 
 ## 4. Cross-review
 

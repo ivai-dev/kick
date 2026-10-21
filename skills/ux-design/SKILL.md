@@ -5,17 +5,17 @@ description: Use when defining a project's information architecture, screen inve
 
 # UX design
 
-Turns the approved feature map into the UX specification (roles, shell and home per role, IA per role, every screen of every release and platform, behaviour rules, states, copy, accessibility) and the design system the prototype is built with. A concept round with the lead comes before the design system. `kickoff fe new` and `kickoff fe check` read the screen inventory of `ux-spec.md`, so its table format is exact.
+Turns the approved feature map into the UX specification (roles, shell and home per role, IA per role, every screen of every release and platform, behaviour rules, states, copy, accessibility) and the structural design system every visual direction must keep (density, type roles, layout, overlays, motion, craft rules). The look itself (palette, type, shape, signature) is not chosen here: `kickoff:design-direction` explores it with the customer on the real FE v0. `kickoff fe new` and `kickoff fe check` read the screen inventory of `ux-spec.md`, so its table format is exact.
 
 ## When to use
 
 - After C2, before the first prototype.
-- Again when features gain or lose screens, the lead changes the design direction, or a design review changes the rules. Customer feedback on screens goes through `kickoff:feedback`, which updates `ux-spec.md` in chain order.
+- Again when features gain or lose screens, or a design review changes the rules. Customer feedback on screens goes through `kickoff:feedback`, which updates `ux-spec.md` in chain order.
 
 ## Preconditions
 
 - `kickoff can ux-design` exits 0 (feature-map done, C2 approved).
-- The `ui-ux-pro-max` skill is available. If it is missing, stop and tell the user: "Install the ui-ux-pro-max skill, then start a new session."
+- `ui-ux-pro-max` is optional. When it is installed, its `--domain ux` and `--domain chart` searches may inform step 3. Never use its `--design-system` output: a lookup by product type gives every project the same look (`../using-kickoff/references/lessons.md` row 31).
 
 ## Inputs
 
@@ -30,19 +30,18 @@ Turns the approved feature map into the UX specification (roles, shell and home 
 ## Steps
 
 1. Run `kickoff can ux-design`. Exit 1: stop and show the `blocked:` lines. Then `kickoff phase start ux-design`.
-2. **Confirm the design inputs** with the lead using the Interview method: product type, audiences, three to five keywords for the visual direction, and which audiences use a calm work tool (the default) and which need a bolder public look.
+2. **Confirm the design inputs** with the lead using the Interview method: product type, audiences, and which audiences work in a dense tool all day and which use the product now and then. This sets density and shells, not the look: the look is chosen in `kickoff:design-direction`.
 
 > **Interview:** one question per message; 2–4 options with a recommendation when a choice exists; restate the answer in one line; stop when the output template is filled.
 
-3. **Design direction with `ui-ux-pro-max`.** Invoke the `ui-ux-pro-max` skill and run its search with `--design-system` on "<product type> <audience> <keywords>" with `-p "<project name>"`, plus the sliders `--density` per audience (2–3 for public and self-service screens, 4–5 for staff consoles that work through lists all day, the kiosk at 1–2), `--variance` and `--motion` (low values, 2–3, for work tools). Do not pass `--persist`.
-4. **Focused queries** as the screens need them: `--domain ux` (forms, tables, navigation, empty states), `--domain typography`, `--domain color` (check contrast in light and dark), `--domain chart` (one query per kind of data shown). If a search returns nothing, retry once with a narrower query. If it is still empty, keep the defaults below and say so. Never write output you have not checked into the files.
-5. **Roles and IA per role.** For each product role (an id of lowercase letters and digits, since it appears in prototype URLs), write:
+3. **Reference queries (optional).** With `ui-ux-pro-max` installed, run its `--domain ux` search (forms, tables, navigation, empty states) and one `--domain chart` search per kind of data shown, and record what was taken into the behaviour rules. Take no palette, font or style from it, and never run `--design-system`.
+4. **Roles and IA per role.** For each product role (an id of lowercase letters and digits, since it appears in prototype URLs), write:
    - **Shell:** `site` for public and self-service audiences (a header with a top menu and an account area, a footer; on phones a compact header and a bottom tab bar of 3–5 screens), `app` for work tools (a sidebar). Pick the shell the product will have: the prototype draws exactly this one.
    - **Home shape,** matched to the role's main job and opening on "what needs me now": an *approval inbox* (one queue, urgent items first) for approvers; a *pipeline* (a to-do card, then items by stage) for people who move work forward; *health and tasks* (one status band, then a short task list) for administrators; a *next-action hero* (one question or one next step) for occasional and self-service users. Homes of different roles do not share one template, and a row of KPI tiles is not a home shape.
    - Its navigation sections with their screens (menu labels of 24 characters or fewer, equal to the page title), and its platforms.
 
    Every role has its own home screen at every width.
-6. **Screen inventory.** Write one row per screen of the full product, across every release and platform. IDs are permanent: `SC-nn` web, `W-nn` Windows, `A-nn` Android (or the prefixes in `project.yaml`). The table is the first table in `ux-spec.md` whose first header cell is `ID`, with exactly these five columns and nothing between the rows:
+5. **Screen inventory.** Write one row per screen of the full product, across every release and platform. IDs are permanent: `SC-nn` web, `W-nn` Windows, `A-nn` Android (or the prefixes in `project.yaml`). The table is the first table in `ux-spec.md` whose first header cell is `ID`, with exactly these five columns and nothing between the rows:
 
    ```markdown
    | ID | Screen | Roles | Platform | Release |
@@ -56,14 +55,8 @@ Turns the approved feature map into the UX specification (roles, shell and home 
    - The roles of a screen are its access rule: the prototype's role guard refuses every other role.
    - A device view of a web screen (a kiosk, a full-screen start screen) is not a new row: note it under the screen in the Notes, as a route parameter the prototype will read (`?kiosk=1`).
 
-7. **Link features to screens:** set `screens: [SC-01, …]` on every active feature in `.kickoff/features.yaml` (IDs and releases unchanged). A feature without a screen (a background job, an import) gets a line in the ux-spec Notes saying why.
-8. **Concept round,** before the design system. Make 3–4 visual direction options, each applied to the same 2–3 key screens (a public or self-service screen, a work screen, a phone view), on a design canvas or as side-by-side HTML artboards under `<docs_root>/05-design/concept/`, with synthetic data and copy in `languages.ui`. Show them to the lead with one line per option (mood, type, colour, where it fits) and a recommendation. Refine the chosen option with the loop of `../prototype/references/design-review.md` at concept scale:
-   - 3–4 reviewer agents in parallel: `kickoff:viewpoint-reviewer` once per audience group, `kickoff:craft-auditor` for the visual details, and `kickoff:ia-reviewer` for the product view;
-   - a cross-review round;
-   - one integrated concept from `kickoff:integrator`.
-
-   The agents are read-only and return their reports; save each one in the concept folder. Then run the copy review and declutter pass of `references/content-and-craft.md` on the artboard text. Log the direction as `D<n>` in the Decision log of `open-questions.md`, with its date and source.
-9. **Write `ux-spec.md`** at `fe.ux_spec` from `templates/ux-spec.md`, sections in this order: Roles and IA per role, Screen inventory, Navigation rules, Behaviour rules (numbered `BR-<n>`), States (empty, loading, error, offline), Copy guide, Accessibility. These rules are defaults; keep them unless the lead decides otherwise:
+6. **Link features to screens:** set `screens: [SC-01, …]` on every active feature in `.kickoff/features.yaml` (IDs and releases unchanged). A feature without a screen (a background job, an import) gets a line in the ux-spec Notes saying why.
+7. **Write `ux-spec.md`** at `fe.ux_spec` from `templates/ux-spec.md`, sections in this order: Roles and IA per role, Screen inventory, Navigation rules, Behaviour rules (numbered `BR-<n>`), States (empty, loading, error, offline), Copy guide, Accessibility. These rules are defaults; keep them unless the lead decides otherwise:
    - navigation goes to distinct pages; filters stay in-page (never a menu item that reloads a near-identical page with a filter applied);
    - **one primary job per screen:** above the fold, at most the header, one guidance device from `references/guidance-library.md` and the start of the main content;
    - **one main action per screen** (one filled button); a screen offers only the actions possible now;
@@ -73,7 +66,7 @@ Turns the approved feature map into the UX specification (roles, shell and home 
    - copy, sample data and fixtures are in `languages.ui`, with invented names only.
 
    The **Copy guide** holds: voice and tone per audience (form of address, verbs, words to avoid, one example each); the term table, one name per thing; "only what the user needs now" (no text that explains system mechanics, such as "free", "not stored", timers or how checks work; a fact appears when its event happens); punctuation; letter case; number, date and unit formats from the UI locale. Take the values from `references/content-and-craft.md`.
-10. **Write `<docs_root>/05-design/design-system.md`** from `templates/design-system.md`, sections: Principles, Tokens (light and dark), Type scale, Spacing, Motion, Status vocabulary, Components, Charts, Scope layer, Density and copy, Craft rules, Accessibility. Use the kit's token names so the prototype can copy the values into its tokens block. Write it from `references/foundation-rules.md`:
+8. **Write `<docs_root>/05-design/design-system.md`** from `templates/design-system.md`, sections: Principles, Tokens (light and dark), Type scale, Spacing, Motion, Status vocabulary, Components, Charts, Scope layer, Density and copy, Craft rules, Accessibility. Use the kit's token names. Write the structural values (density, type roles, spacing, motion durations) from `references/foundation-rules.md`; in Tokens, mark the colour, font, radius and signature rows `set by kickoff:design-direction`, which fills them when the customer approves a direction:
    - **Density modes** per audience: compact for staff consoles (32 px controls), comfortable for public desktop (40), touch for phones and coarse pointers (48), kiosk (64 in its layout px); the shell decides, never the component.
    - **Type roles per mode** (display, headline, title-l, title, body, prose, body-s, label, button, meta, caption, figure, figure-l, value, code); weights 400/500/600/700, 700 only for display, never 800; at most 6 sizes per screen. Line height for languages with stacked diacritics (Vietnamese): ≥ 1.2 on any text box, ≥ 1.34 where titles wrap, ≥ 1.5 for paragraphs and clipped text; re-measure when the font changes.
    - **Layout:** window classes, content widths, page types (`data` fluid to 1600 px, `form` to 1200, left-anchored on staff screens; 1200 px centred public container), the one-box rule.
@@ -82,15 +75,13 @@ Turns the approved feature map into the UX specification (roles, shell and home 
    - **Data at volume:** each list's expected volume and its functions (total, search, filter, sort, paging, bulk, export, URL state) from `references/data-at-volume.md`.
 
    **Craft rules** set the type scale per density mode (at most 6 sizes per screen), weights, letter case (`--cap-case: none` for languages with stacked diacritics such as Vietnamese), spacing rhythm, and chip, button and icon rules (`references/content-and-craft.md`). Motion follows `references/guidance-library.md`, with a reduced-motion fallback for every motion. State that the product bundles its fonts and assets; the prototype's CDN use does not relax that.
-11. **Regenerate and validate:** `kickoff docs` (it regenerates the feature map; screens are not rendered there, they live in `features.yaml` and the ux-spec inventory), then `kickoff validate`.
-12. **Verify** (section below), then `kickoff phase done ux-design` and commit `docs: UX specification and design system`.
+9. **Regenerate and validate:** `kickoff docs` (it regenerates the feature map; screens are not rendered there, they live in `features.yaml` and the ux-spec inventory), then `kickoff validate`.
+10. **Verify** (section below), then `kickoff phase done ux-design` and commit `docs: UX specification and design system`.
 
 ## Outputs
 
 - `<docs_root>/05-design/ux-spec.md` (or the path in `fe.ux_spec`)
 - `<docs_root>/05-design/design-system.md`
-- `<docs_root>/05-design/concept/`: the concept options and the integrated concept
-- `<docs_root>/01-discovery/open-questions.md`: the design direction as `D<n>`
 - `.kickoff/features.yaml` with `screens` on every active feature (`<docs_root>/02-requirements/feature-map.md` is regenerated but does not list screens)
 - `.kickoff/state.yaml`: `ux-design: done`
 
@@ -100,10 +91,9 @@ Turns the approved feature map into the UX specification (roles, shell and home 
 2. Every screen named in `features.yaml` `screens` is in the inventory, and every inventory screen serves at least one feature.
 3. Every role in "Roles and IA per role" has a shell (`site` or `app`), a home shape and a home screen, and that screen is the role's first row in the inventory. Two roles share a home shape only with a written reason.
 4. The Copy guide has voice per audience, a term table, punctuation, letter case and formats for the UI locale; `design-system.md` has Craft rules.
-5. The Decision log has the design direction as `D<n>`.
-6. `kickoff check-docs <ux-spec.md> <design-system.md>` prints `check-docs passed` (no placeholder, no forbidden phrase).
-7. Search both files with each pattern of `fe.forbidden` in `project.yaml`: no match.
-8. `kickoff validate` reports `0 errors`, and `kickoff docs --check` prints `documents up to date`.
+5. `kickoff check-docs <ux-spec.md> <design-system.md>` prints `check-docs passed` (no placeholder, no forbidden phrase).
+6. Search both files with each pattern of `fe.forbidden` in `project.yaml`: no match.
+7. `kickoff validate` reports `0 errors`, and `kickoff docs --check` prints `documents up to date`.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
 
@@ -120,9 +110,9 @@ Turns the approved feature map into the UX specification (roles, shell and home 
 - Every home opened with a look-alike row of KPI tiles, and users did not know what to read or do first: each role gets a home shape matched to its job, and the anti-flooding rules apply to every screen (lessons row 20).
 - Text that explained system mechanics ("free", "not stored", timers) crowded a kiosk screen: only what the user needs now; facts appear when their event happens (lessons row 20).
 - "+7.1%" sat next to "2.304", and small uppercase labels crowded stacked diacritics: formats come from the UI locale, and letter case is a craft rule (lessons rows 17 and 18).
-- The lead could judge a direction only with options side by side: show 3–4 concepts before writing the design system.
+- Projects made with kickoff looked alike: the direction came from a lookup by product type and a blue default. The look is chosen in `kickoff:design-direction`, with the customer, on the real screens (lessons row 31).
 - Write every file with the file tools, not heredocs (literal `\n` in a Bash heredoc once became real newlines).
 
 ## Handoff
 
-`kickoff:fe-foundation`, which decides the presentation stack and scaffolds the FE v0 from this screen inventory with `kickoff fe new`; then `kickoff:prototype`. `kickoff status` names it.
+`kickoff:fe-foundation`, which decides the presentation stack and scaffolds the FE v0 from this screen inventory with `kickoff fe new`; then `kickoff:design-direction` (gate CD) and `kickoff:prototype`. `kickoff status` names it.

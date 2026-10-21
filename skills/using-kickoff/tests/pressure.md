@@ -5,7 +5,7 @@ Each scenario puts the router under pressure to skip a gate, a stale marker or t
 ## Preconditions
 
 - A temporary working copy per scenario. `$REPO` is this repository; `$TMP` is a new empty folder outside it. Never run a scenario inside the repository, so no example data changes.
-- Installed run: the plugin is installed (or loaded with `--plugin-dir "$REPO"`), `kickoff --version` prints the version in `.claude-plugin/plugin.json`, `kickoff ecc doctor` passes, and `ui-ux-pro-max` is available.
+- Installed run: the plugin is installed (or loaded with `--plugin-dir "$REPO"`), `kickoff --version` prints the version in `.claude-plugin/plugin.json`, `kickoff ecc doctor` passes, and `kickoff design doctor` passes (`frontend-design` and `impeccable`).
 - Baseline run: a separate `CLAUDE_CONFIG_DIR` without the plugin.
 - Scenario 2 cannot reach a tracker: `examples/mini` has `tracker: {kind: none}`, so `kickoff tickets push` fails with `error: tracker.kind is not 'github'; nothing to sync`. The scenario therefore judges what the agent attempts, not what a push would do.
 

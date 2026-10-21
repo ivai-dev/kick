@@ -2,6 +2,35 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] - 2026-10-21
+
+Design studio. Products made with kickoff looked alike: the direction came from a lookup by product type (`ui-ux-pro-max --design-system` gave two of four B2B briefs the same `#2563EB`), and the FE template defaulted to blue and Segoe UI. Now the customer chooses the look from two or three directions drawn from the product's own world, on the real FE v0 screens, before the prototype is built. Spec: docs/plans/2026-10-21-kickoff-v0.7.0.md.
+
+**Breaking:**
+- New required plugins: Anthropic `frontend-design` (`/plugin install frontend-design@claude-code-plugins`) and `impeccable` (`/plugin marketplace add pbakaus/impeccable`, then `/plugin install impeccable@impeccable`). `kickoff design doctor` checks them, and `using-kickoff` stops without them.
+- `ui-ux-pro-max` is optional and no longer chooses the direction.
+- `kickoff phase start` refuses a phase that `kickoff can` blocks.
+- Projects keep working without a migration: a project whose prototype had started (or whose sign-off or solution was done) before 0.7.0 skips `design-direction` and CD, and `kickoff status` says so.
+
+### Added
+
+- **Phase `design-direction` and gate CD** ("Customer approved the design direction"), between `fe-foundation` (CF) and `prototype`. The new skill `kickoff:design-direction` writes a design brief, runs impeccable's direction round (seven candidates from the audiences' world, a random roll against the category rut), builds two or three directions as themes of the real FE v0, reviews them, runs the co-design session with the customer (`references/codesign.md`) and locks the chosen one with an ADR.
+- **`kickoff design doctor`** (G1 frontend-design, G2 impeccable, G3 impeccable telemetry off in the project, G4 optional skills) and **`kickoff design setup [--dry]`** (telemetry off in `.impeccable/config.json`, impeccable's scratch files git-ignored).
+- **`kickoff fe check`:** impeccable's deterministic anti-pattern detector over `apps/web/src` and `packages/ui/src` (findings fail the check; `--skip-detect` reports it as skipped); the direction checks (a CSS file with a dark block per direction, imported by `directions.css`; a locked direction once `design-direction` is done); `--direction <id>` sweeps in one direction.
+- **`@kickoff/kit` 0.7.0:** a Direction switch and a **Tweaks** panel in the prototype bar (brand hue and chroma, corner radius, motion, a live contrast reading of the primary button, Reset, a "Copy link" that carries `?direction=` and `?tweak=`); `config.ts` `directions` and `direction`; the manifest reports them; the sweep reads `KICKOFF_DIRECTION`.
+- **The `kickoff:art-director` agent:** a read-only distinctiveness and brand-fit review (the swap test, the brief's world, the signature, restraint, the AI-default clusters) in the concept review and the prototype design review.
+- `using-kickoff/references/design-tools.md`: how kickoff uses `frontend-design` and impeccable, the files impeccable owns, the rules.
+- Lessons row 31.
+
+### Changed
+
+- **The FE template's tokens are neutral** (brand chroma 0, the system font stack) and derive from `--brand-h` and `--brand-c`; `apps/web/src/styles/directions.css` is the new entry for directions.
+- `ux-design` no longer picks a direction or runs a concept round; its design system holds the structural rules, and the colour, font, radius and signature rows wait for `design-direction`.
+- `fe-foundation` decides no visual direction (CF is technical) and keeps the tokens neutral.
+- `prototype` plans each screen with `frontend-design`'s two passes in place of the `ui-ux-pro-max` brainstorm, and uses `/impeccable audit` and `/impeccable polish` before delivery.
+- `feedback` gains the class *direction* (the customer rejects the look as a whole), which reopens CD; visual items use impeccable's commands.
+- CI installs impeccable's CLI and runs the detector on the example's FE v0.
+
 ## [0.6.0] - 2026-10-21
 
 Plan, not tickets. Kickoff no longer manages tickets. It keeps the prototype (FE v0), the feature set, the WBS and the estimate, ends at the baselined plan (C6), and hands the WBS over as files. Spec: docs/plans/2026-10-21-kickoff-v0.6.0.md.

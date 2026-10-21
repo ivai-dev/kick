@@ -5,25 +5,26 @@ description: Use when building or updating the clickable full-product prototype 
 
 # Prototype
 
-Builds every screen of the full product in the FE v0: every role, platform and release, with the release scope (the MVP line) and guided demo scenarios for the sign-off workshop. The FE v0 is the real frontend on a mock data layer. `kickoff:fe-foundation` scaffolded it and built the reference screens; this phase builds the rest. It is checked with `kickoff fe check`, reviewed from several viewpoints, bundled into one file with `kickoff fe bundle`, and published as a private Artifact.
+Builds every screen of the full product in the FE v0: every role, platform and release, with the release scope (the MVP line) and guided demo scenarios for the sign-off workshop. The FE v0 is the real frontend on a mock data layer. `kickoff:fe-foundation` scaffolded it and built the reference screens, and `kickoff:design-direction` locked the look with the customer; this phase builds the rest in that direction. It is checked with `kickoff fe check`, reviewed from several viewpoints, bundled into one file with `kickoff fe bundle`, and published as a private Artifact.
 
 **Fidelity rule:** the prototype shows exactly what the product will show: its chrome, navigation and wording, in the customer's language. Customer feedback on anything else has no value. The FE v0 is the product's UI code, so build what the product shows: the site shell, bare screens, or route parameters for device views. Never ship a note that says the prototype differs from the product. The only non-product element is the prototype bar, and customer links hide it with `?demo=0`.
 
 ## When to use
 
-- After `kickoff:fe-foundation` and gate CF, to build the full prototype for the customer review.
+- After `kickoff:design-direction` and gate CD, to build the full prototype for the customer review.
 - Again when the ux-spec changed (new screens, new rules), when the plugin ships a newer `@kickoff/kit`, or before a workshop. Changes the customer asked for go through `kickoff:feedback`, which calls back into this skill in chain order.
 
 ## Preconditions
 
-- `kickoff can prototype` exits 0 (fe-foundation done, CF approved).
+- `kickoff can prototype` exits 0 (design-direction done, CD approved).
 - The FE v0 is installed (`pnpm install` done) and `kickoff fe check` passed at the end of fe-foundation.
 - Node.js 22 or later, pnpm, and Edge or Chrome (or `PW_CHANNEL=chromium` with Playwright's Chromium) for the e2e sweep.
-- The `ui-ux-pro-max` skill is available. If it is missing, stop and tell the user: "Install the ui-ux-pro-max skill, then start a new session."
+- `kickoff design doctor` exits 0: Anthropic `frontend-design` and `impeccable` are installed. Exit 1: stop, show its `fail:` lines, and tell the user to install them and start a new session.
 
 ## Inputs
 
-- `ux-spec.md` (Roles and IA with shell and home shape, screen inventory, behaviour rules, Copy guide) and `design-system.md` (Craft rules).
+- `ux-spec.md` (Roles and IA with shell and home shape, screen inventory, behaviour rules, Copy guide) and `design-system.md` (Craft rules, the locked tokens).
+- `<docs_root>/05-design/design-brief.md` and `directions.md`: the audiences' world, the locked direction, its signature; `../using-kickoff/references/design-tools.md`.
 - `.kickoff/features.yaml` (features per screen, releases) and `.kickoff/project.yaml` (`languages.ui`, `fe.*`, `fe.forbidden`).
 - The kit guide `packages/kit/README.md`: routes `#/<role>/<screen>?<params>`, `go`, `useScreenParams`, `useRole`, `Rel`, `Placeholder`, the shells, the prototype bar, scenarios and the checks.
 - The reference screens and the presets in `packages/ui`, and the mock contract in `packages/mocks`.
@@ -39,10 +40,10 @@ Builds every screen of the full product in the FE v0: every role, platform and r
 > **Interview:** one question per message; 2–4 options with a recommendation when a choice exists; restate the answer in one line; stop when the output template is filled.
 
 3. **Kit update:** when the plugin ships a newer kit, run `kickoff fe update --dry`, then `kickoff fe update`. It replaces `packages/kit` only and prints `migration:` notes; fix them in the first work package. When the ux-spec gained screens, run `kickoff fe new --force`. It rewrites `config.ts`, `screens.ts` and `scenarios.ts` and adds stubs for new screens, keeping existing screen files and project packages. Re-apply your edits to the three generated files afterwards: `git diff` shows them.
-4. **Required per screen, before it is built: a `ui-ux-pro-max` brainstorm and a data-at-volume audit.**
-   - **Brainstorm:** load `ui-ux-pro-max` and run 2–4 queries. Always use `--domain ux`; add `product`, `chart` or `typography` as the screen needs, and `--stack react` for code patterns. Retry an empty search once. Record the queries, with what was taken or rejected and why, in the screen brief or the build plan.
+4. **Required per screen, before it is built: a design plan and a data-at-volume audit.**
+   - **Design plan:** follow `frontend-design`'s two passes. Plan the screen's hierarchy, its one primary job, the type roles, and where the locked direction's signature appears; test the plan against `design-brief.md` ("would this screen fit any product like it?") and revise what fails; then build, and critique from the screenshot. Record the plan, and what the test changed, in the screen brief or the build plan. `ui-ux-pro-max`, when installed, may be consulted for `--domain ux` and `--domain chart` patterns; its palettes, fonts and styles are never used.
    - **Data audit:** use `../ux-design/references/data-at-volume.md`: each list's volume, the functions it needs (total, search, filter, sort, paging, bulk, export, history, URL state), the layout per width and the states.
-   - A screen without a recorded brainstorm and data audit is not done. Never copy search output you have not checked.
+   - A screen without a recorded design plan and data audit is not done.
 5. **Build plan:** save `<docs_root>/08-task-plans/YYYY-MM-DD-prototype.md` using the Build plan method and show it to the lead. Tasks, in order:
    1. WP0, the shared library: presets and patterns in `packages/ui`; mock entities, seed and repository functions in `packages/mocks` for every screen group; shared formatters (numbers, dates, units through `config.locale`).
    2. One task per screen group: the screens of one area in `apps/web/src/screens/<id>.tsx`, built from their briefs on the reference patterns, with their device views as route parameters.
@@ -71,17 +72,17 @@ Builds every screen of the full product in the FE v0: every role, platform and r
    - **Releases:** wrap parts of later releases in `<Rel r="<release>">`, so the *MVP only* and *tagged* scopes show the MVP line. Give whole later screens their `rel` in `screens.ts`.
    - **Route parameters** carry device views (`?kiosk=1`), records (`?id=tt03`) and flow steps, so every view opens from a link and the sweep can reach it.
    - **Language:** all copy follows the ux-spec Copy guide, through i18next with the `languages.ui` file in `apps/web/src/i18n/`. Format numbers and dates with `config.locale` through the shared formatters, never by hand.
-   - **Style:** tokens and the type-role classes only (`text-display`, `text-title`, `text-body`, `text-label`, `text-meta`, `text-caption`). No raw hex colours, no inline font sizes or weights, no weight above 700 (the kit's ESLint rules fail them). Use motion from the `--duration-*` and `--ease-*` tokens, and respect reduced motion (`ecc:motion-foundations`). Polish with `ecc:make-interfaces-feel-better`; check accessibility with `ecc:frontend-a11y`.
+   - **Style:** the locked direction's tokens and the type-role classes only (`text-display`, `text-title`, `text-body`, `text-label`, `text-meta`, `text-caption`). No raw hex colours, no inline font sizes or weights, no weight above 700 (the kit's ESLint rules fail them). Use motion from the `--duration-*` and `--ease-*` tokens, and respect reduced motion (`ecc:motion-foundations`). Polish with `ecc:make-interfaces-feel-better`; check accessibility with `ecc:frontend-a11y`.
    - **Tests:** unit-test non-trivial screen logic (`ecc:react-testing`). The kit's sweep covers rendering, errors, one `h1`, phone width and axe.
    - **Never edit `packages/kit`:** a hook refuses it. A kit gap is reported to the plugin maintainers and arrives through `kickoff fe update`; until then, build around it in `packages/ui` or `apps/web`.
    - **Synthetic data only,** in `languages.ui`: invented names, organisations and addresses, and no development infrastructure (`fe.forbidden`).
    - Write every file with the file tools, never with heredocs.
 
 7. **Code review:** after each screen group, run the `ecc:react-reviewer` agent (read-only) on the changed files. Fix CRITICAL and HIGH findings in the same task; record the rest as rulings.
-8. **Pre-delivery review:** walk `references/screen-checklist.md` and the pre-delivery checklist in `ui-ux-pro-max`'s `references/pro-rules.md`, screen group by screen group. For screenshots, run `kickoff fe check --shots <folder>` with a git-ignored folder: one full-page screenshot per screen, role, width and theme. Fix what fails and run `kickoff fe check` again.
+8. **Pre-delivery review:** walk `references/screen-checklist.md`, then run `/impeccable audit` and `/impeccable polish` on each screen group, and impeccable's detector on the running app (its `detect` command on the `pnpm dev` URL of each screen group; `kickoff fe check` scans only the source code). For screenshots, run `kickoff fe check --shots <folder>` with a git-ignored folder: one full-page screenshot per screen, role, width and theme. Fix what fails and run `kickoff fe check` again.
 9. **Design review loop,** after the first full build and before the sign-off workshop, following `references/design-review.md`:
    - inputs: the shared screenshot set and a brief file;
-   - 4–5 read-only reviewer agents run in parallel (`kickoff:viewpoint-reviewer` once per audience or role group, `kickoff:craft-auditor`, `kickoff:ia-reviewer`), or the lens set for a foundation pass; they research with cited sources and rank findings per screen P1–P3;
+   - 5–6 read-only reviewer agents run in parallel (`kickoff:viewpoint-reviewer` once per audience or role group, `kickoff:craft-auditor`, `kickoff:ia-reviewer`, `kickoff:art-director` against the design brief and the locked direction), or the lens set for a foundation pass; they research with cited sources and rank findings per screen P1–P3;
    - a cross-review round;
    - one `kickoff:integrator` plan.
    
@@ -107,7 +108,7 @@ Builds every screen of the full product in the FE v0: every role, platform and r
 
 1. `kickoff fe check` exits 0 and prints `fe check passed`. Exit 4 is a skipped check, not a pass, and the phase is not done.
 2. No screen still renders `<Placeholder />`: search `apps/web/src/screens` for `Placeholder`.
-3. Every item of `references/screen-checklist.md` and of the `pro-rules.md` pre-delivery checklist is ticked or has a ruling.
+3. Every item of `references/screen-checklist.md` is ticked or has a ruling, and the blocking findings of `/impeccable audit` are fixed or carry a ruling.
 4. The design review's P1 findings are fixed or carry a lead decision.
 5. `.kickoff/state.yaml` has `prototype.artifact` and `prototype.version` for this publish, and `kickoff validate` reports `0 errors`.
 6. `kickoff check-docs apps/web/src packages/ui/src packages/mocks/src` prints `check-docs passed` (no forbidden phrase).

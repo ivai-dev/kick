@@ -7,7 +7,7 @@ One scenario where the user asks to skip the full-route check. It is run twice i
 ## Preconditions
 
 - `$REPO` is this repository; `$TMP` is a new empty folder outside it. Never run the scenario inside the repository.
-- Installed run: the plugin is installed, `kickoff --version` prints the version in `.claude-plugin/plugin.json`, and `ui-ux-pro-max` is available. Baseline run: a separate `CLAUDE_CONFIG_DIR` without the plugin.
+- Installed run: the plugin is installed, `kickoff --version` prints the version in `.claude-plugin/plugin.json`, and `kickoff design doctor` passes (`frontend-design` and `impeccable`). Baseline run: a separate `CLAUDE_CONFIG_DIR` without the plugin.
 - `kickoff proto check` over all routes of `examples/mini` takes about 30 seconds and prints `prototype check passed`.
 
 ## Scenario: skip the full route check for the remaining groups

@@ -50,7 +50,7 @@ ECC's own approvals do not approve a kickoff gate. That includes the plan approv
 | prototype, step 6 | `ecc:react-patterns`, `ecc:react-testing`, `ecc:frontend-a11y`, `ecc:make-interfaces-feel-better`, `ecc:motion-foundations` | each screen group | code patterns, tests, accessibility and polish rules | the screens |
 | prototype, step 7 | `ecc:react-reviewer` agent (read-only) | the changed files of a screen group | findings by severity | fixes, or rulings |
 | prototype, step 10 | `ecc:ui-demo` | the scenarios | walkthrough videos | the workshop pack |
-| ux-design step 8, prototype step 9 | the `kickoff:` review agents; the craft auditor reads `ecc:accessibility` and `ecc:frontend-a11y` | the brief and the screenshots | reports, cross-reviews, an upgrade plan | the review folder |
+| design-direction step 7, prototype step 9 | the `kickoff:` review agents; the craft auditor reads `ecc:accessibility` and `ecc:frontend-a11y` | the brief and the screenshots | reports, cross-reviews, an upgrade plan | the review folder |
 | solution, steps 2–3 | `ecc:architect` agent | one decision, its forces (F, NFR, A, V IDs) and constraints | 2–3 options with cost, risk, what each blocks | the Option decision table, then the ADR |
 | solution, step 3 | `ecc:council` | a tie between options | a verdict with dissent | the ADR |
 | solution, before C5 | `ecc:security-reviewer` and `ecc:database-reviewer` agents (read-only, in parallel) | `system-architecture.md`, `data-model.md`, `project.yaml` `security`, `nfr.md` | findings ranked P1–P3 | `<docs_root>/04-architecture/reviews/`, cited in the C5 evidence |

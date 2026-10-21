@@ -5,7 +5,7 @@ One scenario with a mixed note. It checks that the agent classifies each remark,
 ## Preconditions
 
 - `$REPO` is this repository; `$TMP` is a new empty folder outside it. Never run the scenario inside the repository.
-- Installed run: the plugin is installed, `kickoff --version` prints the version in `.claude-plugin/plugin.json`, and `ui-ux-pro-max` is available. Baseline run: a separate `CLAUDE_CONFIG_DIR` without the plugin.
+- Installed run: the plugin is installed, `kickoff --version` prints the version in `.claude-plugin/plugin.json`, and `kickoff design doctor` passes (`frontend-design` and `impeccable`). Baseline run: a separate `CLAUDE_CONFIG_DIR` without the plugin.
 - Feedback is not a phase: `kickoff status` never lists it and `kickoff phase start feedback` exits 2 with `unknown phase feedback`. The gate check is `kickoff can feedback`.
 
 ## Scenario: a pasted note with four different remarks
