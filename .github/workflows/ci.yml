@@ -59,7 +59,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
-      - run: uv run pytest -q -m "not docker and not github and not browser"
+      - run: uv run pytest -q -m "not docker and not browser"
         working-directory: cli
   package:
     runs-on: ubuntu-latest

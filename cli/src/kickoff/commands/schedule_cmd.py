@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from ..model import load_features, load_plan, load_project, load_tickets, resolve_root
-from ..schedule import actuals_of, build_schedule, schedule_json, slip_report
+from ..model import load_features, load_plan, load_project, resolve_root
+from ..schedule import build_schedule, schedule_json, slip_report
 from ..validate import report_plan_errors
 
 
@@ -21,7 +21,7 @@ def run(args) -> int:
     project, plan, features = load_project(root), load_plan(root), load_features(root)
     if report_plan_errors(project, plan):
         return 1
-    sched = build_schedule(project, plan, actuals_of(load_tickets(root)))
+    sched = build_schedule(project, plan)
     dates = sched.gate_dates(plan)
     for g in plan.gates:
         d = dates.get(g["id"])

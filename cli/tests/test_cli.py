@@ -9,7 +9,7 @@ def test_version(capsys):
     with pytest.raises(SystemExit) as exc:
         main(["--version"])
     assert exc.value.code == 0
-    assert "kickoff 0.5.0" in capsys.readouterr().out
+    assert "kickoff 0.6.0" in capsys.readouterr().out
 
 
 def test_no_command_prints_help(capsys):
@@ -25,8 +25,7 @@ def test_schedule_json_is_written_with_lf(tmp_path):
     assert b"\n" in raw and b"\r" not in raw
 
 
-@pytest.mark.parametrize("argv", [["docs"], ["tickets", "plan"], ["tickets", "push", "--dry"], ["tickets", "pull"],
-                                  ["workbook"]])
+@pytest.mark.parametrize("argv", [["docs"], ["export"], ["workbook"]])
 def test_commands_stop_on_plan_errors_instead_of_a_traceback(tmp_path, capsys, argv):
     write_kickoff(tmp_path, plan=plan_dict([pkg("1.1.1", role="ops")]))
     assert main(["--root", str(tmp_path), *argv]) == 1

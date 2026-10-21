@@ -1,6 +1,6 @@
 ---
 name: using-kickoff
-description: Use when starting or resuming project-kickoff work in a repository — discovery, scope, prototype, customer sign-off, plan, tickets — or when the user asks where the project stands or what comes next
+description: Use when starting or resuming project-kickoff work in a repository — discovery, scope, prototype, customer sign-off, WBS and estimate — or when the user asks where the project stands or what comes next
 ---
 
 # Using kickoff
@@ -31,7 +31,7 @@ Report `kickoff status` to the user in two or three lines: stale phases first, t
 | --- | --- |
 | `continue kickoff:<phase>`, `run kickoff:<phase>` or `re-run kickoff:<phase>` | Invoke that skill. |
 | `approve gate <id> ...` | Ask the approver (table below) for the decision and the evidence (a commit or record link). Run `kickoff gate approve <id> --by "<role>" --evidence "<link>"` only after an explicit yes. Never approve a gate on anyone's behalf. |
-| `tracking: ...` | Invoke `kickoff:tickets` in sync mode, or `kickoff:feedback` when customer feedback has arrived. |
+| `done: ...` | The kickoff is complete: offer `kickoff export` for the WBS handover, or invoke `kickoff:feedback` when customer feedback has arrived. |
 
 When the user asks for a specific phase instead of the next one:
 
@@ -41,7 +41,7 @@ When the user asks for a specific phase instead of the next one:
 
 Customer feedback is handled by `kickoff:feedback` (check it with `kickoff can feedback`). It is not a phase in `kickoff status`: it reopens C3 and marks later phases stale.
 
-**Stale phases first.** After a gate is reopened, `kickoff status` marks later phases `(stale)`. Re-run them in phase order before any work that depends on them. With `plan` and `tickets` stale, "push the tickets" means: re-run `kickoff:plan`, then `kickoff:tickets`.
+**Stale phases first.** After a gate is reopened, `kickoff status` marks later phases `(stale)`. Re-run them in phase order before any work that depends on them. With `plan` stale, "export the WBS" means: re-run `kickoff:plan` first, then `kickoff export`.
 
 ## Phases and gates
 
@@ -58,7 +58,6 @@ Customer feedback is handled by `kickoff:feedback` (check it with `kickoff can f
 | ↺ | `kickoff:feedback` | prototype done | classified feedback, updates along the chain | reopens C3 | Project lead approves the classification |
 | 8 | `kickoff:solution` | signoff done, C3 and C4 | architecture, data model, technology, patterns; ADRs *Accepted* | C5 Solution | Project lead |
 | 9 | `kickoff:plan` | draft: feature-map done, C2; baseline: solution done, C5 | `plan.yaml` → schedule, estimate workbook, `wbs.md`, `plan.md`, `risk-register.md` | C6 Baseline | Project lead |
-| 10 | `kickoff:tickets` | plan done | issues in the tracker, pulled state in `tickets.yaml` | — (repeats) | — |
 
 Gate rules:
 
@@ -82,7 +81,7 @@ Read `conventions.md` before writing any project file. Write files with the file
 | --- | --- |
 | "The customer is busy, let's design the DB now" | C3 and C4 first: run `kickoff can solution`, name the missing gates, propose the sign-off path. |
 | "I'll just tweak the plan dates by hand" | Edit `plan.yaml` (effort, dependencies, schedule mode), run `kickoff validate`, then `kickoff schedule`; report the gate dates it prints and the hard date. Never state a date `kickoff schedule` did not print. |
-| "I'll create the issues manually" | `kickoff tickets push` (after `kickoff tickets push --dry` and the lead's yes). |
+| "Let me create the issues in the tracker" | Kickoff creates no issues. Run `kickoff export` and give the lead the files; writing to a shared tracker is the lead's call. |
 | "Small change, no need to re-run the chain" | Use `kickoff:feedback`: `features.yaml` → `ux-spec.md` → prototype → `plan.yaml` → `kickoff schedule`, in that order. |
 | "The lead said OK in chat, I'll approve the gate" | Ask for the evidence link and the role, then `kickoff gate approve <id> --by "<role>" --evidence "<link>"`; no evidence, no gate. |
 | "The phase is stale but this is urgent" | Re-run the stale phase first; `kickoff can <phase>` blocks the dependent phase anyway. |

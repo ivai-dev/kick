@@ -40,14 +40,13 @@ Not for changing an existing project's settings: edit `.kickoff/project.yaml` an
 | 4 | Calendar | `calendar.weekend`, `calendar.holidays` | Weekend as `[sat, sun]`. Ask for the country, then propose its official public holidays for every year the project spans as `{date, name, kind}`: `kind: official` when the date is announced, `kind: expected` for future years not yet announced. The lead confirms or edits the list. |
 | 5 | Releases | `releases` | In delivery order; the first one is the MVP. List them all: the prototype covers the full product. |
 | 6 | Hard dates | `hard_dates` | See step 3 for where to record them. |
-| 7 | Tracker | `tracker` | `kind: github` or `none`. For GitHub: `org`, `repo`, `project` (Projects number), `assignee` (the account every issue is assigned to), `milestone`, `priority: {source: org-field, map: {P0: ..., P1: ..., P2: ..., blocker: ...}}`, and `issue_fields` ids if the organisation uses issue fields. |
-| 8 | Security rules | `security[]` | One sentence each, e.g. "Never log, print, or send to analytics any customer content." They are copied into `AGENTS.md`. |
-| 9 | Forbidden phrases | `rules.forbidden_phrases[]` | Regular expressions no document may match. Recommend `'\bClaude\b'` and `'AI[- ]assist'`. Keep `owners_by_role: true` and `synthetic_data_only: true`. |
-| 10 | Frontend | `fe.dir`, `fe.ux_spec`, `fe.forbidden[]` | Defaults `.` (the repository root holds the pnpm workspace; the app is always `apps/web` under it) and `docs/05-design/ux-spec.md`. `fe.forbidden`: regular expressions for development infrastructure that must never reach the UI (VPN names, private IP ranges such as `10\.8\.\d+\.\d+`, internal hosts). |
+| 7 | Security rules | `security[]` | One sentence each, e.g. "Never log, print, or send to analytics any customer content." They are copied into `AGENTS.md`. |
+| 8 | Forbidden phrases | `rules.forbidden_phrases[]` | Regular expressions no document may match. Recommend `'\bClaude\b'` and `'AI[- ]assist'`. Keep `owners_by_role: true` and `synthetic_data_only: true`. |
+| 9 | Frontend | `fe.dir`, `fe.ux_spec`, `fe.forbidden[]` | Defaults `.` (the repository root holds the pnpm workspace; the app is always `apps/web` under it) and `docs/05-design/ux-spec.md`. `fe.forbidden`: regular expressions for development infrastructure that must never reach the UI (VPN names, private IP ranges such as `10\.8\.\d+\.\d+`, internal hosts). |
 
 Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the lead wants another root, move the created folders and set `docs_root` to match.
 
-2. **Create the skeleton:** `kickoff init --name "<name>"`. It writes `.kickoff/{project,state,features,plan,tickets}.yaml` and `docs/{01-discovery,02-requirements,03-research,04-architecture/adr,05-design,06-planning,07-task-specs,08-task-plans}/`.
+2. **Create the skeleton:** `kickoff init --name "<name>"`. It writes `.kickoff/{project,state,features,plan}.yaml` and `docs/{01-discovery,02-requirements,03-research,04-architecture/adr,05-design,06-planning,07-task-specs,08-task-plans}/`.
 
 3. **Fill `.kickoff/project.yaml`** with the answers, using the Edit tool (never a shell heredoc). Quote strings that look like numbers or dates. Hard dates: `hard_dates` keys must be gate IDs that exist in `plan.yaml` (`kickoff validate` rejects any other key), and `plan.yaml` has no gates yet. Until the `plan` skill creates the gates, keep the hard dates as comments under `hard_dates: {}`, one per line: `# <gate id> <what must be done>: <YYYY-MM-DD>`.
 
@@ -65,7 +64,7 @@ Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the
 
 ## Outputs
 
-- `.kickoff/project.yaml` (filled), `.kickoff/state.yaml`, `.kickoff/features.yaml`, `.kickoff/plan.yaml`, `.kickoff/tickets.yaml`
+- `.kickoff/project.yaml` (filled), `.kickoff/state.yaml`, `.kickoff/features.yaml`, `.kickoff/plan.yaml`
 - `docs/01-discovery/`, `docs/02-requirements/`, `docs/03-research/`, `docs/04-architecture/adr/`, `docs/05-design/`, `docs/06-planning/`, `docs/07-task-specs/`, `docs/08-task-plans/` (each with `.gitkeep`)
 - `AGENTS.md` in the repository root
 

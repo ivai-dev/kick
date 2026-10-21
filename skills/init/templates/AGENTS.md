@@ -10,7 +10,7 @@ Working rules for everyone who changes this repository. Keep this file short and
 
 | Path | Contents | Owner (role) |
 | --- | --- | --- |
-| `.kickoff/` | Project settings, features, plan, state and ticket map (source of truth for the plan) | Project lead |
+| `.kickoff/` | Project settings, features, plan and state (source of truth for the plan) | Project lead |
 | `docs/` | Discovery, requirements, research, architecture, design and planning documents | Project lead |
 | `apps/web/` | The FE v0: screens (`src/screens/`), the screen registry and scenarios (`src/kickoff/`), tokens (`src/styles/tokens.css`) | Frontend developer |
 | `packages/ui/`, `packages/mocks/` | Shared UI components (shadcn on Radix) and the mock data layer behind the API client | Frontend developer |
@@ -28,7 +28,7 @@ Working rules for everyone who changes this repository. Keep this file short and
 
 | Use | Language |
 | --- | --- |
-| Code, commits, repository documents, tracker issues | {{languages.repo}} |
+| Code, commits, repository documents, work items | {{languages.repo}} |
 | Team conversation | {{languages.chat}} |
 | Estimate workbook and customer deliverables | {{languages.workbook}} |
 | UI strings and fixtures | {{languages.ui}} |
@@ -48,13 +48,12 @@ The project follows the kickoff phases. Run `kickoff status` to see where it sta
 | 6 | signoff | workshop pack, sign-off record | C3 Features signed off, C4 MVP locked | Customer; project lead and customer |
 | 7 | solution | architecture, data model, accepted ADRs | C5 Solution | Project lead |
 | 8 | plan | WBS, schedule, estimate workbook, risks | C6 Baseline | Project lead |
-| 9 | tickets | tracker issues synced with the plan | — | — |
 
 Rules:
 
 - No database, architecture or technology decision before C3 and C4 are approved.
 - Customer feedback is classified first, then applied in order: features → UX specification → prototype → plan → schedule; it reopens C3.
-- Plan dates come from `kickoff schedule`, never from manual edits; tracker issues come from `kickoff tickets push`.
+- Plan dates come from `kickoff schedule`, never from manual edits; the WBS handed to the team comes from `kickoff export`.
 - Merges, branch deletions, publishing and pushes to shared branches are confirmed with the project lead first.
 - Tickets and documents name the owning role, never a person.
 
@@ -62,19 +61,19 @@ Rules:
 
 The project uses two Claude Code plugins: kickoff, and ECC (`ecc@ecc`).
 
-- **Kickoff owns** the gates, `.kickoff/`, the IDs, the documents under `docs_root`, the plan, the schedule and the tickets.
-- **ECC does the work it is given:** research, options, reviews, and after tickets the build, review, QA and release (`orch-*`).
+- **Kickoff owns** the gates, `.kickoff/`, the IDs, the documents under `docs_root`, the plan, the schedule and the WBS export.
+- **ECC does the work it is given:** research, options, reviews, and after the baselined plan the build, review, QA and release (`orch-*`).
 - **ECC output becomes evidence:** its reports are saved under `docs_root` and cited when a gate is approved; they never approve a gate themselves.
-- **The CLI owns `.kickoff/state.yaml` and `.kickoff/tickets.yaml`:** a hook refuses hand edits; use `kickoff phase`, `kickoff gate`, `kickoff fe record` and `kickoff tickets`.
+- **The CLI owns `.kickoff/state.yaml`:** a hook refuses hand edits; use `kickoff phase`, `kickoff gate` and `kickoff fe record`.
 
 ## Definition of Done
 
 A change is done when:
 
-- [ ] it meets the acceptance criteria of its ticket;
+- [ ] it meets the acceptance criteria of its work item (the `item` block of its WBS package);
 - [ ] tests for the new behaviour exist and the full test suite passes;
 - [ ] `kickoff validate` reports 0 errors when `.kickoff/` files changed, and `kickoff docs --check` passes;
 - [ ] documents affected by the change are updated in the same pull request;
 - [ ] the security rules above hold and no test or fixture contains real customer data;
-- [ ] the commit messages follow Conventional Commits and reference the ticket;
+- [ ] the commit messages follow Conventional Commits and reference the WBS code or the tracker issue;
 - [ ] the pull request was reviewed and approved by a team member other than its author.

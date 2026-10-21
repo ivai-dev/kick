@@ -3,7 +3,7 @@
   "title": "kickoff project.yaml",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "name", "languages", "calendar", "roles", "releases", "tracker"],
+  "required": ["schema_version", "name", "languages", "calendar", "roles", "releases"],
   "$defs": {
     "date": { "type": "string", "format": "date" },
     "relpath": {
@@ -84,6 +84,7 @@
     },
     "hard_dates": { "type": "object", "additionalProperties": { "$ref": "#/$defs/date" } },
     "tracker": {
+      "description": "ignored since kickoff 0.6 (no tracker sync)",
       "type": "object",
       "required": ["kind"],
       "properties": {

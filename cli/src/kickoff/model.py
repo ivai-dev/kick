@@ -138,7 +138,6 @@ class Project:
     roles: dict[str, Role]
     releases: list[Release]
     hard_dates: dict[str, date]
-    tracker: dict[str, Any]
     rules: dict[str, Any]
     security: list[str]
     proto: dict[str, Any]
@@ -167,7 +166,6 @@ class Project:
             roles=roles,
             releases=releases,
             hard_dates={k: to_date(v) for k, v in (d.get("hard_dates") or {}).items()},
-            tracker=d["tracker"],
             rules=d.get("rules") or {},
             security=d.get("security") or [],
             proto=d.get("proto") or {},
@@ -216,7 +214,7 @@ class Package:
     status: str = "todo"
     schedule: tuple = ("seq",)
     effort_rate: float | None = None
-    ticket: dict | None = None
+    item: dict | None = None  # work-item detail for `kickoff export` (legacy key: ticket)
     i18n: dict = field(default_factory=dict)
 
     @property
@@ -241,7 +239,7 @@ class Package:
             status=d.get("status", "todo"),
             schedule=parse_schedule(d.get("schedule")),
             effort_rate=d.get("effort_rate"),
-            ticket=d.get("ticket"),
+            item=d.get("item") or d.get("ticket"),
             i18n=d.get("i18n") or {},
         )
 
@@ -369,7 +367,3 @@ def load_state(root: Path) -> dict:
     return load_raw(root, "state")
 
 
-def load_tickets(root: Path) -> dict:
-    if not (root / KICKOFF_DIR / "tickets.yaml").exists():
-        return {"schema_version": 1, "items": {}, "actuals": {}}
-    return load_raw(root, "tickets")

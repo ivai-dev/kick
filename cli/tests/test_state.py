@@ -5,7 +5,7 @@ import pytest
 from kickoff.cli import main
 from kickoff.errors import KickoffError
 from kickoff.model import load_state, read_yaml
-from kickoff.state import approve, blockers, next_step, reopen, set_phase
+from kickoff.state import approve, blockers, next_step, reopen, set_phase, status_lines
 
 
 def fresh():
@@ -43,23 +43,23 @@ def test_approve_needs_phase_and_evidence():
 
 def test_reopen_c3_marks_later_phases_stale():
     s = fresh()
-    for p in ("signoff", "solution", "plan", "tickets"):
+    for p in ("signoff", "solution", "plan"):
         set_phase(s, p, "done")
     approve(s, "C3", "Customer", "x", date(2026, 10, 1))
     approve(s, "C4", "Customer", "x", date(2026, 10, 1))
-    assert reopen(s, "C3", "FB session 2026-10-08") == ["solution", "plan", "tickets"]
+    assert reopen(s, "C3", "FB session 2026-10-08") == ["solution", "plan"]
     assert "C3" not in s["gates"] and "C4" not in s["gates"]
     assert s["phases"]["signoff"] == "in_progress"
-    assert next_step(s) == "continue kickoff:signoff; then re-run stale: solution, plan, tickets"
+    assert next_step(s) == "continue kickoff:signoff; then re-run stale: solution, plan"
     assert blockers(s, "solution") == ["phase signoff is not done",
                                        "gate C3 (Customer signed off the full feature set) is not approved",
                                        "gate C4 (MVP locked) is not approved"]
     set_phase(s, "signoff", "done")
     approve(s, "C3", "Customer", "x", date(2026, 10, 9))
     approve(s, "C4", "Customer", "x", date(2026, 10, 9))
-    assert next_step(s) == "re-run kickoff:solution (stale after reopening a gate); then plan, tickets"
+    assert next_step(s) == "re-run kickoff:solution (stale after reopening a gate); then plan"
     set_phase(s, "solution", "done")
-    assert s["stale"] == ["plan", "tickets"]
+    assert s["stale"] == ["plan"]
 
 
 def test_the_phase_being_re_run_is_not_listed_as_a_later_stale_one():
@@ -92,12 +92,25 @@ def test_a_prototype_built_before_0_5_does_not_need_fe_foundation():
 
 def test_stale_prerequisite_blocks_the_next_phase():
     s = fresh()
-    for p in ("feature-map", "plan"):
+    for p in ("init", "discovery", "feature-map", "plan"):
         set_phase(s, p, "done")
+    approve(s, "C1", "Project lead", "x", date(2026, 9, 25))
     approve(s, "C2", "Project lead", "x", date(2026, 9, 26))
-    s["stale"] = ["plan", "tickets"]
-    assert blockers(s, "tickets") == ["phase plan is stale: re-run it first"]
-    assert blockers(s, "plan") == []  # the stale phase itself may be re-run
+    s["stale"] = ["feature-map", "plan"]
+    assert blockers(s, "ux-design") == ["phase feature-map is stale: re-run it first"]
+    assert blockers(s, "feature-map") == []  # the stale phase itself may be re-run
+
+
+def test_the_last_step_hands_the_wbs_over():
+    s = fresh()
+    for p in ("init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "prototype", "signoff",
+              "solution", "plan"):
+        set_phase(s, p, "done")
+    for g in ("C1", "C2", "CF", "C3", "C4", "C5", "C6"):
+        approve(s, g, "Project lead", "x", date(2026, 10, 1))
+    assert next_step(s).startswith("done: plan baselined;") and "kickoff export" in next_step(s)
+    s["phases"]["tickets"] = "done"  # a state.yaml from before 0.6 keeps loading and is ignored
+    assert "tickets" not in "\n".join(status_lines(s))
 
 
 def test_c6_needs_c5():

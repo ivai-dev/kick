@@ -6,7 +6,7 @@ ECC (the `ecc@ecc` plugin, 2.2.3 or later) is a required companion of kickoff. `
 
 **Kickoff owns. ECC works.**
 
-- Kickoff alone writes gates, `.kickoff/*`, IDs, the files under `docs_root`, the plan, the schedule and the tickets.
+- Kickoff alone writes gates, `.kickoff/*`, IDs, the files under `docs_root`, the plan, the schedule and the WBS export.
 - ECC components produce research, options, verdicts, drafts and reviews. A kickoff skill reads that output and writes it into kickoff files, with kickoff IDs.
 - An ECC report or verdict that supports a gate is saved under `docs_root` and cited in `--evidence`.
 
@@ -19,7 +19,6 @@ These ECC skills write their own artefacts in their own places, so they are **ne
 | `blueprint`, `plan-orchestrate` | `plans/`, chain prompts | `kickoff:plan` |
 | `product-lens` (as a writer) | `PRODUCT-BRIEF.md` | its diagnostics as a lens in `kickoff:discovery` |
 | `product-capability` | `PRODUCT.md` | `kickoff:feature-map` |
-| `epic-decompose` | issue bodies | `kickoff tickets push` |
 
 ## How to call ECC
 
@@ -58,6 +57,6 @@ ECC's own approvals do not approve a kickoff gate. That includes the plan approv
 | plan, `kickoff schedule` exit 3 | `ecc:council` | the `cut_order` options | a verdict with dissent | the options shown to the lead |
 | plan, before C6 | `ecc:planner` agent (read-only review) | the WBS, the signed-off features, the architecture | missing work | WBS changes or rulings |
 
-## After tickets
+## After the plan
 
-Kickoff stops at tickets. Build, review, QA and release are ECC's: the `orch-*` operations work from the ticket text. Never use `plan-orchestrate`: its output calls ECC's `/orchestrate` command, which ECC no longer loads.
+Kickoff stops at the baselined plan. `kickoff export` hands the WBS over; build, review, QA and release are ECC's, and the `orch-*` operations work from the exported work items (`wbs-items.md`). Never use `plan-orchestrate`: its output calls ECC's `/orchestrate` command, which ECC no longer loads.

@@ -45,10 +45,10 @@ Builds `.kickoff/plan.yaml` with the project lead (phases, groups and work packa
    - **Risks** (`R<n>`, `p` and `i` from 1 to 5, mitigation, trigger, status); keep the late-sign-off risk and the workshop package that `kickoff:signoff` added. **Assumptions** from research stay; add new ones with the same fields.
    - **Sprints** (`name`, `start`, `days`) and **`cut_order`**: feature IDs in the order the lead would give them up, first candidates first.
    - Text is in the workbook language; when `languages.repo` differs, add `i18n: {<repo>: {name: "..."}}`.
-3. **Ticket blocks:** every package that becomes an issue gets a `ticket` block in the repository language:
+3. **Item blocks:** every package the team will track as a work item gets an `item` block in the repository language (`kickoff export` hands it over; a `ticket` block from before 0.6 is read the same way, with a warning):
 
    ```yaml
-   ticket:
+   item:
      title: Meeting list and filters
      type: story            # story | task | bug | spike
      epic: E3               # an epic of features.yaml
@@ -66,6 +66,7 @@ Builds `.kickoff/plan.yaml` with the project lead (phases, groups and work packa
 8. **Documents:** `kickoff docs` fills those blocks (also in a plan.md just written from the template, where they are still empty) and regenerates `feature-map.md`, `wbs.md` and `risk-register.md`.
 9. **Verify** (section below), then `kickoff phase done plan` and commit `docs: plan, schedule and estimate workbook` (draft) or `docs: baseline plan` (baseline).
 10. **Baseline only, gate C6:** show the lead the gate dates, total effort by role, the hard-date verdicts and the cut order. Only after an explicit yes, run `kickoff gate approve C6 --by "Project lead" --evidence "<commit or record link>"` and commit `chore: approve C6`. A draft plan gets no C6 (it needs C5).
+11. **Hand over** (baseline only, after C6): run `kickoff export`. It writes the WBS with the baseline dates and the `item` fields as CSV, JSON and Markdown under `<docs_root>/06-planning/export/`. Commit them with `docs: WBS export`. Importing them into a tracker is the team's step; writing to a shared tracker is an action to confirm with the lead first.
 
 ## Outputs
 
@@ -80,8 +81,8 @@ Builds `.kickoff/plan.yaml` with the project lead (phases, groups and work packa
 2. `kickoff schedule` exits 0, or exits 3 with the lead's slip decision recorded as a `D<n>`.
 3. `kickoff workbook --verify` prints `verify: OK, zero error cells and every row matches the baseline schedule`, or the Docker-skipped line, reported as skipped.
 4. `kickoff docs --check` prints `documents up to date`.
-5. `kickoff check-docs <docs_root>/06-planning .kickoff/plan.yaml` prints `check-docs passed`: no placeholder, and no forbidden phrase in the plan documents or the `ticket` blocks. Owners are roles.
-6. Every active feature has a `wbs` entry, and every ticketed package names an epic and a sprint that exist (`kickoff validate` checks both).
+5. `kickoff check-docs <docs_root>/06-planning .kickoff/plan.yaml` prints `check-docs passed`: no placeholder, and no forbidden phrase in the plan documents or the `item` blocks. Owners are roles.
+6. Every active feature has a `wbs` entry, and every package with an `item` names an epic and a sprint that exist (`kickoff validate` checks both).
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
 
@@ -89,10 +90,10 @@ Builds `.kickoff/plan.yaml` with the project lead (phases, groups and work packa
 
 - A dependency chain once created a cycle and the schedule ran to 2039: `kickoff validate` runs before `kickoff schedule`, and a reported cycle is fixed at its source (lessons row 1).
 - A late sign-off moved the MVP gate: keep the workshop package and its risk, so `kickoff schedule` shows the effect of a late date (lessons row 13).
-- Estimates may assume tooling help; no document, ticket or report states it.
+- Estimates may assume tooling help; no document, work item or report states it.
 - Every plan has a scope-cut order, and a slipped hard date always ends in an explicit decision.
 - Write every file with the file tools, not heredocs (literal `\n` in a Bash heredoc once became real newlines).
 
 ## Handoff
 
-Draft: continue the design phases (`kickoff:ux-design`, `kickoff:prototype`, `kickoff:signoff`); the draft can feed `kickoff:tickets` for the preparation work. Baseline with C6: `kickoff:tickets` to create the epics, stories and tasks. `kickoff status` names the next step.
+Draft: continue the design phases (`kickoff:ux-design`, `kickoff:fe-foundation`, `kickoff:prototype`, `kickoff:signoff`). Baseline with C6: the kickoff is complete. Run `kickoff export` and give the lead `wbs.csv`, `wbs.json` and `wbs-items.md` (`<docs_root>/06-planning/export/`) to import into the team's tracker or to hand to an ECC session; kickoff itself creates no issues. `kickoff:feedback` handles later customer feedback.

@@ -38,7 +38,6 @@ def signed_off():
 
 @pytest.mark.parametrize(("rel", "reason"), [
     (".kickoff/state.yaml", "state.yaml is written by the kickoff CLI only"),
-    (".kickoff/tickets.yaml", "tickets.yaml is written by kickoff tickets only"),
     ("docs/04-architecture/system-architecture.md", "architecture documents wait for C3 and C4: phase signoff"),
     ("packages/kit/src/router.tsx", "packages/kit is plugin-owned and replaced by kickoff fe update"),
     ("packages/kit/package.json", "packages/kit is plugin-owned"),
@@ -52,7 +51,7 @@ def test_pre_write_blocks(tmp_path, rel, reason):
 @pytest.mark.skipif(sys.platform != "win32", reason="case-insensitive file system only")
 def test_case_variants_meet_the_same_guard_on_windows(tmp_path):
     root = with_kit(write_kickoff(tmp_path))
-    assert pre_write(edit(root, ".kickoff/Tickets.yaml"))[0] == 2
+    assert pre_write(edit(root, ".kickoff/State.yaml"))[0] == 2
     assert pre_write(edit(root, "Docs/04-Architecture/Data-Model.md"))[0] == 2
     assert pre_write(edit(root, "Packages/Kit/src/Router.tsx"))[0] == 2
 

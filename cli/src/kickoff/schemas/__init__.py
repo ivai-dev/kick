@@ -10,7 +10,7 @@ from typing import Any
 
 from jsonschema import Draft202012Validator
 
-KINDS = ("project", "features", "plan", "state", "tickets")
+KINDS = ("project", "features", "plan", "state")
 
 
 def _jsonable(value: Any) -> Any:

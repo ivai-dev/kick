@@ -258,6 +258,18 @@ def test_setup_router_adds_the_block_once_under_the_planning_lane(tmp_path, cfg,
     assert "kickoff:using-kickoff" in text
 
 
+def test_setup_router_refreshes_an_older_block(tmp_path, cfg, installed):
+    root = write_kickoff(tmp_path / "proj")
+    table = cfg / ecc.ROUTER_TABLE
+    table.parent.mkdir(parents=True)
+    table.write_text(f"# Table\n\n{ecc.ROUTER_BEGIN}\nold route with tickets\n{ecc.ROUTER_END}\n\n## 4. Next\n",
+                     encoding="utf-8")
+    assert main(["--root", str(root), "ecc", "setup", "--router"]) == 0
+    text = table.read_text(encoding="utf-8")
+    assert "old route" not in text and text.count(ecc.ROUTER_BEGIN) == 1 and text.endswith("\n## 4. Next\n")
+    assert ecc.router_change() is None
+
+
 def test_setup_router_works_outside_a_project(tmp_path, cfg, installed, capsys, monkeypatch):
     table = cfg / ecc.ROUTER_TABLE
     table.parent.mkdir(parents=True)

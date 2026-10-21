@@ -9,7 +9,6 @@ from kickoff.model import (
     load_features,
     load_plan,
     load_project,
-    load_tickets,
     read_yaml,
     text,
     write_yaml,
@@ -100,9 +99,11 @@ def test_features_and_text_i18n(tmp_path):
     assert text({"name": "Minutes"}, "name", "vi") == "Minutes"
 
 
-def test_tickets_default_when_absent(tmp_path):
-    write_kickoff(tmp_path)
-    assert load_tickets(tmp_path) == {"schema_version": 1, "items": {}, "actuals": {}}
+def test_item_block_and_the_legacy_ticket_key(tmp_path):
+    item = {"title": "Loan desk", "type": "story", "epic": "E1", "ac": ["A loan is saved"]}
+    write_kickoff(tmp_path, plan=plan_dict([pkg("1.1.1", item=item), pkg("1.1.2", ticket=dict(item, title="Old"))]))
+    a, b = load_plan(tmp_path).packages
+    assert a.item == item and b.item["title"] == "Old"
 
 
 def test_empty_plan_and_features_are_valid(tmp_path):

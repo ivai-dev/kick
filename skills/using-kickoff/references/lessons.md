@@ -5,7 +5,7 @@ Each row is a mistake made on a real project and the check that now prevents it:
 | Lesson | Where it is enforced |
 | --- | --- |
 | `chain_after` created a cycle; the schedule ran to 2039 | `validate` cycle detection; `schedule` refuses to run with a cycle |
-| Sync matched issues by title and created a duplicate after a rename | hidden body key matching |
+| Sync matched issues by title and created a duplicate after a rename | retired in 0.6: no tracker sync; the export keys every item by its WBS code |
 | Render errors did not surface in headless checks | the e2e sweep of `kickoff fe check` fails on console errors, page errors and `data-kickoff-error` |
 | Headless "narrow" screenshots clamped around 520 px | the sweep sets a real 390×844 viewport for every screen and role |
 | Splitting prototype modules dropped imports, found only tasks later | `kickoff fe check` (typecheck, build, sweep) after every task |
@@ -38,7 +38,7 @@ Each row is a mistake made on a real project and the check that now prevents it:
 ## Which skill applies each row
 
 1. Dependency cycle: `plan` runs `kickoff validate` before `kickoff schedule` and fixes the reported cycle instead of working around it.
-2. Title matching: `tickets` syncs only through `kickoff tickets push`, never by creating or renaming issues by hand.
+2. Title matching: retired in 0.6 (kickoff no longer syncs a tracker); `kickoff export` gives each work item its permanent WBS code.
 3. Render errors: `prototype` treats every sweep failure of `kickoff fe check` as a failure.
 4. Narrow screenshots: `prototype` checks phone width only through the sweep (real 390 px viewport) and `fe check --shots`.
 5. Dropped imports: `prototype` runs `kickoff fe check` after every task, never only `--skip-e2e`.

@@ -31,9 +31,9 @@ ROUTER_HEADING = "## 3. Planning lane"
 ROUTER_BLOCK = f"""{ROUTER_BEGIN}
 | Request | Primary | Support |
 |---------|---------|---------|
-| Repository has `.kickoff/` and the request is kickoff work (discovery, scope, features, UX, prototype, sign-off, architecture, plan, estimate, tickets) | kickoff:using-kickoff | — |
+| Repository has `.kickoff/` and the request is kickoff work (discovery, scope, features, UX, prototype, sign-off, architecture, plan, estimate, WBS export) | kickoff:using-kickoff | — |
 
-Inside a repository with `.kickoff/`, kickoff phases own the PRD, ADR, architecture, plan and ticket artefacts: do not route them to plan-prd, blueprint, architecture-decision-records or epic-decompose. Code work on tickets routes to the orch-* owners as usual.
+Inside a repository with `.kickoff/`, kickoff phases own the PRD, ADR, architecture, plan and WBS artefacts: do not route them to plan-prd, blueprint or architecture-decision-records. Code work on the exported work items routes to the orch-* owners as usual.
 {ROUTER_END}
 """
 
@@ -247,8 +247,11 @@ def router_change() -> Change | None:
     if not path.is_file():
         raise EccError(f"ecc-router is not installed: {path} does not exist")
     old = path.read_text(encoding="utf-8")
-    if ROUTER_BEGIN in old:
-        return None
+    if ROUTER_BEGIN in old and ROUTER_END in old:  # refresh a block written by an older kickoff
+        head, rest = old.split(ROUTER_BEGIN, 1)
+        tail = rest.split(ROUTER_END, 1)[1].removeprefix("\n")
+        new = head + ROUTER_BLOCK + tail
+        return None if new == old else Change(path, old, new)
     lines = old.splitlines(keepends=True)
     at = next((i + 1 for i, line in enumerate(lines) if line.strip() == ROUTER_HEADING), None)
     if at is None:

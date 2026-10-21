@@ -12,7 +12,7 @@ from .errors import KickoffError
 from .model import KICKOFF_DIR, write_yaml
 
 PHASES = ["init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "prototype", "signoff",
-          "solution", "plan", "tickets"]
+          "solution", "plan"]
 GATES = {"C1": "Vision approved", "C2": "Draft scope approved", "CF": "Frontend foundation approved",
          "C3": "Customer signed off the full feature set",
          "C4": "MVP locked", "C5": "Solution approved", "C6": "Plan baselined"}
@@ -31,7 +31,6 @@ REQUIRES: dict[str, tuple[list[str], list[str]]] = {
     "solution": (["signoff"], ["C3", "C4"]),
     "plan": (["feature-map"], ["C2"]),
     "plan-baseline": (["solution"], ["C5"]),
-    "tickets": (["plan"], []),
 }
 GATE_NEEDS = {"C4": ["C3"], "C6": ["C5"]}
 DOC_DIRS = ["01-discovery", "02-requirements", "03-research", "04-architecture/adr", "05-design", "06-planning",
@@ -131,7 +130,8 @@ def next_step(state: dict) -> str:
     for phase in PHASES:
         if not _done(state, phase) and not blockers(state, phase):
             return f"run kickoff:{phase}"
-    return "tracking: kickoff tickets pull; run kickoff:feedback when customer feedback arrives"
+    return ("done: plan baselined; run kickoff:feedback when customer feedback arrives; "
+            "kickoff export hands the WBS over")
 
 
 def status_lines(state: dict) -> list[str]:
@@ -166,7 +166,6 @@ def init_project(root: Path, name: str, today: date) -> list[Path]:
         "state.yaml": {"schema_version": 1, "phases": {"init": "in_progress"}, "gates": {}, "stale": []},
         "features.yaml": {"schema_version": 1, "epics": []},
         "plan.yaml": {"schema_version": 1, "start": today, "phases": [], "groups": [], "packages": [], "gates": []},
-        "tickets.yaml": {"schema_version": 1, "items": {}, "actuals": {}},
     }
     for fname, data in files_.items():
         write_yaml(k / fname, data)

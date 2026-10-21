@@ -129,13 +129,13 @@ def check_features(project: Project, plan: Plan, features: Features) -> list[Fin
     epic_ids = {e.id for e in features.epics}
     sprint_names = {s["name"] for s in plan.sprints}
     for p in plan.packages:
-        t = p.ticket
+        t = p.item
         if not t:
             continue
         if t["epic"] not in epic_ids:
-            out.append(Finding("error", p.code, f"ticket epic {t['epic']} is not in features.yaml"))
+            out.append(Finding("error", p.code, f"item epic {t['epic']} is not in features.yaml"))
         if t.get("sprint") and t["sprint"] not in sprint_names:
-            out.append(Finding("error", p.code, f"ticket sprint {t['sprint']!r} is not in sprints"))
+            out.append(Finding("error", p.code, f"item sprint {t['sprint']!r} is not in sprints"))
     known = {f.id for f in all_features}
     for p in plan.packages:
         for fid in FEATURE_REF.findall(p.ref):
@@ -249,4 +249,18 @@ def validate_root(root: Path) -> list[Finding]:
     except KickoffError as exc:
         return [Finding("error", "model", str(exc))]
     return [*check_plan(project, plan), *check_features(project, plan, features),
-            *check_languages(project, plan), *check_phrases(project, raw)]
+            *check_languages(project, plan), *check_phrases(project, raw), *check_legacy(root, raw)]
+
+
+def check_legacy(root: Path, raw: dict[str, dict]) -> list[Finding]:
+    """Leftovers of the ticket management that kickoff 0.6 removed: harmless, reported once each."""
+    out: list[Finding] = []
+    if (root / ".kickoff" / "tickets.yaml").exists():
+        out.append(Finding("warning", "tickets.yaml", "kickoff no longer syncs a tracker; the file can be deleted"))
+    if raw.get("project", {}).get("tracker") is not None:
+        out.append(Finding("warning", "project.yaml tracker", "ignored since kickoff 0.6; the setting can be deleted"))
+    legacy = [p["code"] for p in raw.get("plan", {}).get("packages") or [] if "ticket" in p]
+    if legacy:
+        out.append(Finding("warning", "plan.yaml", f"`ticket` is renamed `item` ({len(legacy)} packages, first "
+                                                   f"{legacy[0]}); kickoff 0.7 no longer reads `ticket`"))
+    return out
