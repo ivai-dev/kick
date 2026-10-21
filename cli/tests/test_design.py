@@ -118,6 +118,20 @@ def test_setup_refuses_invalid_json(installed, tmp_path, capsys):
     assert "invalid JSON, nothing written" in capsys.readouterr().err
 
 
+def test_setup_keeps_crlf_line_ends_and_reads_a_bom(installed, tmp_path):
+    root = write_kickoff(tmp_path / "p", project_dict())
+    (root / ".gitignore").write_bytes(b"node_modules/\r\ndist/\r\n")
+    (root / ".impeccable").mkdir()
+    (root / ".impeccable" / "config.json").write_bytes(b'\xef\xbb\xbf{"buildPath": "code"}')
+    assert main(["--root", str(root), "design", "setup"]) == 0
+    raw = (root / ".gitignore").read_bytes()
+    assert raw.startswith(b"node_modules/\r\ndist/\r\n\r\n# impeccable-ignore-start\r\n")
+    assert b"\n" not in raw.replace(b"\r\n", b"")
+    assert json.loads((root / ".impeccable" / "config.json").read_text(encoding="utf-8")) == {
+        "buildPath": "code", "telemetry": False}
+    assert design.telemetry_off(root)
+
+
 def test_detector_command(installed, cfg, monkeypatch):
     assert design.detector() == [str(installed / "scripts" / ("impeccable.cmd" if os.name == "nt" else "impeccable"))]
     monkeypatch.setenv("KICKOFF_IMPECCABLE", "/opt/impeccable")

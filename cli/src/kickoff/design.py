@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 import shutil
 from pathlib import Path
 
@@ -68,7 +69,7 @@ def skill_version(folder: Path) -> str:
 
 def _read_json(path: Path) -> dict:
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
     except (OSError, ValueError):
         return {}
     return data if isinstance(data, dict) else {}
@@ -105,7 +106,7 @@ def config_change(project: Path) -> Change | None:
     path = project / IMPECCABLE_CONFIG
     old = path.read_text(encoding="utf-8") if path.exists() else ""
     try:
-        data = json.loads(old) if old.strip() else {}
+        data = json.loads(old.removeprefix("\ufeff")) if old.strip() else {}
     except ValueError as exc:
         raise DesignError(f"{path}: invalid JSON, nothing written: {exc}") from exc
     if not isinstance(data, dict):
@@ -119,12 +120,14 @@ def config_change(project: Path) -> Change | None:
 def gitignore_change(project: Path) -> Change | None:
     """Add (or refresh) impeccable's ignore block in the project's .gitignore."""
     path = project / ".gitignore"
-    old = path.read_text(encoding="utf-8") if path.exists() else ""
+    old = path.read_bytes().decode("utf-8") if path.exists() else ""  # bytes: keep CRLF line ends as they are
+    eol = "\r\n" if "\r\n" in old else "\n"
+    block = IGNORE_BLOCK.replace("\n", eol)
     if IGNORE_BEGIN in old and IGNORE_END in old:
         head, rest = old.split(IGNORE_BEGIN, 1)
-        new = head + IGNORE_BLOCK + rest.split(IGNORE_END, 1)[1].removeprefix("\n")
+        new = head + block + rest.split(IGNORE_END, 1)[1].removeprefix(eol)
     else:
-        new = old + ("" if old.endswith("\n") or not old else "\n") + ("\n" if old else "") + IGNORE_BLOCK
+        new = old + ("" if old.endswith("\n") or not old else eol) + (eol if old else "") + block
     return None if new == old else Change(path, old, new)
 
 
@@ -134,7 +137,7 @@ def detector(project: Path | None = None) -> list[str] | None:
     `impeccable` on PATH. None when there is none."""
     env = os.environ.get("KICKOFF_IMPECCABLE")
     if env:
-        return [env]
+        return shlex.split(env, posix=os.name != "nt")
     folder = skill_dir("impeccable", project)
     if folder is not None:
         launcher = folder / "scripts" / ("impeccable.cmd" if os.name == "nt" else "impeccable")

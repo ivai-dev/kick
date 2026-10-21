@@ -12,7 +12,7 @@ Finds the product's own look and gets the customer to choose it. The lead and im
 ## When to use
 
 - After `kickoff:fe-foundation` and gate CF, before any screen beyond the reference screens is built.
-- Again when the customer rejects the locked direction (`kickoff:feedback` reopens CD). A remark about one screen's look is a prototype change, not a new direction.
+- Again when the customer rejects the locked direction (`kickoff:feedback` reopens CD). A remark about one screen's look is a prototype change, not a new direction. On a re-run, unlock first: remove `direction` from `config.ts`, list the directions to compare in `directions` again, and restore their files from git history or write new ones; while `direction` is set, the kit applies it everywhere and hides the switch.
 
 ## Preconditions
 
@@ -24,7 +24,7 @@ Finds the product's own look and gets the customer to choose it. The lead and im
 
 - `<docs_root>/01-discovery/vision-scope.md` and `stakeholders.md`: purpose, users, the customer's brand and constraints.
 - `ux-spec.md` (roles, shells, homes) and `design-system.md` (the structural rules every direction keeps).
-- The reference screens in `apps/web/src/screens/`, the presets in `packages/ui`, the kit guide `packages/kit/README.md` (Direction switch, Tweaks panel, `?direction=` and `?tweak=` links).
+- The reference screens in `apps/web/src/screens/`, the presets in `packages/ui`, the kit guide `packages/kit/README.md` (Direction switch, Tweaks panel, `?look=` and `?tweak=` links).
 - `references/codesign.md` (the customer session) and the templates `templates/design-brief.md`, `templates/directions.md` and `templates/codesign-record.md` in this skill's folder.
 - `../using-kickoff/references/design-tools.md`: what `frontend-design` and `impeccable` do here, and which files they own.
 - Working methods: `../using-kickoff/references/methods.md`. Conventions: `../using-kickoff/references/conventions.md`.
@@ -69,7 +69,7 @@ Finds the product's own look and gets the customer to choose it. The lead and im
 8. **Co-design session** with the customer, following `references/codesign.md`:
    - publish the bundle (`kickoff fe bundle`, then a private Artifact) with the prototype bar visible; sharing it with the customer is publishing, so ask the lead first;
    - in the meeting, the customer switches directions, plays the scenarios and moves the Tweaks; you make the changes they ask for in the direction files and republish while they watch;
-   - remote feedback comes as Artifact comments and as "Copy link" links, which carry `?direction=` and `?tweak=` and reproduce exactly what the customer saw.
+   - remote feedback comes as Artifact comments and as "Copy link" links, which carry `?look=` and `?tweak=` and reproduce exactly what the customer saw.
 
    Write `<docs_root>/05-design/codesign-YYYY-MM-DD.md` from the template: who took part (roles), what was shown, reactions word for word, the chosen direction and its tweak link, the changes asked.
 9. **Lock the direction:**

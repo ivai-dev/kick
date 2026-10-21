@@ -12,11 +12,13 @@ import type { Motion, Tweak } from "../types";
 const control =
   "h-7 rounded border border-input bg-background px-1.5 text-caption text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
 
-/** The value the page uses now: the tweak, else the computed CSS variable. */
+/** The value the page uses now: the computed CSS variable (a px length is read as rem, 16 px each). */
 function current(name: string, fallback: number): number {
   if (typeof document === "undefined") return fallback;
-  const n = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
-  return Number.isFinite(n) ? n : fallback;
+  const raw = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const n = parseFloat(raw);
+  if (!Number.isFinite(n)) return fallback;
+  return raw.endsWith("px") ? n / 16 : n;
 }
 
 /** Contrast of the primary button's text, read from the live tokens. */
@@ -44,9 +46,9 @@ export function lookLink(direction: string | null, tweak: Tweak, href = window.l
   const [base, hash = ""] = href.split("#");
   const [path, query = ""] = hash.split("?");
   const search = new URLSearchParams(query);
-  search.delete("direction");
+  search.delete("look");
   search.delete("tweak");
-  if (direction) search.set("direction", direction);
+  if (direction) search.set("look", direction);
   const t = formatTweak(tweak);
   if (t) search.set("tweak", t);
   const q = search.toString();
@@ -95,7 +97,7 @@ function Slider({
 
 /**
  * Tweak panel of the prototype bar: brand hue and chroma, radius and motion within bounds, a live contrast
- * reading, and a link that carries the look (?direction=…&tweak=…).
+ * reading, and a link that carries the look (?look=…&tweak=…).
  */
 export function Tweaks({ direction }: { direction: string | null }) {
   const { strings, config } = useKickoff();

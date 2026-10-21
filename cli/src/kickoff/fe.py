@@ -385,6 +385,23 @@ def _run(run: Runner, argv: list[str], cwd: Path, env: dict | None = None) -> su
         return subprocess.CompletedProcess(argv, 124, "", f"timed out after {TIMEOUT} s")
 
 
+CSS_COMMENT = re.compile(r"/\*.*?\*/", re.S)
+CSS_RULE = re.compile(r"([^{}]+)\{([^{}]*)\}")
+CSS_VAR = re.compile(r"(--[\w-]+)\s*:")
+
+
+def direction_vars(css: str, d: str) -> tuple[set[str] | None, set[str] | None]:
+    """The custom properties of a direction file's light block and dark block (None when a block is missing)."""
+    light = f':root[data-direction="{d}"]'
+    dark = f'{light}[data-theme="dark"]'
+    found: dict[str, set[str]] = {}
+    for selectors, body in CSS_RULE.findall(CSS_COMMENT.sub("", css)):
+        for sel in (s.strip() for s in selectors.split(",")):
+            if sel in (light, dark):
+                found.setdefault(sel, set()).update(CSS_VAR.findall(body))
+    return found.get(light), found.get(dark)
+
+
 def direction_problems(app: Path, manifest: dict, need_lock: bool) -> list[str]:
     """Every offered (or locked) direction has its CSS file with a dark block, imported by directions.css; after
     kickoff:design-direction a direction is locked."""
@@ -392,7 +409,7 @@ def direction_problems(app: Path, manifest: dict, need_lock: bool) -> list[str]:
     locked = manifest.get("direction") if isinstance(manifest.get("direction"), str) else None
     styles = app / "src" / "styles"
     entry = styles / "directions.css"
-    imports = entry.read_text(encoding="utf-8") if entry.is_file() else ""
+    imports = CSS_COMMENT.sub("", entry.read_text(encoding="utf-8-sig")) if entry.is_file() else ""
     out = []
     for d in offered or ([locked] if locked else []):
         rel = f"apps/web/src/styles/directions/{d}.css"
@@ -400,11 +417,15 @@ def direction_problems(app: Path, manifest: dict, need_lock: bool) -> list[str]:
         if not path.is_file():
             out.append(f"direction {d}: missing {rel}")
             continue
-        text = path.read_text(encoding="utf-8")
-        if f'data-direction="{d}"' not in text:
+        light, dark = direction_vars(path.read_text(encoding="utf-8-sig"), d)
+        dark_sel = f':root[data-direction="{d}"][data-theme="dark"]'
+        if light is None:
             out.append(f'direction {d}: {rel} has no :root[data-direction="{d}"] block')
-        elif 'data-theme="dark"' not in text:
-            out.append(f'direction {d}: {rel} has no dark block (:root[data-direction="{d}"][data-theme="dark"])')
+        elif dark is None:
+            out.append(f"direction {d}: {rel} has no dark block ({dark_sel})")
+        elif light - dark:
+            # Same specificity as the dark tokens and loaded later: a light value missing in dark leaks into dark.
+            out.append(f"direction {d}: the dark block ({dark_sel}) lacks {', '.join(sorted(light - dark))}")
         if f"directions/{d}.css" not in imports:
             out.append(f"direction {d}: not imported in apps/web/src/styles/directions.css")
     if need_lock and not locked:
@@ -422,7 +443,10 @@ def detect(root: Path, project: Project, run: Runner = subprocess.run) -> list[s
     base = fe_root(root, project)
     targets = [p for p in (app_dir(root, project) / "src", base / "packages" / "ui" / "src") if p.is_dir()]
     env = {**os.environ, "IMPECCABLE_NO_TELEMETRY": "1"}
-    done = _run(run, [*command, "detect", *(p.relative_to(base).as_posix() for p in targets)], base, env)
+    try:
+        done = _run(run, [*command, "detect", *(p.relative_to(base).as_posix() for p in targets)], base, env)
+    except OSError as exc:  # a launcher that does not exist or cannot start
+        return [f"detect: could not run {' '.join(command)}: {exc}"]
     if done.returncode == 0:
         return []
     output = (done.stderr or "") + (done.stdout or "")

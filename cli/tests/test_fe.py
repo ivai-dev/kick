@@ -296,6 +296,31 @@ def test_directions_need_their_css_and_a_lock_after_the_phase(ready):
     assert fe.check(ready, load_project(ready), run=locked, need_lock=True) == []
 
 
+def test_a_dark_block_must_repeat_the_light_variables_and_comments_do_not_count(ready):
+    styles = ready / "apps" / "web" / "src" / "styles"
+    (styles / "directions").mkdir(parents=True)
+    (styles / "directions" / "ledger.css").write_text(
+        '/* :root[data-direction="ledger"][data-theme="dark"] { --radius: 0; } */\n'
+        ':root[data-direction="ledger"] { --brand-h: 30; --radius: 0.25rem; }\n'
+        ':root[data-direction="ledger"][data-theme="dark"] { --brand-h: 30; }\n', encoding="utf-8")
+    (styles / "directions.css").write_text('/* @import "./directions/ledger.css"; */\n', encoding="utf-8")
+    run = FakeRun(manifest={**full_manifest(), "directions": ["ledger"], "direction": "ledger"})
+    assert fe.check(ready, load_project(ready), run=run) == [
+        'direction ledger: the dark block (:root[data-direction="ledger"][data-theme="dark"]) lacks --radius',
+        "direction ledger: not imported in apps/web/src/styles/directions.css",
+    ]
+
+
+def test_a_detector_that_cannot_start_is_a_failure_not_a_crash(ready):
+    def run(argv, cwd, env=None, **kw):
+        if "detect" in argv:
+            raise FileNotFoundError(2, "No such file or directory")
+        return FakeRun(manifest=full_manifest())(argv, cwd, env, **kw)
+
+    failures = fe.check(ready, load_project(ready), run=run)
+    assert failures == ["detect: could not run impeccable-fake: [Errno 2] No such file or directory"]
+
+
 def test_the_sweep_runs_in_a_chosen_direction(ready):
     seen = {}
 

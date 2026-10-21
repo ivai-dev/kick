@@ -132,6 +132,9 @@ def test_phase_start_refuses_a_blocked_phase(tmp_path, capsys):
     assert main(["--root", str(root), "phase", "start", "prototype"]) == 2
     assert "cannot start prototype: phase design-direction is not done" in capsys.readouterr().err
     assert "prototype" not in load_state(root)["phases"]  # no legacy pass through a skipped gate
+    assert main(["--root", str(root), "phase", "done", "prototype"]) == 2
+    assert "cannot finish prototype: phase design-direction is not done" in capsys.readouterr().err
+    assert "prototype" not in load_state(root)["phases"]
     assert main(["--root", str(root), "phase", "start", "design-direction"]) == 0
 
 

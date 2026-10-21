@@ -3,7 +3,7 @@ import { useSyncExternalStore } from "react";
 import type { Density, Motion, Scope, Theme, Tweak } from "./types";
 
 /** URL search keys owned by the demo bar; never passed to screens. */
-export const RESERVED_PARAMS = ["demo", "theme", "density", "scope", "scenario", "step", "direction", "tweak"] as const;
+export const RESERVED_PARAMS = ["demo", "theme", "density", "scope", "scenario", "step", "look", "tweak"] as const;
 
 export interface DemoState {
   theme: Theme;
@@ -124,7 +124,7 @@ export const demoStore = {
     }
     for (const listener of listeners) listener();
   },
-  /** Apply reserved URL params (?demo=0&theme=dark&density=touch&scope=mvp&scenario=x&step=2&direction=b&tweak=h:30)
+  /** Apply reserved URL params (?demo=0&theme=dark&density=touch&scope=mvp&scenario=x&step=2&look=b&tweak=h:30)
    * without persisting them. */
   applyParams(params: Record<string, unknown>) {
     const get = (key: string) => (params[key] == null ? undefined : String(params[key]));
@@ -137,7 +137,7 @@ export const demoStore = {
     if (density) patch.density = density;
     const scope = pick(get("scope"), scopes);
     if (scope) patch.scope = scope;
-    const direction = directionId(get("direction"));
+    const direction = directionId(get("look"));
     if (direction) patch.direction = direction;
     const tweak = get("tweak");
     if (tweak !== undefined) patch.tweak = parseTweak(tweak);

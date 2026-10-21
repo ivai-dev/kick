@@ -69,10 +69,12 @@ def run_can(args) -> int:
 def run_phase(args) -> int:
     root = resolve_root(args.root)
     state = load_state(root)
-    if args.action == "start":  # the same rule as `kickoff can`: a skipped gate must not become a legacy pass
-        reasons = blockers(state, args.phase) if args.phase in PHASES else []
-        if reasons:
-            raise KickoffError(f"cannot start {args.phase}: " + "; ".join(reasons))
+    # The same rule as `kickoff can`, for start and done: a phase recorded past an open gate would make the
+    # skipped phase look like a legacy pass (state.LEGACY).
+    reasons = blockers(state, args.phase) if args.phase in PHASES else []
+    if reasons:
+        raise KickoffError(f"cannot {'start' if args.action == 'start' else 'finish'} {args.phase}: "
+                           + "; ".join(reasons))
     set_phase(state, args.phase, "in_progress" if args.action == "start" else "done")
     _save(root, state)
     print(f"{args.phase}: {state['phases'][args.phase]}")

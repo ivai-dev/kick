@@ -7,7 +7,7 @@ The customer chooses the direction in the product itself, not from pictures of i
 - **The bundle:** `kickoff fe bundle`, published as a private Artifact (republish to the same URL for every version). Keep the prototype bar visible: no `?demo=0`. The lead approves sharing it with the customer.
 - **Order:** the order agreed with the lead in step 7. Put the boldest direction second, never last: a customer who saw the safe option last tends to settle on it.
 - **Scenarios:** one scenario per main audience that walks the three reference screens (home or public page, the list at volume, the form), so each direction is judged on the job, not on a hero.
-- **Links per direction:** open each direction once and use "Copy link" in the Tweaks panel to keep a link that opens it directly (`?direction=<id>`). Put them in the invitation for anyone who joins late or reviews remotely.
+- **Links per direction:** open each direction once and use "Copy link" in the Tweaks panel to keep a link that opens it directly (`?look=<id>`). Put them in the invitation for anyone who joins late or reviews remotely.
 - **Questions to ask,** written down: which one feels like *your* product; what would your users say on their first day; what would you remove; which one would you be proud to show your own customers.
 - **Roles:** the lead runs the meeting, and one person (or you) drives the changes and writes the record.
 

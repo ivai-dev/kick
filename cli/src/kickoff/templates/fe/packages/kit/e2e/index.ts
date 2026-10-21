@@ -82,7 +82,7 @@ export function sweep(test: TestType, options: SweepOptions) {
     artifact,
     direction = process.env.KICKOFF_DIRECTION || undefined,
   } = options;
-  const look: Record<string, string> = direction ? { direction } : {};
+  const look: Record<string, string> = direction ? { look: direction } : {};
 
   test.describe("kickoff sweep", () => {
     for (const screen of screens) {

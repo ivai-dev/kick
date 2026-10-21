@@ -25,6 +25,6 @@
 ## Decision
 
 - **Chosen direction:** {{id — name}}
-- **Tweak link:** {{URL with ?direction= and ?tweak=}}
+- **Tweak link:** {{URL with ?look= and ?tweak=}}
 - **Changes still to make before the lock:** {{list, or none}}
 - **Who approves gate CD, and how:** {{role, e.g. email reply to the locked version}}
