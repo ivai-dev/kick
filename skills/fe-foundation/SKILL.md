@@ -18,7 +18,7 @@ Decides the presentation stack and the frontend features with the lead, records 
 
 - `kickoff can fe-foundation` exits 0 (ux-design done, C2 approved).
 - `ux-spec.md` (screen inventory, a shell per role) and `design-system.md` exist.
-- Node.js 22 or later and pnpm are installed (`pnpm --version`). Edge or Chrome is installed for the e2e sweep, or `PW_CHANNEL=chromium` is set after `pnpm exec playwright install chromium`.
+- Node.js 22 or later and pnpm are installed (`pnpm --version`). Edge or Chrome is installed for the e2e sweep, or `PW_CHANNEL=chromium` is set after `pnpm --filter web exec playwright install chromium`.
 - The `ui-ux-pro-max` skill is available. If it is missing, stop and tell the user: "Install the ui-ux-pro-max skill, then start a new session."
 
 ## Inputs

@@ -83,7 +83,7 @@ Repeat the CLI install after every plugin update. `kickoff:using-kickoff` compar
 - [`gh`](https://cli.github.com/), signed in, for the GitHub tracker (`kickoff tickets ...`); the plugin stores no tokens
 - Optional: Docker, for `kickoff workbook --verify` (LibreOffice recalculation)
 - The ECC plugin (`ecc@ecc` 2.2.3 or later): required; `kickoff ecc doctor` checks it
-- Node 22 or newer and pnpm, for the FE v0 (`kickoff fe ...`); Microsoft Edge or Google Chrome for its e2e sweep, or `PW_CHANNEL=chromium` after `pnpm exec playwright install chromium`
+- Node 22 or newer and pnpm, for the FE v0 (`kickoff fe ...`); Microsoft Edge or Google Chrome for its e2e sweep, or `PW_CHANNEL=chromium` after `pnpm --filter web exec playwright install chromium`
 - The `ui-ux-pro-max` skill, for the design phases; `kickoff:using-kickoff` stops with install instructions when it is missing
 
 ## Quickstart

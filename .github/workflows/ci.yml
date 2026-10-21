@@ -35,7 +35,7 @@ jobs:
           uv run --project cli kickoff --root "$RUNNER_TEMP/mini" fe new
           cd "$RUNNER_TEMP/mini"
           pnpm install --frozen-lockfile
-          pnpm exec playwright install --with-deps chromium
+          pnpm --filter web exec playwright install --with-deps chromium
           PW_CHANNEL=chromium uv run --project "$GITHUB_WORKSPACE/cli" kickoff fe check
   examples:
     runs-on: ubuntu-latest

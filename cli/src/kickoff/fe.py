@@ -360,7 +360,7 @@ def check(root: Path, project: Project, skip_e2e: bool = False, run: Runner = su
         if script == "e2e" and re.search(r"Executable doesn't exist|browserType\.launch|is not found at|"
                                          r"Chromium distribution .* is not found", output):
             raise ToolMissing("no browser for the e2e sweep: install Edge or Chrome, or run "
-                              "`pnpm exec playwright install chromium` and set PW_CHANNEL=chromium")
+                              "`pnpm --filter web exec playwright install chromium` and set PW_CHANNEL=chromium")
         failures.append(f"{script}: failed (exit {done.returncode})\n{_tail(output)}")
     done = run([pnpm, "-s", "manifest"], cwd=base, env=env, capture_output=True, text=True, encoding="utf-8",
                errors="replace")
