@@ -6,8 +6,32 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -d .kickoff ]; then echo 'kickoff project detected: use the kickoff:using-kickoff skill.'; kickoff status 2>&1 || echo 'kickoff CLI missing or failed: see kickoff:using-kickoff.'; fi",
+            "command": "if command -v kickoff >/dev/null 2>&1; then kickoff hook session-start; elif [ -d .kickoff ]; then echo 'kickoff project detected, but the kickoff CLI is missing: see kickoff:using-kickoff.'; fi",
             "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v kickoff >/dev/null 2>&1; then kickoff hook pre-write; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if command -v kickoff >/dev/null 2>&1; then kickoff hook post-write; fi",
+            "timeout": 20
           }
         ]
       }
