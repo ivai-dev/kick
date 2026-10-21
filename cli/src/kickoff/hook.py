@@ -1,7 +1,8 @@
 """Claude Code hooks: `kickoff hook session-start | pre-write | post-write`.
 
-Each handler takes the hook's JSON input and returns (exit code, text). Exit 2 blocks a write (pre-write) or shows
-the text to the model (post-write); exit 0 lets everything through. A tree without .kickoff/ is never touched."""
+Each handler takes the hook's JSON input and returns (code, text): 2 blocks a write (pre-write) or sends the text
+back to the model (post-write), 0 lets everything through. `kickoff hook` turns a 2 into a JSON decision with
+exit 0 (see commands/hook_cmd.py). A tree without .kickoff/ is never touched."""
 
 from __future__ import annotations
 

@@ -105,9 +105,23 @@ def run_hook(monkeypatch, capsys, event, payload):
     return code, capsys.readouterr()
 
 
-def test_cli_blocks_with_the_reason_on_stderr(tmp_path, monkeypatch, capsys):
+def test_cli_blocks_with_a_json_decision_and_exit_0(tmp_path, monkeypatch, capsys):
     code, out = run_hook(monkeypatch, capsys, "pre-write", edit(write_kickoff(tmp_path), ".kickoff/state.yaml"))
-    assert code == 2 and "state.yaml is written by the kickoff CLI only" in out.err
+    decision = json.loads(out.out)["hookSpecificOutput"]
+    assert code == 0 and decision["hookEventName"] == "PreToolUse" and decision["permissionDecision"] == "deny"
+    assert "state.yaml is written by the kickoff CLI only" in decision["permissionDecisionReason"]
+
+
+def test_cli_post_write_feeds_errors_back_as_a_block_decision(tmp_path, monkeypatch, capsys):
+    root = write_kickoff(tmp_path, plan=plan_dict([pkg("1.1.1", role="ops")]))
+    code, out = run_hook(monkeypatch, capsys, "post-write", edit(root, ".kickoff/plan.yaml"))
+    decision = json.loads(out.out)
+    assert code == 0 and decision["decision"] == "block" and "unknown role ops" in decision["reason"]
+
+
+def test_cli_allowed_write_prints_nothing(tmp_path, monkeypatch, capsys):
+    code, out = run_hook(monkeypatch, capsys, "pre-write", edit(write_kickoff(tmp_path), "README.md"))
+    assert (code, out.out, out.err) == (0, "", "")
 
 
 def test_cli_bad_json_is_a_visible_non_blocking_error(monkeypatch, capsys):

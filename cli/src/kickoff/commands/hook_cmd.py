@@ -14,8 +14,16 @@ def register(sub) -> None:
     p.set_defaults(func=run)
 
 
+def _decision(event: str, reason: str) -> dict:
+    if event == "pre-write":
+        return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
+                                       "permissionDecisionReason": reason}}
+    return {"decision": "block", "reason": reason}
+
+
 def run(args) -> int:
-    # Never exit 2 by accident: only a handler's decision blocks a write. A kickoff bug exits 1 (shown, not blocking).
+    # A block is a JSON decision on stdout with exit 0, never exit 2: hooks.json ends each command with `|| true`,
+    # so an older CLI without `hook` (argparse exits 2) can never block a write. A kickoff bug exits 1.
     try:
         raw = sys.stdin.buffer.read().decode("utf-8") if not sys.stdin.isatty() else ""
         payload = json.loads(raw) if raw.strip() else {}
@@ -23,6 +31,8 @@ def run(args) -> int:
     except Exception as exc:  # noqa: BLE001
         print(f"kickoff hook {args.event}: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
-    if message:
-        print(message, file=sys.stdout if code == 0 else sys.stderr)
-    return code
+    if code == 2:
+        print(json.dumps(_decision(args.event, message), ensure_ascii=False))
+    elif message:
+        print(message)
+    return 0
