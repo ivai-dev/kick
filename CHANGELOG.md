@@ -2,6 +2,37 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-10-21
+
+Plan, not tickets. Kickoff no longer manages tickets. It keeps the prototype (FE v0), the feature set, the WBS and the estimate, ends at the baselined plan (C6), and hands the WBS over as files. Spec: docs/plans/2026-10-21-kickoff-v0.6.0.md.
+
+**Breaking:**
+- `kickoff tickets …`, the `kickoff:tickets` skill, the `/kickoff-sync` command and the `tickets` phase are gone.
+- Projects keep working without a migration:
+  - a `tickets: done` entry in `state.yaml` is ignored;
+  - `project.yaml` `tracker` and `.kickoff/tickets.yaml` are ignored, and `kickoff validate` warns that they can be deleted;
+  - a package `ticket` block is read as `item`, with a warning, until 0.7.
+
+### Added
+
+- **`kickoff export [--out DIR] [--format csv,json,md] [--lang LANG]`** writes `wbs.csv`, `wbs.json` and `wbs-items.md` (default `<docs_root>/06-planning/export/`). Each package is one record: role, effort, deps, release, priority, features, baseline dates, and the `item` fields (title, type, epic, areas, description, acceptance criteria, sprint).
+  - The CSV carries a BOM so Excel shows Vietnamese correctly.
+  - The output has no timestamps, so a re-export diffs cleanly.
+- **The package `item` block** (renamed from `ticket`, without the tracker-only `status` and `milestone`).
+- `kickoff ecc setup --router` refreshes a route block written by an older kickoff.
+
+### Changed
+
+- `kickoff status` ends with `done: plan baselined; …; kickoff export hands the WBS over`.
+- `kickoff schedule`, `kickoff docs` and the workbook use the plan alone: no actual dates from a tracker.
+- The `plan` skill ends with the export.
+- `using-kickoff`, `init` (no tracker question), `feedback`, `conventions`, `lessons`, the ECC contract, the AGENTS template and the README describe the handover in place of tracker sync.
+- `project.yaml` no longer requires `tracker`.
+
+### Removed
+
+- `tickets.py`, `tracker.py`, `tickets.schema.json`, the GitHub tracker sync and its fake `gh` tests, and the `github` test marker.
+
 ## [0.5.0] - 2026-10-21
 
 FE foundation. The prototype is now the real frontend (FE v0): a pnpm monorepo in the project repository, built with React, TypeScript, Vite, Tailwind, shadcn/ui, TanStack Router, Query and Table, React Hook Form with zod, and i18next. A mock data layer sits behind a typed API client, which the real API replaces after sign-off. The HTML prototype kit is removed. Spec: docs/plans/2026-10-21-kickoff-v0.5.0.md.

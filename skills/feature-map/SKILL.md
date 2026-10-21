@@ -5,7 +5,7 @@ description: Use when listing or changing a project's epics and features, their 
 
 # Feature map
 
-Turns the approved vision into the full feature set of the product, across every release, with permanent IDs, priorities and platforms, plus the non-functional requirements. The project lead approves it as the draft scope (gate C2). The prototype, the customer sign-off, the plan and the tickets all build on these IDs.
+Turns the approved vision into the full feature set of the product, across every release, with permanent IDs, priorities and platforms, plus the non-functional requirements. The project lead approves it as the draft scope (gate C2). The prototype, the customer sign-off, the plan and the WBS export all build on these IDs.
 
 ## When to use
 

@@ -94,4 +94,4 @@ Feedback is not a phase: skip `kickoff phase done` here. The commit closes the s
 
 ## Handoff
 
-`kickoff:signoff`: the customer confirms the changed prototype, and C3 (then C4) is approved again with evidence. After that, re-run the stale phases in order (`kickoff status` lists them first): `kickoff:solution`, `kickoff:plan`, `kickoff:tickets`.
+`kickoff:signoff`: the customer confirms the changed prototype, and C3 (then C4) is approved again with evidence. After that, re-run the stale phases in order (`kickoff status` lists them first): `kickoff:solution`, `kickoff:plan`, then `kickoff export` again.

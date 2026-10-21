@@ -1,6 +1,6 @@
 # kickoff
 
-A Claude Code plugin that takes a software project from the first customer meeting to a baselined plan with tickets, through a fixed sequence of phases and approval gates. Twelve skills carry the judgement work: discovery, research, feature map, UX design, a full-product prototype, customer sign-off, solution design, plan and estimate, and tickets. A tested Python CLI does everything that must be exactly right: validation, the role-based schedule, the estimate workbook, generated documents, tracker sync and prototype checks. Approval gates are recorded in `.kickoff/state.yaml` with who approved, when, and the evidence. A customer-feedback loop can reopen the sign-off and marks every later output stale until it is re-run. All project data lives in plain YAML under `.kickoff/`, so every plan, estimate and ticket can be regenerated from it.
+A Claude Code plugin that takes a software project from the first customer meeting to a baselined plan with its WBS and estimate, through a fixed sequence of phases and approval gates. Twelve skills carry the judgement work: discovery, research, feature map, UX design, the frontend foundation, a full-product prototype (the real frontend on a mock data layer), customer sign-off, solution design, and plan and estimate. A tested Python CLI does everything that must be exactly right: validation, the role-based schedule, the estimate workbook, generated documents, the WBS export and the frontend checks. Kickoff creates no tracker issues: `kickoff export` hands the WBS to the team's tracker or to ECC. Approval gates are recorded in `.kickoff/state.yaml` with who approved, when, and the evidence. A customer-feedback loop can reopen the sign-off and marks every later output stale until it is re-run. All project data lives in plain YAML under `.kickoff/`, so every plan, estimate and export can be regenerated from it.
 
 The core principle:
 
@@ -28,9 +28,8 @@ flowchart TD
     P7 --> C5{{"C5 Solution approved"}}
     C5 --> P8["9 plan (baseline)"]
     P8 --> C6{{"C6 Plan baselined"}}
-    P8 --> P9["10 tickets"]
+    C6 --> X["kickoff export (WBS handover)"]
     C2 -.->|"draft plan"| P8d["9 plan (draft)"]
-    P8d -.-> P9
     P5 -.->|"customer feedback"| FB["feedback"]
     FB -.->|"reopens C3, later phases stale"| C3
 ```
@@ -48,12 +47,10 @@ flowchart TD
 | ↺ | `kickoff:feedback` | prototype done | reopens C3 |
 | 8 | `kickoff:solution` | signoff done, C3 and C4 | C5 Solution approved |
 | 9 | `kickoff:plan` | draft: feature-map done, C2; baseline: solution done, C5 | C6 Plan baselined |
-| 10 | `kickoff:tickets` | plan done | none (repeats) |
 
 Gate rules:
 
 - A gate is approved only with `--by` (the approving role) and `--evidence` (a link to the record or commit). C4 needs C3; C6 needs C5.
-- `kickoff:tickets` needs only `plan` done: a draft plan is enough, and C6 is not checked by the CLI. Push tickets from a draft plan only when the lead wants the preparation work tracked early; the baseline (C6) is what the team commits to.
 - Reopening a gate (`kickoff gate reopen C3 --reason "..."`) marks every later phase that was done as stale. A stale phase blocks the phases that depend on it until it is re-run; re-running it removes the gates that follow it, so they are approved again.
 - `kickoff:feedback` is not a phase; it is a loop that classifies customer feedback, applies it along the chain `features.yaml`, `ux-spec.md`, prototype, draft `plan.yaml`, schedule, and reopens C3.
 - Every phase ends with real verification commands, then `kickoff phase done <phase>` and a Conventional Commit.
@@ -80,7 +77,6 @@ Repeat the CLI install after every plugin update. `kickoff:using-kickoff` compar
 ## Requirements
 
 - Python 3.11 or newer and [uv](https://docs.astral.sh/uv/)
-- [`gh`](https://cli.github.com/), signed in, for the GitHub tracker (`kickoff tickets ...`); the plugin stores no tokens
 - Optional: Docker, for `kickoff workbook --verify` (LibreOffice recalculation)
 - The ECC plugin (`ecc@ecc` 2.2.3 or later): required; `kickoff ecc doctor` checks it
 - Node 22 or newer and pnpm, for the FE v0 (`kickoff fe ...`); Microsoft Edge or Google Chrome for its e2e sweep, or `PW_CHANNEL=chromium` after `pnpm --filter web exec playwright install chromium`
@@ -91,7 +87,7 @@ Repeat the CLI install after every plugin update. `kickoff:using-kickoff` compar
 1. Open an empty repository in Claude Code.
 2. Run `/kickoff`. With no `.kickoff/` folder it routes to `kickoff:init`, which interviews you and runs `kickoff init --name <name>`.
 3. Follow the next step `/kickoff` names after each phase. It reads `kickoff status`, so it always knows which phase may start and which gate is waiting for approval.
-4. `/kickoff-sync` pulls tracker state into the plan, recomputes the schedule and shows what `kickoff tickets push` would change.
+4. After C6, `kickoff export` writes `wbs.csv`, `wbs.json` and `wbs-items.md` for the team's tracker importer or an ECC session.
 
 ## CLI reference
 
@@ -109,10 +105,7 @@ Run `kickoff --help` or `kickoff <command> --help` for every option. `--root DIR
 | `kickoff schedule [--json FILE]` | Compute the role-based schedule and gate dates; warn when a hard date slips and list the scope-cut candidates. `--json` writes every package's dates to FILE. |
 | `kickoff workbook [--out FILE] [--verify]` | Write the formula-only estimate workbook; `--verify` recalculates it with LibreOffice in Docker and compares it with the schedule. |
 | `kickoff docs [--check]` | Generate `feature-map.md`, `wbs.md`, `risk-register.md` and the plan tables; `--check` fails if regeneration would change anything. |
-| `kickoff tickets plan` | Print the issues the plan would create. |
-| `kickoff tickets push [--dry] [--adopt]` | Create and update issues, sub-issues, blocked-by links and fields idempotently; `--dry` prints the diff. |
-| `kickoff tickets pull` | Pull issue state and dates into `actuals` and show which gates moved. |
-| `kickoff tickets link KEY NUMBER` | Map a WBS code or epic id to an existing issue before the first push. |
+| `kickoff export [--out DIR] [--format csv,json,md] [--lang LANG]` | Write the WBS (one record per package: role, effort, deps, release, features, baseline dates and the `item` fields) as CSV, JSON and Markdown under `<docs_root>/06-planning/export/`. |
 | `kickoff check-docs PATHS...` | Find `{{` placeholders and forbidden phrases in written files, with file and line. |
 | `kickoff fe new [--force]` | Copy the FE v0 template (pnpm monorepo: `apps/web`, `packages/ui`, `packages/mocks`, `packages/kit`) and write the screen registry, scenarios and one stub per ux-spec screen; `--force` regenerates them and refreshes `packages/kit`, keeping project files. |
 | `kickoff fe update [--dry]` | Replace the plugin-owned `packages/kit` with the plugin's copy and print `migration:` notes. |
@@ -134,7 +127,7 @@ The full kit guide is `packages/kit/README.md` after `kickoff fe new`.
 
 ## Examples
 
-- `examples/ai-minute`: a full worked project (Vietnamese content, workbook language `vi`): features, a 205-package plan, ticket mappings and the golden schedule `expected/schedule.json` that the scheduler must reproduce. The generated documents under `examples/ai-minute/docs/` are kept in step with `kickoff docs --check`.
+- `examples/ai-minute`: a full worked project (Vietnamese content, workbook language `vi`): features, a 205-package plan with work-item blocks and the golden schedule `expected/schedule.json` that the scheduler must reproduce. The generated documents under `examples/ai-minute/docs/` are kept in step with `kickoff docs --check`.
 - `examples/mini`: a small Library Loans project (roles, a UX spec with four screens). CI scaffolds its FE v0 with `kickoff fe new` in a temporary copy and runs `kickoff fe check` on it.
 
 Try them without changing anything:
@@ -154,6 +147,6 @@ uv run ruff check .
 uv run pytest -q
 ```
 
-Tests run offline except those marked `docker` (need Docker), `github` (a sandbox repository) and `ecc` (the installed ECC plugin); they skip when the tool is missing. CI (`.github/workflows/ci.yml`) runs lint and tests on Python 3.11 and 3.13, the FE v0 of `examples/mini` end to end, the examples checks, the test suite on Windows and a wheel check.
+Tests run offline except those marked `docker` (need Docker) and `ecc` (the installed ECC plugin); they skip when the tool is missing. CI (`.github/workflows/ci.yml`) runs lint and tests on Python 3.11 and 3.13, the FE v0 of `examples/mini` end to end, the examples checks, the test suite on Windows and a wheel check.
 
 The design is in `docs/specs/2026-09-26-kickoff-plugin-design.md`, the implementation plan in `docs/plans/2026-09-26-kickoff-plugin.md`, the v0.2.0 plan in `docs/plans/2026-10-20-kickoff-v0.2.0.md`, the v0.3.0 plan in `docs/plans/2026-10-21-kickoff-v0.3.0.md`, the v0.4.0 plan in `docs/plans/2026-10-21-kickoff-v0.4.0.md`, the v0.5.0 plan in `docs/plans/2026-10-21-kickoff-v0.5.0.md`. Changes per release are in `CHANGELOG.md`.

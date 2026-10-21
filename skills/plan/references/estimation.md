@@ -4,9 +4,9 @@ How kickoff plans are estimated and scheduled, and what to do when a hard date s
 
 ## The rule (design spec §9, Estimates)
 
-By role and focus percentage; person-days at 100% focus; every plan has a scope-cut order; a slipped hard date always ends in an explicit decision. When `rules.forbidden_phrases` lists a phrase such as "AI assistance", estimates may assume it but no document, ticket or report states it; `kickoff validate` warns when one does.
+By role and focus percentage; person-days at 100% focus; every plan has a scope-cut order; a slipped hard date always ends in an explicit decision. When `rules.forbidden_phrases` lists a phrase such as "AI assistance", estimates may assume it but no document, work item or report states it; `kickoff validate` warns when one does.
 
-In practice: an estimate may count on the team's tooling making them faster; the plan, the workbook, the tickets and the reports only show the resulting effort, never the reason in those words.
+In practice: an estimate may count on the team's tooling making them faster; the plan, the workbook, the WBS export and the reports only show the resulting effort, never the reason in those words.
 
 ## Role and focus model
 
@@ -33,7 +33,7 @@ The scheduler and the estimate workbook use the same model (working days skip th
 - `fixed` keeps its dates; `span` runs from the start of one package to the end of another; `period` starts the working day after a package ends and lasts N months (`EDATE(start, N) - 1`); `tail` ends with a package and covers its last N working days.
 - Level of effort: `effort = round(workdays / 5 * effort_rate, 1)`.
 - Groups and phases take the earliest start, the latest end and the summed effort of their leaves. A gate's date is the end date of the code in its `at`.
-- Actuals pulled from the tracker override the plan: a done package uses its real dates; a started package keeps its real start. The estimate workbook ignores `done` and actuals: it is the baseline.
+- The plan is the estimate and the baseline; actual dates live in the team's tracker, not in kickoff. `done` (the finished share of a package) shortens the forecast in `kickoff schedule`; the estimate workbook ignores it: it is the baseline.
 
 ## Slip decision procedure
 

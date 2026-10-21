@@ -35,6 +35,6 @@ Also recorded in `open-questions.md`.
 
 ## Sign-off status
 
-- **C3 reopened:** {{output of the reopen command, e.g. "C3 reopened; stale: plan, tickets"}}
+- **C3 reopened:** {{output of the reopen command, e.g. "C3 reopened; stale: solution, plan"}}
 - **Customer confirmation of the changed prototype:** {{planned date and channel}}
 - **Phases to re-run afterwards:** {{stale phases in order, or "none"}}
