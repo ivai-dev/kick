@@ -17,8 +17,10 @@ MIN_ECC = "2.2.3"
 PLUGIN_KEY = "ecc@ecc"
 # kind -> names: the only ECC components that skills, agents and references may name
 COMPONENTS: dict[str, list[str]] = {
-    "skill": ["search-first", "deep-research", "council", "product-lens", "accessibility", "frontend-a11y"],
-    "agent": ["architect", "planner", "security-reviewer", "database-reviewer"],
+    "skill": ["search-first", "deep-research", "council", "product-lens", "accessibility", "frontend-a11y",
+              "react-patterns", "vite-patterns", "react-testing", "contract-first", "make-interfaces-feel-better",
+              "motion-foundations", "ui-demo"],
+    "agent": ["architect", "planner", "security-reviewer", "database-reviewer", "react-reviewer"],
     "script": ["scripts/github-coordination.js"],
 }
 SCRIPTS = {Path(p).stem: p for p in COMPONENTS["script"]}

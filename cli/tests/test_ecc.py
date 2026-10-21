@@ -131,7 +131,7 @@ def doctor_out(capsys, root=None):
 
 def test_doctor_passes_outside_a_project(installed, capsys):
     code, out = doctor_out(capsys)
-    assert code == 0 and "ok: D3 11 components present" in out and out.rstrip().endswith("ecc doctor passed")
+    assert code == 0 and "ok: D3 20 components present" in out and out.rstrip().endswith("ecc doctor passed")
     assert "D5" not in out
 
 
