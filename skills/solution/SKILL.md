@@ -36,6 +36,11 @@ Designs the architecture, data model, technology stack and design patterns for t
 
 > **Option decision:** per decision 2–3 options with cost, risk and what each blocks; a recommendation; record the result as an ADR.
 
+   - **Options from ECC** (`../using-kickoff/references/ecc.md`):
+     - For each decision, run an `ecc:architect` agent. Give it the decision, its forces with their IDs, the constraints and the paths of the documents they come from. It returns 2–3 options with cost, risk and what each blocks.
+     - Check every option against the forces before showing it, and drop a straw man.
+     - When two options stay close, run `ecc:council` on them and show its verdict with the dissent.
+     - The lead decides. The agent and the council never write files.
    - A validation item that **passed** supports its option; one that **failed** overturns it; one still **pending** leaves the ADR *Proposed*, and the decision is listed in system-architecture.md under Open decisions with the `V<n>` due date, unless the lead accepts the risk (record a `D<n>` and a risk in `plan.yaml`).
    - Update each *Proposed* ADR: Status `Accepted — <date>`, the Decision section as chosen, the Validation results filled; or `Superseded by ADR-<nnn> — <date>` when another ADR replaces it. Never delete an ADR or reuse its number.
    - Each new decision becomes `<docs_root>/04-architecture/adr/ADR-<nnn>-<slug>.md` from `../research/templates/adr.md`, with the next free number and the status the lead's choice gives it.
@@ -49,15 +54,22 @@ Designs the architecture, data model, technology stack and design patterns for t
    - **NFR mapping:** one row per NFR in `nfr.md`: the mechanism that meets it and how it is verified.
    Diagrams are Mermaid code blocks inside the Markdown.
 5. **Write `<docs_root>/04-architecture/data-model.md`** from `templates/data-model.md`: entities (with the features that need them), relations, retention per data type, and access scope per role. Every role comes from the ux-spec; every retention period from an NFR, a security rule or a decision.
-6. **Derive new work** into `.kickoff/plan.yaml`: work the architecture adds and the draft plan lacks (environments, integrations, migrations, security hardening, observability, performance tests), as packages with role, effort in person-days at 100% focus, dependencies, release and `ref`, following `kickoff:plan`'s rules. Show the new packages to the lead as one table before writing them. Then run `kickoff validate` (fix every error) and `kickoff schedule`; report the gate dates it prints. Exit 3 means a hard date slips: present the `cut_order` candidates it lists and ask the lead to decide. Run `kickoff docs`.
-7. **Verify** (section below), then `kickoff phase done solution` and commit `docs: solution architecture, data model and accepted ADRs`.
-8. **Ask the project lead to approve C5** (Solution). Show the decisions with their ADRs, the open decisions, and the plan effect. Only after an explicit yes, run `kickoff gate approve C5 --by "Project lead" --evidence "<commit or record link>"` and commit `chore: approve C5`.
+6. **Review** both documents before the plan changes:
+   - Run two read-only ECC agents in parallel, in one message:
+     - `ecc:security-reviewer`, against `project.yaml` `security`, `nfr.md` and `system-architecture.md`;
+     - `ecc:database-reviewer`, against `data-model.md` and the data flow.
+   - Ask each to rank its findings P1–P3, and save each report as `<docs_root>/04-architecture/reviews/YYYY-MM-DD-<security|database>.md`.
+   - Fix every P1 in the documents, or record the lead's decision to accept it as `D<n>` with a risk in `plan.yaml`. A P2 is fixed or recorded as a ruling.
+7. **Derive new work** into `.kickoff/plan.yaml`: work the architecture adds and the draft plan lacks (environments, integrations, migrations, security hardening, observability, performance tests), as packages with role, effort in person-days at 100% focus, dependencies, release and `ref`, following `kickoff:plan`'s rules. Show the new packages to the lead as one table before writing them. Then run `kickoff validate` (fix every error) and `kickoff schedule`; report the gate dates it prints. Exit 3 means a hard date slips: present the `cut_order` candidates it lists and ask the lead to decide. Run `kickoff docs`.
+8. **Verify** (section below), then `kickoff phase done solution` and commit `docs: solution architecture, data model and accepted ADRs`.
+9. **Ask the project lead to approve C5** (Solution). Show the decisions with their ADRs, the open decisions, the review findings and how each P1 was settled, and the plan effect. Only after an explicit yes, run `kickoff gate approve C5 --by "Project lead" --evidence "<commit or record link>"` and commit `chore: approve C5`.
 
 ## Outputs
 
 - `<docs_root>/04-architecture/system-architecture.md`
 - `<docs_root>/04-architecture/data-model.md`
 - `<docs_root>/04-architecture/adr/ADR-<nnn>-<slug>.md`: *Accepted* or *Superseded*, new ADRs for new decisions
+- `<docs_root>/04-architecture/reviews/YYYY-MM-DD-security.md` and `YYYY-MM-DD-database.md` (ECC agent reports)
 - `.kickoff/plan.yaml` with the packages the architecture adds; regenerated plan documents
 - `.kickoff/state.yaml`: `solution: done`, and C5 once the lead approves
 
@@ -66,9 +78,9 @@ Designs the architecture, data model, technology stack and design patterns for t
 1. `kickoff can solution` still exits 0 (no feedback reopened C3 meanwhile).
 2. Every ADR in `<docs_root>/04-architecture/adr/` is *Accepted* or *Superseded*, or *Proposed* with a pending `V<n>` listed under Open decisions in `system-architecture.md`.
 3. Every NFR ID in `nfr.md` has a row in the NFR mapping; every active feature in `features.yaml` is served by a container; every entity a feature stores is in `data-model.md` with retention and access scope.
-4. Search both documents and the new ADRs for `{{`: no placeholder is left.
+4. `kickoff check-docs <docs_root>/04-architecture` prints `check-docs passed` (no placeholder, no forbidden phrase). Owners are roles.
 5. `kickoff validate` reports `0 errors`; `kickoff schedule` exits 0, or exits 3 with the lead's slip decision recorded as a `D<n>`; `kickoff docs --check` prints `documents up to date`.
-6. Search the written files with each pattern of `rules.forbidden_phrases` in `project.yaml`: no match. Owners are roles.
+6. Both review reports exist, and every P1 in them is fixed in the documents or has a `D<n>`.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
 

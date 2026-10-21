@@ -55,6 +55,15 @@ Rules:
 - Merges, branch deletions, publishing and pushes to shared branches are confirmed with the project lead first.
 - Tickets and documents name the owning role, never a person.
 
+## Toolkit
+
+The project uses two Claude Code plugins: kickoff, and ECC (`ecc@ecc`).
+
+- **Kickoff owns** the gates, `.kickoff/`, the IDs, the documents under `docs_root`, the plan, the schedule and the tickets.
+- **ECC does the work it is given:** research, options, reviews, and after tickets the build, review, QA and release (`orch-*`).
+- **ECC output becomes evidence:** its reports are saved under `docs_root` and cited when a gate is approved; they never approve a gate themselves.
+- **The CLI owns `.kickoff/state.yaml` and `.kickoff/tickets.yaml`:** a hook refuses hand edits; use `kickoff phase`, `kickoff gate`, `kickoff proto record` and `kickoff tickets`.
+
 ## Definition of Done
 
 A change is done when:

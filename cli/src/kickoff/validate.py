@@ -192,6 +192,46 @@ def check_phrases(project: Project, raw: dict[str, dict]) -> list[Finding]:
     return out
 
 
+DOC_SUFFIXES = {".md", ".yaml", ".yml", ".js", ".html", ".txt"}
+PLACEHOLDER_SUFFIXES = {".md", ".yaml", ".yml"}  # `{{` is ordinary code in JS and HTML (htm style objects)
+FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
+
+
+def _doc_files(paths: list[Path]) -> list[Path]:
+    out: dict[Path, None] = {}
+    for p in paths:
+        if p.is_dir():
+            out.update((f, None) for f in sorted(p.rglob("*")) if f.is_file() and f.suffix.lower() in DOC_SUFFIXES)
+        elif p.is_file():
+            out[p] = None
+        else:
+            raise KickoffError(f"no such file or folder: {p}")
+    return list(out)
+
+
+def check_docs(project: Project, paths: list[Path]) -> tuple[list[str], int]:
+    """`{{` placeholders outside code fences (Markdown and YAML) and forbidden phrases (every file):
+    (findings as `path:line: problem`, number of files read)."""
+    try:
+        patterns = [re.compile(p, re.I) for p in project.rules.get("forbidden_phrases") or []]
+    except re.error as exc:
+        raise KickoffError(f"rules.forbidden_phrases in project.yaml: invalid regular expression: {exc}") from exc
+    files = _doc_files(paths)
+    out: list[str] = []
+    for f in files:
+        fence = ""  # the opening marker of the code block we are in, e.g. "```" or "~~~~"
+        for n, line in enumerate(f.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+            m = FENCE.match(line)
+            if m and not fence:
+                fence = m.group(1)
+            elif m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence) and not line.strip(" `~"):
+                fence = ""
+            elif "{{" in line and not fence and f.suffix.lower() in PLACEHOLDER_SUFFIXES:
+                out.append(f"{f}:{n}: placeholder {{{{…}}}}")
+            out += [f"{f}:{n}: forbidden phrase /{pat.pattern}/" for pat in patterns if pat.search(line)]
+    return out, len(files)
+
+
 def validate_root(root: Path) -> list[Finding]:
     raw: dict[str, dict] = {}
     out: list[Finding] = []

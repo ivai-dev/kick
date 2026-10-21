@@ -56,6 +56,10 @@ Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the
 > **Bounded approval:** present one table of proposed changes; change nothing before an explicit yes or edit.
 
 5. **Validate:** `kickoff validate`. Fix every error and run it again until it reports `0 errors`.
+   **ECC setup** (`../using-kickoff/references/ecc.md`):
+   - Run `kickoff ecc setup --dry` and show the lead the diff. It exempts `.kickoff/**`, `<docs_root>/**` and `AGENTS.md` from ECC's GateGuard in `.claude/settings.json`.
+   - After a yes, run `kickoff ecc setup`.
+   - Then offer `kickoff ecc setup --router` separately. It adds the kickoff route to the user's ecc-router table, outside this repository, so it needs its own yes.
 
 6. **Verify** (section below), then `kickoff phase done init` and commit with the message `chore: kickoff init`.
 
@@ -68,8 +72,8 @@ Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the
 ## Verify
 
 1. `kickoff validate` reports `0 errors`; explain any warning to the lead.
-2. Search `AGENTS.md` for `{{`: no placeholder is left.
-3. Search `AGENTS.md` with each pattern of `rules.forbidden_phrases`: no match.
+2. `kickoff check-docs AGENTS.md` prints `check-docs passed` (no placeholder, no forbidden phrase).
+3. `kickoff ecc doctor` exits 0, and its D5 line is `ok` (or the lead declined the setup, recorded as a ruling).
 4. `kickoff status` shows `init` in progress and no error.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.

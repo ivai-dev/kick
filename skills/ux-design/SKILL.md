@@ -15,7 +15,7 @@ Turns the approved feature map into the UX specification (roles, shell and home 
 ## Preconditions
 
 - `kickoff can ux-design` exits 0 (feature-map done, C2 approved).
-- The `ui-ux-pro-max` skill is available (checked by `kickoff:using-kickoff`).
+- The `ui-ux-pro-max` skill is available. If it is missing, stop and tell the user: "Install the ui-ux-pro-max skill, then start a new session."
 
 ## Inputs
 
@@ -57,7 +57,12 @@ Turns the approved feature map into the UX specification (roles, shell and home 
    - A device view of a web screen (a kiosk, a full-screen start screen) is not a new row: note it under the screen in the Notes, as a route parameter the prototype will read (`?kiosk=1`).
 
 7. **Link features to screens:** set `screens: [SC-01, …]` on every active feature in `.kickoff/features.yaml` (IDs and releases unchanged). A feature without a screen (a background job, an import) gets a line in the ux-spec Notes saying why.
-8. **Concept round,** before the design system. Make 3–4 visual direction options, each applied to the same 2–3 key screens (a public or self-service screen, a work screen, a phone view), on a design canvas or as side-by-side HTML artboards under `<docs_root>/05-design/concept/`, with synthetic data and copy in `languages.ui`. Show them to the lead with one line per option (mood, type, colour, where it fits) and a recommendation. Refine the chosen option with 3–4 viewpoint reviewers (one per audience group, one visual, one product), a cross-review round and one integrated concept: the loop of `../prototype/references/design-review.md` at concept scale. Then run the copy review and declutter pass of `references/content-and-craft.md` on the artboard text. Log the direction as `D<n>` in the Decision log of `open-questions.md`, with its date and source.
+8. **Concept round,** before the design system. Make 3–4 visual direction options, each applied to the same 2–3 key screens (a public or self-service screen, a work screen, a phone view), on a design canvas or as side-by-side HTML artboards under `<docs_root>/05-design/concept/`, with synthetic data and copy in `languages.ui`. Show them to the lead with one line per option (mood, type, colour, where it fits) and a recommendation. Refine the chosen option with the loop of `../prototype/references/design-review.md` at concept scale:
+   - 3–4 reviewer agents in parallel: `kickoff:viewpoint-reviewer` once per audience group, `kickoff:craft-auditor` for the visual details, and `kickoff:ia-reviewer` for the product view;
+   - a cross-review round;
+   - one integrated concept from `kickoff:integrator`.
+
+   The agents are read-only and return their reports; save each one in the concept folder. Then run the copy review and declutter pass of `references/content-and-craft.md` on the artboard text. Log the direction as `D<n>` in the Decision log of `open-questions.md`, with its date and source.
 9. **Write `ux-spec.md`** at `proto.ux_spec` from `templates/ux-spec.md`, sections in this order: Roles and IA per role, Screen inventory, Navigation rules, Behaviour rules (numbered `BR-<n>`), States (empty, loading, error, offline), Copy guide, Accessibility. These rules are defaults; keep them unless the lead decides otherwise:
    - navigation goes to distinct pages; filters stay in-page (never a menu item that reloads a near-identical page with a filter applied);
    - **one primary job per screen:** above the fold, at most the header, one guidance device from `references/guidance-library.md` and the start of the main content;
@@ -96,8 +101,8 @@ Turns the approved feature map into the UX specification (roles, shell and home 
 3. Every role in "Roles and IA per role" has a shell (`site` or `app`), a home shape and a home screen, and that screen is the role's first row in the inventory. Two roles share a home shape only with a written reason.
 4. The Copy guide has voice per audience, a term table, punctuation, letter case and formats for the UI locale; `design-system.md` has Craft rules.
 5. The Decision log has the design direction as `D<n>`.
-6. Search both files for `{{`: no placeholder is left.
-7. Search both files with each pattern of `rules.forbidden_phrases` and `proto.forbidden` in `project.yaml`: no match.
+6. `kickoff check-docs <ux-spec.md> <design-system.md>` prints `check-docs passed` (no placeholder, no forbidden phrase).
+7. Search both files with each pattern of `proto.forbidden` in `project.yaml`: no match.
 8. `kickoff validate` reports `0 errors`, and `kickoff docs --check` prints `documents up to date`.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.

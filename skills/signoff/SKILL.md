@@ -79,12 +79,11 @@ Prepares the customer review workshop on the full-product prototype and records 
 
 ## Verify
 
-1. Search the pack and the record for `{{`: no placeholder is left.
+1. `kickoff check-docs <workshop pack> <sign-off record>` prints `check-docs passed` (no placeholder, no forbidden phrase). Attendees and owners are roles.
 2. Every active feature in `features.yaml` at the referenced commit appears in the record, as signed off or as a change requested.
 3. Every scenario in the demo script exists in `js/scenarios.js`, and `kickoff proto check` prints `prototype check passed` (it runs every scenario; exit 4 is a skipped check, not a pass).
 4. `kickoff validate` reports `0 errors`; `kickoff schedule` exits 0, or exits 3 with the lead's slip decision recorded as a `D<n>`; `kickoff docs --check` prints `documents up to date`.
 5. Every decision in the record is in the Decision log with its date and source.
-6. Search both files with each pattern of `rules.forbidden_phrases` in `project.yaml`: no match. Attendees and owners are roles.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
 

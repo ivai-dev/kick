@@ -1,6 +1,6 @@
 [project]
 name = "kickoff"
-version = "0.3.1"
+version = "0.4.0"
 description = "CLI for the kickoff Claude Code plugin"
 requires-python = ">=3.11"
 dependencies = ["pyyaml>=6.0", "openpyxl>=3.1", "jsonschema>=4.20"]
@@ -24,6 +24,7 @@ markers = [
     "docker: needs Docker",
     "browser: needs Edge or Chrome and network access to the CDN",
     "github: needs a sandbox GitHub repository (env KICKOFF_SANDBOX=org/repo#project)",
+    "ecc: checks the ECC plugin installed on this machine (skipped without it)",
 ]
 
 [tool.ruff]

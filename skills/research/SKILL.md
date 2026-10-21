@@ -30,7 +30,14 @@ Not for choosing the database, architecture or design patterns: that is `kickoff
 
 1. Run `kickoff can research`. Exit 1: stop and show the `blocked:` lines. Then `kickoff phase start research`.
 2. **List the technical unknowns** from `open-questions.md` and `vision-scope.md`, each with its question ID (`Q<n>`) or the section it comes from. Ignore business questions; they stay with the lead.
-3. **Classify each unknown** with the Option decision method. The options are: a bounded investigation inside a real work package, a throwaway spike, or a decision that can be taken now on known facts. Give each option's cost, risk and what it blocks, recommend one, and let the lead choose.
+3. **Research each unknown with ECC first** (`../using-kickoff/references/ecc.md`):
+   - Run `ecc:search-first` for existing tools, libraries, services and vendors.
+   - Also run `ecc:deep-research` when its firecrawl or exa MCP server is connected; otherwise use web search.
+   - Keep the sources: every option you later write cites them.
+   - When two options stay close on cost and risk, run `ecc:council` and record its verdict and dissent under "Alternatives considered" in the ADR.
+   - Never use ECC's ADR skill: it writes `docs/adr/`, outside the kickoff record.
+
+   **Classify each unknown** with the Option decision method. The options are: a bounded investigation inside a real work package, a throwaway spike, or a decision that can be taken now on known facts. Give each option's cost, risk and what it blocks, recommend one, and let the lead choose.
 
 > **Option decision:** per decision 2–3 options with cost, risk and what each blocks; a recommendation; record the result as an ADR.
 
@@ -63,11 +70,11 @@ Not for choosing the database, architecture or design patterns: that is `kickoff
 ## Verify
 
 1. `kickoff validate` reports `0 errors` (duplicate assumption IDs are errors); explain every warning.
-2. Search the new and changed files for `{{`: no placeholder is left.
+2. `kickoff check-docs <the new and changed files>` prints `check-docs passed` (no placeholder, no forbidden phrase). Owners are roles.
 3. Every ADR written in this phase has the status *Proposed*.
 4. Every technical unknown from step 2 has a `V<n>` row, an ADR, or a reason in `open-questions.md` why it stays open.
 5. The IDs in `assumptions.md` equal the IDs under `assumptions` in `plan.yaml`.
-6. Search the written files with each pattern of `rules.forbidden_phrases` in `project.yaml`: no match. Owners are roles.
+6. Every technology or vendor option in the validation plan and the ADRs cites at least one source.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
 

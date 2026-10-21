@@ -1,6 +1,6 @@
 # Lessons encoded as checks
 
-Each row is a mistake made on a real project and the check that now prevents it: rows 1–13 come from AI Minute (a meeting-minutes product), rows 14–27 from a public employment portal with a Vietnamese UI (job seekers, employers, staff and commune kiosks). Phase skills quote the rows that apply to them in their **Lessons** section.
+Each row is a mistake made on a real project and the check that now prevents it: rows 1–13 come from AI Minute (a meeting-minutes product), rows 14–27 from a public employment portal with a Vietnamese UI (job seekers, employers, staff and commune kiosks), rows 28–30 from running kickoff next to the ECC plugin. Phase skills quote the rows that apply to them in their **Lessons** section.
 
 | Lesson | Where it is enforced |
 | --- | --- |
@@ -31,6 +31,9 @@ Each row is a mistake made on a real project and the check that now prevents it:
 | Screens designed for 15 rows could not hold thousands | data at volume in the screen briefs; DataTable family; seeded data generator |
 | Kiosk and phone sizes leaked onto desktop and staff screens | density modes from the shell; `proto lint` L8 |
 | Card slots moved with content length (salary drift 46 px) | EntityCard anatomy with reserved slots and clamps; stress fixtures in the screen checklist |
+| ECC's GateGuard stopped the first write of every kickoff document | `kickoff ecc setup` exempts `.kickoff/**`, `docs_root` and `AGENTS.md`; `ecc doctor` D5 |
+| ECC handoffs were broken: `plan-orchestrate` emits an unloaded `/orchestrate`, and the `epic-*` commands use a script path relative to the current folder | `kickoff ecc run`; `references/ecc.md` never uses `plan-orchestrate` |
+| The installed plugin (0.3.0) lagged the repository (0.3.1) and the CLI matched the old one | start-up check 1 compares the CLI with `plugin.json`; install from the marketplace with auto-update |
 
 ## Which skill applies each row
 
@@ -61,3 +64,6 @@ Each row is a mistake made on a real project and the check that now prevents it:
 25. Data at volume: `ux-design` writes volumes and list functions (`references/data-at-volume.md`); `prototype` writes them into every screen brief and builds lists with `DataTable`, `FilterBar` and `Pager` on a seeded generator.
 26. Density leaks: the shell sets the density; `prototype` writes no per-screen control sizes (`proto lint` L8).
 27. Card drift: `prototype` builds cards on `EntityCard` and checks them with the stress fixtures (screen checklist item 25).
+28. GateGuard friction: `init` runs `kickoff ecc setup` after the lead's yes; `using-kickoff` offers it when `kickoff ecc doctor` warns D5.
+29. Broken ECC handoffs: every skill calls ECC scripts through `kickoff ecc run` and follows `references/ecc.md`.
+30. Version drift: `using-kickoff` start-up check 1; the release checklist reinstalls the CLI.
