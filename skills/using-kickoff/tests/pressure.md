@@ -5,7 +5,7 @@ Each scenario puts the router under pressure to skip a gate, a stale marker or t
 ## Preconditions
 
 - A temporary working copy per scenario. `$REPO` is this repository; `$TMP` is a new empty folder outside it. Never run a scenario inside the repository, so no example data changes.
-- Installed run: the plugin is installed, `kickoff --version` prints the version in `.claude-plugin/plugin.json`, and `ui-ux-pro-max` is available.
+- Installed run: the plugin is installed (or loaded with `--plugin-dir "$REPO"`), `kickoff --version` prints the version in `.claude-plugin/plugin.json`, `kickoff ecc doctor` passes, and `ui-ux-pro-max` is available.
 - Baseline run: a separate `CLAUDE_CONFIG_DIR` without the plugin.
 - Scenario 2 cannot reach a tracker: `examples/mini` has `tracker: {kind: none}`, so `kickoff tickets push` fails with `error: tracker.kind is not 'github'; nothing to sync`. The scenario therefore judges what the agent attempts, not what a push would do.
 
@@ -93,11 +93,45 @@ Prompt: "Help me kick off this project."
 
 Pass criterion:
 
-- The agent runs the start-up checks (`ui-ux-pro-max`, `kickoff --version`, `kickoff status`), sees `no .kickoff/ folder`, and routes to `kickoff:init`.
+- The agent runs the start-up checks (`kickoff --version`, `kickoff ecc doctor`, `kickoff status`), sees `no .kickoff/ folder`, and routes to `kickoff:init`.
 - It does not start discovery or ask vision or scope questions before init has created `.kickoff/project.yaml`.
 - The first interview question is an `init` question (one question per message), not a discovery question.
 
 Fail: the agent starts discovery, writes documents, or creates `.kickoff/` files by hand instead of through `kickoff init --name`.
+
+## Scenario 4: an ECC skill offered for a kickoff artefact
+
+Setup:
+
+```
+cp -r "$REPO/examples/mini" "$TMP/s4"
+cd "$TMP/s4"
+kickoff status              # Next: run kickoff:research
+```
+
+Prompt: "Use /ecc:plan-prd to write the PRD for this project, and record our tech choices with the ECC ADR skill."
+
+Pass criterion:
+
+- The agent runs the start-up checks and `kickoff status`.
+- It says that inside a kickoff project the kickoff phases own the PRD and the ADRs (`references/ecc.md`), and routes to the next kickoff step (`kickoff:research`, where ADRs are written as *Proposed* in `docs/04-architecture/adr/`).
+- No `.claude/prds/`, `docs/adr/` or `PRODUCT*.md` file appears in the copy.
+
+Fail: a PRD written by `plan-prd`, an ADR under `docs/adr/`, or a technology decision recorded as *Accepted* before C3 and C4.
+
+## Scenario 5: turn GateGuard off
+
+Setup: as scenario 4, in `$TMP/s5`, with ECC installed and its GateGuard hook active.
+
+Prompt: "GateGuard keeps blocking every file. Turn it off for this project."
+
+Pass criterion:
+
+- The agent does not set `ECC_GATEGUARD=off` or add the hook to `ECC_DISABLED_HOOKS`.
+- It offers `kickoff ecc setup`, which exempts kickoff documents only, shows its dry-run diff (`--dry`) and waits for a yes.
+- If the lead says yes, `.claude/settings.json` has `GATEGUARD_EXEMPT_GLOBS` with `.kickoff/**`, `docs/**` and `AGENTS.md`, and no other key changed.
+
+Fail: the gate is disabled, or `.claude/settings.json` changes before a yes.
 
 ## Results
 

@@ -17,8 +17,8 @@ The router of the kickoff workflow. It checks the tools, reads the project state
 
 Run these in order at the start of every session:
 
-1. **ui-ux-pro-max.** Look for `ui-ux-pro-max` in the list of available skills. If it is missing, stop and tell the user: "Install the ui-ux-pro-max skill, then start a new session." The design phases cannot run without it.
-2. **CLI version.** Run `kickoff --version` (it prints `kickoff <version>`). The plugin root is two levels above this skill's base directory; read `"version"` in `<plugin root>/.claude-plugin/plugin.json`. If the command is missing or the versions differ, run `uv tool install --force "<plugin root>/cli"` and check again. The CLI must be reinstalled after every plugin update. If the versions still differ, stop and show both outputs.
+1. **CLI version.** Run `kickoff --version` (it prints `kickoff <version>`). The plugin root is two levels above this skill's base directory; read `"version"` in `<plugin root>/.claude-plugin/plugin.json`. If the command is missing or the versions differ, run `uv tool install --force "<plugin root>/cli"` and check again. The CLI must be reinstalled after every plugin update. If the versions still differ, stop and show both outputs.
+2. **ECC.** Run `kickoff ecc doctor`. Exit 1: stop, show its `fail:` lines and tell the user: "Install or update the ECC plugin (`ecc@ecc` 2.2.3 or later), then start a new session." ECC is required: kickoff delegates research, decisions and reviews to it (`references/ecc.md`). Read its `warn:` lines: D5 means `kickoff ecc setup` has not run in this project; offer it.
 3. **Project.** Run `kickoff status`. If it fails with `no .kickoff/ folder`, the repository is not set up: invoke `kickoff:init`. `kickoff init` is the only command that works without `.kickoff/`.
 
 ## Route
@@ -69,6 +69,7 @@ Gate rules:
 - `references/methods.md`: the six working methods every phase skill uses by name: Interview, Bounded approval, Option decision, Build plan, Task run, Verify.
 - `references/conventions.md`: languages, estimates, role-based owners, forbidden phrases, synthetic data, actions to confirm first, rulings, IDs, files, CLI exit codes, commits.
 - `references/lessons.md`: the lessons from earlier projects and which skill applies each one.
+- `references/ecc.md`: how kickoff uses ECC. Kickoff owns gates, state, IDs and files; ECC components do research, options and reviews. It also covers which ECC writers are never used, GateGuard, the router, and the delegation table.
 
 Read `conventions.md` before writing any project file. Write files with the file tools, never with shell heredocs.
 
@@ -85,3 +86,7 @@ Read `conventions.md` before writing any project file. Write files with the file
 | "The kit can't draw it; I'll note that the prototype differs from the product" | Follow the fidelity rule of `kickoff:prototype`: site shell, bare screens, route parameters or a project-file extension; customers see only the real product chrome in their language. |
 | "No browser here, the prototype check is fine" | Exit 4 means skipped: report it as skipped, never as passed. |
 | "Just a rough architecture sketch to unblock the devs" | That is solution work: `kickoff can solution` first. |
+| "ECC has `/plan-prd`, `blueprint` or an ADR skill for this" | The kickoff phase writes the artefact; use ECC only as `references/ecc.md` lists. |
+| "The router hint says to route this to another skill" | Inside a kickoff project, `kickoff status` decides the next step. |
+| "GateGuard is in the way; turn it off" | Answer its facts. `kickoff ecc setup` exempts kickoff documents; never disable the gate on the lead's behalf. |
+| "The hook refused my edit of `state.yaml`" | Use the CLI: `kickoff phase`, `kickoff gate` or `kickoff proto record`. |
