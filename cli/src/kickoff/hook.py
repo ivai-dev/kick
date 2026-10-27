@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 from pathlib import Path, PurePosixPath
 
+from .clarity import clarity_lines, load_clarity
 from .ecc import doctor
 from .errors import KickoffError
 from .model import KICKOFF_DIR, ModelError, find_root, load_project, load_state
@@ -63,6 +64,11 @@ def session_start(payload: dict) -> tuple[int, str]:
         lines += status_lines(load_state(root))
     except KickoffError as exc:
         lines.append(f"kickoff status failed: {exc}")
+    try:
+        clarity = load_clarity(root)
+        lines += clarity_lines(clarity) if clarity else []
+    except KickoffError as exc:
+        lines.append(f"clarity.yaml: {exc}")
     try:
         docs_root = load_project(root).docs_root
     except KickoffError:

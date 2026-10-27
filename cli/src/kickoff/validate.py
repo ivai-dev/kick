@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from .clarity import load_clarity
 from .errors import KickoffError
 from .model import Features, ModelError, Plan, Project, load_raw
 from .schedule import CycleError, build_schedule
@@ -246,6 +247,10 @@ def validate_root(root: Path) -> list[Finding]:
             raw[kind] = load_raw(root, kind)
         except ModelError as exc:
             out.append(Finding("error", f"{kind}.yaml", str(exc)))
+    try:
+        load_clarity(root)
+    except ModelError as exc:
+        out.append(Finding("error", "clarity.yaml", str(exc)))
     if out:
         return out
     try:

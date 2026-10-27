@@ -8,6 +8,7 @@ from pathlib import Path
 
 import yaml
 
+from .clarity import default_clarity
 from .errors import KickoffError
 from .model import KICKOFF_DIR, write_yaml
 
@@ -220,6 +221,7 @@ def init_project(root: Path, name: str, today: date, nested: bool = False) -> li
         "state.yaml": {"schema_version": 1, "phases": {"init": "in_progress"}, "gates": {}, "stale": []},
         "features.yaml": {"schema_version": 1, "epics": []},
         "plan.yaml": {"schema_version": 1, "start": today, "phases": [], "groups": [], "packages": [], "gates": []},
+        "clarity.yaml": default_clarity(today),
     }
     for fname, data in files_.items():
         write_yaml(k / fname, data)
