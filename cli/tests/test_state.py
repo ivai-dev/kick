@@ -35,10 +35,11 @@ def test_approve_needs_phase_and_evidence():
     with pytest.raises(KickoffError, match="phase discovery is not done"):
         approve(s, "C1", "Project lead", "link", date(2026, 9, 25))
     set_phase(s, "discovery", "done")
-    with pytest.raises(KickoffError, match="evidence"):
-        approve(s, "C1", "Project lead", " ", date(2026, 9, 25))
     with pytest.raises(KickoffError, match="--by"):
         approve(s, "C1", " ", "link", date(2026, 9, 25))
+    set_phase(s, "signoff", "done")
+    with pytest.raises(KickoffError, match="evidence"):  # a customer gate; the lead's own gates need none (0.9)
+        approve(s, "C3", "Customer", " ", date(2026, 9, 25))
 
 
 def test_reopen_c3_marks_later_phases_stale():

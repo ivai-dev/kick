@@ -7,6 +7,7 @@ exit 0 (see commands/hook_cmd.py). A tree without .kickoff/ is never touched."""
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path, PurePosixPath
 
 from .clarity import clarity_lines, load_clarity
@@ -56,6 +57,28 @@ def _under(path: Path, folder: Path) -> PurePosixPath | None:
     return PurePosixPath(os.path.normcase(str(rel)).replace(os.sep, "/"))
 
 
+DRAFT = re.compile(r"^[\s>*_#-]*status[\s*_]*:[\s*_]*draft\b", re.I | re.M)
+DRAFT_LINES = 20
+
+
+def _is_draft(payload: dict, path: Path) -> bool:
+    """True when the file this write leaves behind says `Status: Draft` in its first lines: a sketch that binds
+    nothing may be written before C3 and C4; a Write is judged by its content, an Edit by the file after it."""
+    tool_input = payload.get("tool_input") or {}
+    if isinstance(tool_input.get("content"), str):
+        text = tool_input["content"]
+    else:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            return False
+        for edit in tool_input.get("edits") or [tool_input]:
+            old, new = edit.get("old_string"), edit.get("new_string")
+            if isinstance(old, str) and isinstance(new, str) and old:
+                text = text.replace(old, new) if edit.get("replace_all") else text.replace(old, new, 1)
+    return bool(DRAFT.search("\n".join(text.splitlines()[:DRAFT_LINES])))
+
+
 def session_start(payload: dict) -> tuple[int, str]:
     root = _root(Path(payload.get("cwd") or Path.cwd()))
     if not root:
@@ -101,8 +124,9 @@ def pre_write(payload: dict) -> tuple[int, str]:
             reasons = blockers(load_state(root), "solution")
         except KickoffError:
             reasons = []
-        if reasons:
-            return 2, "architecture documents wait for C3 and C4: " + "; ".join(reasons)
+        if reasons and not _is_draft(payload, path):
+            return 2, ("architecture documents wait for C3 and C4: " + "; ".join(reasons)
+                       + ". A sketch marked `Status: Draft` in its first 20 lines may be written now; it binds nothing.")
     return 0, ""
 
 

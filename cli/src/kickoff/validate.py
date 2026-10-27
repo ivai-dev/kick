@@ -8,8 +8,9 @@ from pathlib import Path
 
 from .clarity import load_clarity
 from .errors import KickoffError
-from .model import Features, ModelError, Plan, Project, load_raw
+from .model import Features, ModelError, Plan, Project, load_raw, load_state
 from .schedule import CycleError, build_schedule
+from .state import blockers
 from .uxspec import forbidden_patterns, parse_inventory, ux_spec_path
 from .uxspec import problems as inventory_problems
 
@@ -271,7 +272,7 @@ def validate_root(root: Path) -> list[Finding]:
         return [Finding("error", "model", str(exc))]
     return [*check_plan(project, plan), *check_features(project, plan, features),
             *check_languages(project, plan), *check_phrases(project, raw), *check_ux_spec(root, project, features),
-            *check_legacy(root, raw)]
+            *check_adrs(root, project), *check_legacy(root, raw)]
 
 
 def check_ux_spec(root: Path, project: Project, features: Features) -> list[Finding]:
@@ -299,6 +300,22 @@ def check_ux_spec(root: Path, project: Project, features: Features) -> list[Find
         if row["code"] and row["code"].lower() not in served:
             out.append(Finding("warning", where, f"screen {row['code']} is served by no active feature"))
     return out
+
+
+ADR_ACCEPTED = re.compile(r"^(?:#+[ \t]*status[ \t]*\n+[ \t]*|[\s>*_-]*status[\s*_]*:[\s*_]*)accepted\b", re.I | re.M)
+
+
+def check_adrs(root: Path, project: Project) -> list[Finding]:
+    """An ADR may be *Accepted* only once C3 and C4 are approved: before that the architecture is explored, not
+    committed (a *Proposed* ADR and a `Status: Draft` sketch are fine)."""
+    if not blockers(load_state(root), "solution"):
+        return []
+    folder = project.docs_dir(root) / "04-architecture" / "adr"
+    if not folder.is_dir():
+        return []
+    return [Finding("error", f.relative_to(root).as_posix(), "ADR is Accepted before C3 and C4 (kickoff can solution "
+                                                              "is blocked): keep it Proposed until the solution phase")
+            for f in sorted(folder.glob("*.md")) if ADR_ACCEPTED.search(f.read_text(encoding="utf-8", errors="replace"))]
 
 
 def check_legacy(root: Path, raw: dict[str, dict]) -> list[Finding]:
