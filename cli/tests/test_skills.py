@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SKILLS = sorted((ROOT / "skills").glob("*/SKILL.md"))
 PHASE_SKILLS = [p for p in SKILLS if p.parent.name != "using-kickoff"]
 PHASE_SECTIONS = ["When to use", "Preconditions", "Inputs", "Steps", "Outputs", "Verify", "Lessons", "Handoff"]
-METHODS = ["Interview", "Bounded approval", "Option decision", "Build plan", "Task run", "Verify"]
+METHODS = ["Interview", "Bounded approval", "Option decision", "Decision card", "Build plan", "Task run", "Verify"]
 COMMAND = re.compile(r"`kickoff (?:--root \S+ )?([a-z][a-z-]*)")
 
 
@@ -60,8 +60,9 @@ def test_commands_named_in_skills_exist():
     assert used <= top, sorted(used - top)
 
 
-def test_thirteen_skills_and_one_command():
-    assert len(SKILLS) == 13
+def test_twelve_skills_and_one_command():
+    assert len(SKILLS) == 12
+    assert "fe-foundation" not in ids(SKILLS) and "design-direction" not in ids(SKILLS)
     assert sorted(p.name for p in (ROOT / "commands").glob("*.md")) == ["kickoff.md"]
 
 

@@ -1,6 +1,0 @@
-packages:
-  - apps/*
-  - packages/*
-
-# Every resolved version must be at least 14 days old (minutes). pnpm >= 10.16.
-minimumReleaseAge: 20160

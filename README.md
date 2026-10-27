@@ -1,14 +1,16 @@
 # kickoff
 
-A Claude Code plugin that takes a software project from the first customer meeting to a baselined plan with its WBS and estimate, through a fixed sequence of phases and approval gates. Thirteen skills carry the judgement work: discovery, research, feature map, UX design, the frontend foundation, the design direction the customer chooses, a full-product prototype (the real frontend on a mock data layer), customer sign-off, solution design, and plan and estimate. A tested Python CLI does everything that must be exactly right: validation, the role-based schedule, the estimate workbook, generated documents, the WBS export and the frontend checks. Kickoff creates no tracker issues: `kickoff export` hands the WBS to the team's tracker or to ECC. Approval gates are recorded in `.kickoff/state.yaml` with who approved, when, and the evidence. A customer-feedback loop can reopen the sign-off and marks every later output stale until it is re-run. All project data lives in plain YAML under `.kickoff/`, so every plan, estimate and export can be regenerated from it.
+A Claude Code plugin that takes a software project from the first customer meeting to a baselined plan with its WBS and estimate, through a fixed sequence of phases and approval gates. It holds **process and design philosophy, no stack and no design values**, so it runs for any kind of project: a web tool, a game, a mobile or desktop app, a service. Twelve skills carry the judgement work: discovery, research, feature map, design concept (the customer chooses structure and feel), UX design, a full-product prototype built with whatever tools suit the product, customer sign-off and feedback, solution design, and plan and estimate. A tested Python CLI does everything that must be exactly right: validation, the role-based schedule, the estimate workbook, generated documents and the WBS export. Kickoff creates no tracker issues: `kickoff export` hands the WBS to the team's tracker or to ECC. Approval gates are recorded in `.kickoff/state.yaml` with who approved, when, and the evidence. A customer-feedback loop can reopen the sign-off and marks every later output stale until it is re-run. All project data lives in plain YAML under `.kickoff/`, so every plan, estimate and export can be regenerated from it.
 
 The core principle:
 
-> Lock the MVP scope, but lock the **full** feature set with the customer first, using a clickable prototype of the final product, built as the real frontend (FE v0) on a mock data layer. Only then design the database, backend technology, architecture and design patterns. Features built after that rarely expand in scope or need refactoring because of late customer feedback.
+> Lock the MVP scope, but lock the **full** feature set with the customer first, using a clickable or experienceable prototype of the final product, built with whatever tools suit the product. Only then design the database, backend technology, architecture and design patterns. Features built after that rarely expand in scope or need refactoring because of late customer feedback.
 
 The plugin enforces this with gates: `solution` refuses to start until C3 (full feature set signed off) and C4 (MVP locked) are approved.
 
-The look is the customer's, too. Kickoff takes no palette or font from a catalogue: `kickoff:design-direction` builds two or three directions from the product's own world on the real FE v0 screens, the customer compares and tweaks them in the published prototype, and gate CD locks the chosen one before the prototype is built. Anthropic `frontend-design` and `impeccable` do the design work; impeccable's detector fails `kickoff fe check` on AI-default patterns.
+**Structure and feel are the customer's, too.** Kickoff takes no palette, layout or rule from a catalogue or from another project. `kickoff:design-concept` writes a design brief from the product's own world and builds two or three concepts that differ in kind (flow, structure, interaction model, pace, tone, look); the customer compares them in a co-design session and gate CD locks the choice before the spec is expanded. `kickoff:ux-design` then derives the project's own `design-rules.md`, each rule with its reason and a test, and ends with a fit test: what makes this not a different kind of product? Review agents read the concepts and the spec, not only the finished prototype. The philosophy is `skills/using-kickoff/references/design-philosophy.md`.
+
+**Decisions are visible.** Every design confirmation and every gate request is a *decision card*: what it decides and locks; two or three options, each with what the person will see, who it serves, what it costs and where a wrong choice would surface; a recommendation with its reason; what was assumed; and always "none of these" and "show me first". Nobody is asked to choose blind.
 
 ## Phases and gates
 
@@ -19,46 +21,43 @@ flowchart TD
     C1 --> P2["2 research"]
     C1 --> P3["3 feature-map"]
     P3 --> C2{{"C2 Draft scope approved"}}
-    C2 --> P4["4 ux-design"]
-    P4 --> P4f["5 fe-foundation"]
-    P4f --> CF{{"CF Frontend foundation approved"}}
-    CF --> PD["6 design-direction"]
-    PD --> CD{{"CD Customer approved the design direction"}}
-    CD --> P5["7 prototype (FE v0)"]
-    P5 --> P6["8 signoff"]
-    P6 --> C3{{"C3 Full feature set signed off"}}
+    C2 --> P4["4 design-concept"]
+    P4 --> CD{{"CD Customer chose the design concept"}}
+    CD --> P5["5 ux-design"]
+    P5 --> P6["6 prototype"]
+    P6 --> P7["7 signoff"]
+    P7 --> C3{{"C3 Full feature set signed off"}}
     C3 --> C4{{"C4 MVP locked"}}
-    C4 --> P7["9 solution"]
-    P7 --> C5{{"C5 Solution approved"}}
-    C5 --> P8["10 plan (baseline)"]
-    P8 --> C6{{"C6 Plan baselined"}}
+    C4 --> P8["8 solution"]
+    P8 --> C5{{"C5 Solution approved"}}
+    C5 --> P9["9 plan (baseline)"]
+    P9 --> C6{{"C6 Plan baselined"}}
     C6 --> X["kickoff export (WBS handover)"]
-    C2 -.->|"draft plan"| P8d["10 plan (draft)"]
-    P5 -.->|"customer feedback"| FB["feedback"]
+    C2 -.->|"draft plan"| P9d["9 plan (draft)"]
+    P6 -.->|"customer feedback"| FB["feedback"]
     FB -.->|"reopens C3, later phases stale"| C3
 ```
 
-| # | Skill | May start when | Gate to leave |
-| --- | --- | --- | --- |
-| 0 | `kickoff:init` | no `.kickoff/` yet | none |
-| 1 | `kickoff:discovery` | init done | C1 Vision approved |
-| 2 | `kickoff:research` | discovery done, C1 | none (runs alongside 3) |
-| 3 | `kickoff:feature-map` | discovery done, C1 | C2 Draft scope approved |
-| 4 | `kickoff:ux-design` | feature-map done, C2 | none |
-| 5 | `kickoff:fe-foundation` | ux-design done, C2 | CF Frontend foundation approved |
-| 6 | `kickoff:design-direction` | fe-foundation done, CF | CD Customer approved the design direction |
-| 7 | `kickoff:prototype` | design-direction done, CD | `kickoff fe check` passes |
-| 8 | `kickoff:signoff` | prototype done | C3 Features signed off, C4 MVP locked |
-| ↺ | `kickoff:feedback` | prototype done | reopens C3 (and CD for a direction remark) |
-| 9 | `kickoff:solution` | signoff done, C3 and C4 | C5 Solution approved |
-| 10 | `kickoff:plan` | draft: feature-map done, C2; baseline: solution done, C5 | C6 Plan baselined |
+| # | Skill | May start when | Outputs | Gate to leave |
+| --- | --- | --- | --- | --- |
+| 0 | `kickoff:init` | no `.kickoff/` yet | `project.yaml`, docs skeleton, `AGENTS.md` | none |
+| 1 | `kickoff:discovery` | init done | vision and scope, stakeholders, open questions | C1 Vision approved |
+| 2 | `kickoff:research` | discovery done, C1 | validation plan, ADRs *Proposed*, assumptions | none (runs alongside 3) |
+| 3 | `kickoff:feature-map` | discovery done, C1 | `features.yaml`, feature map, NFRs | C2 Draft scope approved |
+| 4 | `kickoff:design-concept` | feature-map done, C2 | design brief, concepts, co-design record, the chosen concept and its ADR | CD Customer chose the design concept |
+| 5 | `kickoff:ux-design` | design-concept done, CD | `ux-spec.md` with the screen inventory, `design-rules.md`, the fit test | none |
+| 6 | `kickoff:prototype` | ux-design done | the prototype (tooling recorded as an ADR), `prototype-coverage.md`, the build plan | none |
+| 7 | `kickoff:signoff` | prototype done | workshop pack, sign-off record | C3 Features signed off, C4 MVP locked |
+| ↺ | `kickoff:feedback` | prototype done | classified feedback, updates along the chain | reopens C3 (and CD for a concept remark) |
+| 8 | `kickoff:solution` | signoff done, C3 and C4 | architecture, data model, accepted ADRs | C5 Solution approved |
+| 9 | `kickoff:plan` | draft: feature-map done, C2; baseline: solution done, C5 | plan, schedule, estimate workbook, WBS, risks | C6 Plan baselined |
 
 Gate rules:
 
-- A gate is approved only with `--by` (the approving role) and `--evidence` (a link to the record or commit). C4 needs C3; C6 needs C5.
+- A gate is approved only with `--by` (the approving role) and `--evidence` (a link to the record or commit). C4 needs C3; C6 needs C5. CD is approved by the customer.
 - Reopening a gate (`kickoff gate reopen C3 --reason "..."`) marks every later phase that was done as stale. A stale phase blocks the phases that depend on it until it is re-run; re-running it removes the gates that follow it, so they are approved again.
 - `kickoff:feedback` is not a phase; it is a loop that classifies customer feedback, applies it along the chain `features.yaml`, `ux-spec.md`, prototype, draft `plan.yaml`, schedule, and reopens C3.
-- Every phase ends with real verification commands, then `kickoff phase done <phase>` and a Conventional Commit.
+- Every phase ends with real verification commands, then `kickoff phase done <phase>` and a Conventional Commit. Rulings (judgement calls) are listed to the lead at every task-group end and every gate.
 
 `kickoff:using-kickoff` is the router: it checks the tools, reads `kickoff status`, enforces the gates and hands over to the skill that comes next.
 
@@ -77,16 +76,14 @@ Then install the CLI from the installed plugin copy. The plugin lives under `~/.
 uv tool install --force ~/.claude/plugins/cache/kickoff/kickoff/<version>/cli
 ```
 
-Repeat the CLI install after every plugin update. `kickoff:using-kickoff` compares `kickoff --version` with the version in `.claude-plugin/plugin.json` and asks you to reinstall when they differ. The kit, the document templates and the LibreOffice Dockerfile ship inside the package, so the normal (non-editable) install works outside this checkout.
+Repeat the CLI install after every plugin update. `kickoff:using-kickoff` compares `kickoff --version` with the version in `.claude-plugin/plugin.json` and asks you to reinstall when they differ. The document templates and the LibreOffice Dockerfile ship inside the package, so the normal (non-editable) install works outside this checkout.
 
 ## Requirements
 
 - Python 3.11 or newer and [uv](https://docs.astral.sh/uv/)
 - Optional: Docker, for `kickoff workbook --verify` (LibreOffice recalculation)
 - The ECC plugin (`ecc@ecc` 2.2.3 or later): required; `kickoff ecc doctor` checks it
-- Node 22 or newer and pnpm, for the FE v0 (`kickoff fe ...`); Microsoft Edge or Google Chrome for its e2e sweep, or `PW_CHANNEL=chromium` after `pnpm --filter web exec playwright install chromium`
-- Anthropic `frontend-design` (`/plugin install frontend-design@claude-code-plugins`) and `impeccable` (`/plugin marketplace add pbakaus/impeccable`, then `/plugin install impeccable@impeccable`): required; `kickoff design doctor` checks them
-- Optional: `ui-ux-pro-max` (UX guidelines and chart references only) and Emil Kowalski's skills (`npx skills@latest add emilkowalski/skills`)
+- Nothing else. The prototype's tools are the project's choice. For web UI work, Anthropic `frontend-design`, `impeccable` and `ui-ux-pro-max` are optional aids; they never choose the look.
 
 ## Quickstart
 
@@ -107,35 +104,35 @@ Run `kickoff --help` or `kickoff <command> --help` for every option. `--root DIR
 | `kickoff phase start\|done PHASE` | Record phase progress; `done` clears the phase's stale marker. |
 | `kickoff gate approve GATE --by ROLE --evidence LINK [--date D]` | Approve a gate; both `--by` and `--evidence` are required. |
 | `kickoff gate reopen GATE --reason TEXT` | Reopen a gate and mark the later phases stale. |
-| `kickoff validate` | Check schemas, IDs, dependencies and cycles; exit 1 on any error. |
+| `kickoff validate` | Check schemas, IDs, dependencies and cycles, and the ux-spec screen inventory (unique IDs, existing releases, every screen of an active feature listed); exit 1 on any error. |
 | `kickoff schedule [--json FILE]` | Compute the role-based schedule and gate dates; warn when a hard date slips and list the scope-cut candidates. `--json` writes every package's dates to FILE. |
 | `kickoff workbook [--out FILE] [--verify]` | Write the formula-only estimate workbook; `--verify` recalculates it with LibreOffice in Docker and compares it with the schedule. |
 | `kickoff docs [--check]` | Generate `feature-map.md`, `wbs.md`, `risk-register.md` and the plan tables; `--check` fails if regeneration would change anything. |
 | `kickoff export [--out DIR] [--format csv,json,md] [--lang LANG]` | Write the WBS (one record per package: role, effort, deps, release, features, baseline dates and the `item` fields) as CSV, JSON and Markdown under `<docs_root>/06-planning/export/`. |
-| `kickoff check-docs PATHS...` | Find `{{` placeholders and forbidden phrases in written files, with file and line. |
-| `kickoff fe new [--force]` | Copy the FE v0 template (pnpm monorepo: `apps/web`, `packages/ui`, `packages/mocks`, `packages/kit`) and write the screen registry, scenarios and one stub per ux-spec screen; `--force` regenerates them and refreshes `packages/kit`, keeping project files. |
-| `kickoff fe update [--dry]` | Replace the plugin-owned `packages/kit` with the plugin's copy and print `migration:` notes. |
-| `kickoff fe check [--skip-e2e] [--shots DIR] [--direction ID] [--skip-detect]` | Run typecheck, lint, unit tests, build and the e2e sweep (every screen × role × 1440/390 px × light/dark: errors, one `h1`, no sideways scroll, axe), then ux-spec coverage, the design directions (a CSS file with a dark block each; a locked one once `design-direction` is done), impeccable's anti-pattern detector and `fe.forbidden`; exit 4 when pnpm or a browser is missing. `--shots` writes a screenshot per test; `--direction` sweeps in one direction. |
-| `kickoff fe bundle` | Build the one-file customer build `apps/web/dist-artifact/index.html`. |
-| `kickoff fe record --artifact LINK [--version N]` | Record the published FE v0 link and version in `state.yaml`. |
-| `kickoff design doctor\|setup [--dry]` | Check `frontend-design` and `impeccable` (and the optional design skills); `setup` turns impeccable's telemetry off for the project and git-ignores its scratch files. |
+| `kickoff check-docs PATHS...` | Find `{{` placeholders, forbidden phrases and `design.forbidden` patterns in written files, with file and line. |
+| `kickoff prototype record --artifact LINK\|PATH [--version N]` | Record where the prototype was published (a link or a path) and its version in `state.yaml`. |
 | `kickoff ecc root\|doctor\|setup\|run` | Locate and check the ECC plugin, exempt kickoff documents from GateGuard (`setup`, `--router` for the ecc-router route), run ECC scripts from the ECC folder. |
 | `kickoff hook EVENT` | The plugin's Claude Code hooks: session start, pre-write guards, validate after edits. |
 
-## FE v0
+`state.yaml` is never hand-edited: a hook refuses it. The `design` block of `project.yaml` holds `ux_spec` (default `docs/05-design/ux-spec.md`) and `forbidden` (patterns that must never reach the product's user-facing text).
 
-`kickoff fe new` scaffolds the real frontend the customer reviews before scope is locked: React, TypeScript and Vite, Tailwind, shadcn/ui on Radix, TanStack Router, Query and Table, React Hook Form with zod, i18next. Screens call a typed API client backed by an in-memory mock (`packages/mocks`), which the real API replaces after sign-off.
+## Design, without a shipped stack
 
-- **Plugin-owned `@kickoff/kit`** (`packages/kit`): the hash router (`#/<role>/<screen>?<params>`) with a role guard, the `app` and `site` shells, the prototype bar (role, screens, design direction, Tweaks, theme, density, release scope, scenario player; hidden with `?demo=0`), `<Rel>` for later releases, `<Placeholder>`, the e2e sweep, the manifest script and the ESLint rules. `kickoff fe update` replaces it; a hook refuses edits.
-- **Project-owned:** `apps/web` (screens, registry, tokens, i18n), `packages/ui` (shadcn components, `DataTable`, `FilterBar`, page header), `packages/mocks` (contract, seed, repository).
-- **Versions:** caret ranges on fixed majors, a committed `pnpm-lock.yaml`, and `minimumReleaseAge` of 14 days in `pnpm-workspace.yaml`.
+Kickoff no longer scaffolds a frontend or ships design rules. What it keeps:
 
-The full kit guide is `packages/kit/README.md` after `kickoff fe new`.
+- **A process** that puts structure before skin, the customer before the spec and review before the build (`design-concept`, `ux-design`, `prototype`).
+- **A philosophy** with a test per principle, the brief questions that decide the form, the fit test and the shape of a project's own rules (`skills/using-kickoff/references/design-philosophy.md`).
+- **Five read-only review agents** (`art-director`, `craft-auditor`, `ia-reviewer`, `viewpoint-reviewer`, `integrator`) whose criteria come from the brief and the project's `design-rules.md`, run on the concepts and the spec as well as on the prototype.
+- **Templates** for the brief, the concepts, the co-design record and the project's design rules.
+
+## Migrating from 0.5 to 0.7
+
+Projects keep working: `kickoff status` migrates `state.yaml` in memory (`design-direction` becomes `design-concept`; `fe-foundation` and gate CF are dropped; a finished `ux-design` without a concept is marked stale and re-run after CD). A project that started its prototype keeps going and shows the skipped phases as `skipped (…)`. Rename the `fe` block of `project.yaml` to `design` (only `ux_spec` and `forbidden` remain; `kickoff validate` warns). `apps/` and `packages/` become ordinary project code: kickoff no longer owns or guards `packages/kit`. The kit and its rules stay in git history under the tag `v0.7.0`. See `CHANGELOG.md`.
 
 ## Examples
 
 - `examples/ai-minute`: a full worked project (Vietnamese content, workbook language `vi`): features, a 205-package plan with work-item blocks and the golden schedule `expected/schedule.json` that the scheduler must reproduce. The generated documents under `examples/ai-minute/docs/` are kept in step with `kickoff docs --check`.
-- `examples/mini`: a small Library Loans project (roles, a UX spec with four screens). CI scaffolds its FE v0 with `kickoff fe new` in a temporary copy and runs `kickoff fe check` on it.
+- `examples/mini`: a small Library Loans project (roles, a UX spec with four screens), used to check `kickoff validate` and the screen inventory.
 
 Try them without changing anything:
 
@@ -154,6 +151,6 @@ uv run ruff check .
 uv run pytest -q
 ```
 
-Tests run offline except those marked `docker` (need Docker) and `ecc` (the installed ECC plugin); they skip when the tool is missing. CI (`.github/workflows/ci.yml`) runs lint and tests on Python 3.11 and 3.13, the FE v0 of `examples/mini` end to end, the examples checks, the test suite on Windows and a wheel check.
+Tests run offline except those marked `docker` (need Docker) and `ecc` (the installed ECC plugin); they skip when the tool is missing. CI (`.github/workflows/ci.yml`) runs lint and tests on Python 3.11 and 3.13, the examples checks, the test suite on Windows and a wheel check.
 
-The design is in `docs/specs/2026-09-26-kickoff-plugin-design.md`, the implementation plan in `docs/plans/2026-09-26-kickoff-plugin.md`, the v0.2.0 plan in `docs/plans/2026-10-20-kickoff-v0.2.0.md`, the v0.3.0 plan in `docs/plans/2026-10-21-kickoff-v0.3.0.md`, the v0.4.0 plan in `docs/plans/2026-10-21-kickoff-v0.4.0.md`, the v0.5.0 plan in `docs/plans/2026-10-21-kickoff-v0.5.0.md`. Changes per release are in `CHANGELOG.md`.
+The design is in `docs/specs/2026-09-26-kickoff-plugin-design.md` and the implementation plans are under `docs/plans/` (the latest, `2026-10-27-kickoff-v0.8.0.md`). Changes per release are in `CHANGELOG.md`.

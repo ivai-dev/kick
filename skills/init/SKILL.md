@@ -42,7 +42,7 @@ Not for changing an existing project's settings: edit `.kickoff/project.yaml` an
 | 6 | Hard dates | `hard_dates` | See step 3 for where to record them. |
 | 7 | Security rules | `security[]` | One sentence each, e.g. "Never log, print, or send to analytics any customer content." They are copied into `AGENTS.md`. |
 | 8 | Forbidden phrases | `rules.forbidden_phrases[]` | Regular expressions no document may match. Recommend `'\bClaude\b'` and `'AI[- ]assist'`. Keep `owners_by_role: true` and `synthetic_data_only: true`. |
-| 9 | Frontend | `fe.dir`, `fe.ux_spec`, `fe.forbidden[]` | Defaults `.` (the repository root holds the pnpm workspace; the app is always `apps/web` under it) and `docs/05-design/ux-spec.md`. `fe.forbidden`: regular expressions for development infrastructure that must never reach the UI (VPN names, private IP ranges such as `10\.8\.\d+\.\d+`, internal hosts). |
+| 9 | Design | `design.ux_spec`, `design.forbidden[]` | Default `ux_spec`: `docs/05-design/ux-spec.md`. `design.forbidden`: regular expressions for patterns that must never reach the product's user-facing text (VPN names, private IP ranges such as `10\.8\.\d+\.\d+`, internal hosts); `kickoff check-docs` applies them. No stack or tool question here: the prototype tooling is decided in `kickoff:prototype`, the design rules in `kickoff:ux-design`. |
 
 Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the lead wants another root, move the created folders and set `docs_root` to match.
 
@@ -80,7 +80,7 @@ Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the
 ## Lessons
 
 - Literal `\n` in a Bash heredoc became real newlines in JS: write every file with the file tools, not heredocs.
-- A development VPN name and IP range appeared in product UI: record such names in `fe.forbidden` now, so `kickoff fe check` flags them later.
+- A development VPN name and IP range appeared in product UI: record such names in `design.forbidden` now, so `kickoff check-docs` flags them later.
 
 ## Handoff
 

@@ -51,7 +51,7 @@ flowchart TB
 - **Identity and access:** {{how users sign in; access per role, see data-model.md}}
 - **Secrets:** {{where secrets live, how they rotate}}
 - **Data protection:** {{encryption in transit and at rest, customer content handling}}
-- **Assets:** the product bundles its fonts, scripts and other assets; the prototype's CDN use does not carry over to the product.
+- **Assets:** the product bundles its fonts, scripts and other assets; a prototype's use of hosted libraries or assets does not carry over to the product.
 
 ## Observability
 

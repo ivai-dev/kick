@@ -9,7 +9,7 @@ Changes were applied in chain order: feature map, UX specification, prototype, d
 
 ## Items
 
-Class is one of: scope, ux, visual, question, decision. Status is one of: Done, Open (`Q<n>`), Rejected (`D<n>`), Deferred (`D<n>`).
+Class is one of: scope, ux, visual, concept, question, decision. A concept item reopens gate CD. Status is one of: Done, Open (`Q<n>`), Rejected (`D<n>`), Deferred (`D<n>`).
 
 | ID | Source | Feedback (quoted) | Class | Change made | Files | Status |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -35,6 +35,7 @@ Also recorded in `open-questions.md`.
 
 ## Sign-off status
 
+- **CD reopened:** {{output of the reopen command, or "not needed" when no concept item}}
 - **C3 reopened:** {{output of the reopen command, e.g. "C3 reopened; stale: solution, plan"}}
 - **Customer confirmation of the changed prototype:** {{planned date and channel}}
 - **Phases to re-run afterwards:** {{stale phases in order, or "none"}}

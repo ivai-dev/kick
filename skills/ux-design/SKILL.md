@@ -1,118 +1,105 @@
 ---
 name: ux-design
-description: Use when defining a project's information architecture, screen inventory, behaviour rules, copy guide or design system before building a prototype
+description: Use when expanding the customer-approved design concept into the UX specification (audiences and structure, screen inventory, behaviour rules, copy guide and the project's own design rules) before building a prototype
 ---
 
 # UX design
 
-Turns the approved feature map into the UX specification (roles, shell and home per role, IA per role, every screen of every release and platform, behaviour rules, states, copy, accessibility) and the structural design system every visual direction must keep (density, type roles, layout, overlays, motion, craft rules). The look itself (palette, type, shape, signature) is not chosen here: `kickoff:design-direction` explores it with the customer on the real FE v0. `kickoff fe new` and `kickoff fe check` read the screen inventory of `ux-spec.md`, so its table format is exact.
+Expands the chosen concept into the full UX specification: for each audience its entry, structure and navigation in the concept's own vocabulary; every screen (or scene, level, flow state) of every release and platform; behaviour rules, states, copy and accessibility targets; and the project's own `design-rules.md`, derived from the brief and the NFRs. It is tool-agnostic and stack-neutral. It ends with an early review and a written fit test, so a structural fault is found here and not in the finished prototype.
+
+The spec follows the concept the customer chose. It does not invent a new shape: where the concept leaves a choice open, the lead decides with a decision card. `kickoff validate` reads the screen inventory of `ux-spec.md`, so that table's format is exact.
 
 ## When to use
 
-- After C2, before the first prototype.
+- After the design concept is approved (gate CD), before the first prototype.
 - Again when features gain or lose screens, or a design review changes the rules. Customer feedback on screens goes through `kickoff:feedback`, which updates `ux-spec.md` in chain order.
 
 ## Preconditions
 
-- `kickoff can ux-design` exits 0 (feature-map done, C2 approved).
-- `ui-ux-pro-max` is optional. When it is installed, its `--domain ux` and `--domain chart` searches may inform step 3. Never use its `--design-system` output: a lookup by product type gives every project the same look (`../using-kickoff/references/lessons.md` row 31).
+- `kickoff can ux-design` exits 0 (design-concept done, CD approved).
+- `../using-kickoff/references/design-philosophy.md` read.
 
 ## Inputs
 
+- `<docs_root>/05-design/concepts.md`, `design-brief.md` and the co-design record; the design-concept ADR.
 - `.kickoff/features.yaml` and `<docs_root>/02-requirements/feature-map.md`: epics, features, releases, platforms.
-- `<docs_root>/02-requirements/nfr.md`: accessibility, compatibility and localisation targets.
-- `<docs_root>/01-discovery/vision-scope.md`: users and roles, platforms, constraints; `open-questions.md` (Decision log).
-- `.kickoff/project.yaml`: `releases`, `languages.ui`, `fe.ux_spec` (default `<docs_root>/05-design/ux-spec.md`), `fe.forbidden`.
-- `templates/ux-spec.md` and `templates/design-system.md` in this skill's folder.
-- `references/content-and-craft.md` (copy review, craft rules, locale formats), `references/guidance-library.md` (guidance devices, motion), `references/foundation-rules.md` (density modes, type roles, layout, overlays and consequences, motion, card anatomy, form grid) and `references/data-at-volume.md` (volumes and list functions per entity, stress fixtures) in this skill's folder.
+- `<docs_root>/02-requirements/nfr.md`: accessibility, compatibility, localisation, performance targets.
+- `<docs_root>/01-discovery/vision-scope.md` and `open-questions.md` (Decision log).
+- `.kickoff/project.yaml`: `releases`, `languages.ui`, `design.ux_spec` (default `<docs_root>/05-design/ux-spec.md`), `design.forbidden`.
+- `templates/ux-spec.md` and `templates/design-rules.md` in this skill's folder.
+- `../prototype/references/design-review.md`: how to write `BRIEF.md` and run the read-only reviewer agents.
 - Working methods: `../using-kickoff/references/methods.md`. Conventions: `../using-kickoff/references/conventions.md`.
 
 ## Steps
 
 1. Run `kickoff can ux-design`. Exit 1: stop and show the `blocked:` lines. Then `kickoff phase start ux-design`.
-2. **Confirm the design inputs** with the lead using the Interview method: product type, audiences, and which audiences work in a dense tool all day and which use the product now and then. This sets density and shells, not the look: the look is chosen in `kickoff:design-direction`.
+2. **Read the chosen concept,** the brief and the ADR. List what the concept leaves open (how a second audience enters, what happens on a small device, what a scene or screen is called). Confirm only those with the lead, one card per choice (the Decision card method), each option visible (an ASCII layout, a flow sketch, a short story) in the same message.
 
-> **Interview:** one question per message; 2–4 options with a recommendation when a choice exists; restate the answer in one line; stop when the output template is filled.
+> **Decision card:** a design choice or a gate request is a card: what it decides and locks; 2–3 options, each with what the person will see, who it serves, what it costs and where a wrong choice would surface; a recommendation with its reason; what was assumed; and always "none of these" and "show me first".
 
-3. **Reference queries (optional).** With `ui-ux-pro-max` installed, run its `--domain ux` search (forms, tables, navigation, empty states) and one `--domain chart` search per kind of data shown, and record what was taken into the behaviour rules. Take no palette, font or style from it, and never run `--design-system`.
-4. **Roles and IA per role.** For each product role (an id of lowercase letters and digits, since it appears in prototype URLs), write:
-   - **Shell:** `site` for public and self-service audiences (a header with a top menu and an account area, a footer; on phones a compact header and a bottom tab bar of 3–5 screens), `app` for work tools (a sidebar). Pick the shell the product will have: the prototype draws exactly this one.
-   - **Home shape,** matched to the role's main job and opening on "what needs me now": an *approval inbox* (one queue, urgent items first) for approvers; a *pipeline* (a to-do card, then items by stage) for people who move work forward; *health and tasks* (one status band, then a short task list) for administrators; a *next-action hero* (one question or one next step) for occasional and self-service users. Homes of different roles do not share one template, and a row of KPI tiles is not a home shape.
-   - Its navigation sections with their screens (menu labels of 24 characters or fewer, equal to the page title), and its platforms.
+3. **Audiences and structure.** For each audience write, in the concept's own words (not a shipped vocabulary):
+   - its **entry:** what the product opens on for it, and why, from its job in the brief;
+   - its **structure and navigation:** the parts it moves between and how, using the concept's model (a hub, a map, a menu, a timeline, a loop);
+   - its **platforms** and devices.
 
-   Every role has its own home screen at every width.
-5. **Screen inventory.** Write one row per screen of the full product, across every release and platform. IDs are permanent: `SC-nn` web, `W-nn` Windows, `A-nn` Android (or the prefixes in `project.yaml`). The table is the first table in `ux-spec.md` whose first header cell is `ID`, with exactly these five columns and nothing between the rows:
+   Every audience has its own entry on every platform it uses. Give each audience an id of lowercase letters and digits.
+4. **Screen inventory.** One row per unit of experience of the full product (screen, scene, level, flow state), across every release and platform. IDs are permanent. Prefixes are free: the ones in `project.yaml`, or `SC-`, `W-`, `A-`, `S-` and the like. The table is the first table in `ux-spec.md` whose first header cell is `ID`, with exactly these five columns and nothing between the rows:
 
    ```markdown
    | ID | Screen | Roles | Platform | Release |
    | --- | --- | --- | --- | --- |
    | SC-01 | Home | librarian, admin | web | MVP |
-   | A-01 | My loans | member | android | MVP |
+   | S-01 | Harbour | player | console | MVP |
    ```
 
-   - Roles are comma-separated role ids. Platform is `web`, `windows` or `android`. Release is a release id from `project.yaml`.
-   - List each role's home screen before its other screens: `kickoff fe new` makes the first screen that names a role that role's home.
-   - The roles of a screen are its access rule: the prototype's role guard refuses every other role.
-   - A device view of a web screen (a kiosk, a full-screen start screen) is not a new row: note it under the screen in the Notes, as a route parameter the prototype will read (`?kiosk=1`).
+   - Roles and Platform are free text (the audience ids and the platforms the project uses). Release is a release id from `project.yaml`.
+   - List each audience's entry before its other rows.
+   - A device or mode view of a screen is a note under the screen in the Notes, not a row.
+5. **Link features to screens:** set `screens: [SC-01, …]` on every active feature in `.kickoff/features.yaml` (IDs and releases unchanged). A feature without a screen (a background job, an import) gets a line in the ux-spec Notes saying why.
+6. **Write `ux-spec.md`** at `design.ux_spec` from `templates/ux-spec.md`, sections in this order: Audiences and structure, Screen inventory, Navigation rules, Behaviour rules (numbered `BR-<n>`), States (empty, loading, error, offline or equivalent), Copy guide, Accessibility and inclusion, Fit test. Navigation and behaviour rules are the project's: each one comes from the concept or the brief, not from a default. The **Copy guide** holds the voice per audience (address, tone, words to use and avoid, one real example) and the formats of the UI locale (numbers, money, dates, times, units, letter case), derived from the audiences and the language. No value comes from this skill.
+7. **Write `<docs_root>/05-design/design-rules.md`** from `templates/design-rules.md`: the project's own rules, derived from the brief and the NFRs (principle 4 of the philosophy). Every rule has its reason (brief or NFR ID), a test and where it applies; a rule no test can check stays in the brief. Then:
+   - **Accessibility and inclusion targets** from `nfr.md`, each with how it is verified;
+   - **Terms:** one name per thing, and the words that never appear in the UI;
+   - **Data at its real volume:** for every screen that shows lists, entities or state, write the expected volume and the extremes (none, the typical, the maximum, the longest name, an error) and what the screen does at each. The prototype is built and reviewed on these.
+8. **Regenerate and validate:** `kickoff docs`, then `kickoff validate` (it checks the inventory: unique IDs, releases that exist, every feature's screens listed, screens no active feature serves).
+9. **Early review,** in parallel, read-only agents with a `BRIEF.md` as in `../prototype/references/design-review.md`: `kickoff:ia-reviewer` on structure, navigation and naming, one `kickoff:viewpoint-reviewer` per audience group on its journeys, `kickoff:art-director` on whether the spec still carries the chosen concept's signature. Write the **fit test** in the spec's "Fit test" section: one short paragraph per question of "The fit test" in the philosophy, on the spec. Fix every P1. Put the reviewers' conflicts and the structural choices the lead must take into decision cards, and log each as `D<n>` in the Decision log.
+10. **Verify** (section below), then `kickoff phase done ux-design` and commit `docs: UX specification and design rules`.
 
-6. **Link features to screens:** set `screens: [SC-01, …]` on every active feature in `.kickoff/features.yaml` (IDs and releases unchanged). A feature without a screen (a background job, an import) gets a line in the ux-spec Notes saying why.
-7. **Write `ux-spec.md`** at `fe.ux_spec` from `templates/ux-spec.md`, sections in this order: Roles and IA per role, Screen inventory, Navigation rules, Behaviour rules (numbered `BR-<n>`), States (empty, loading, error, offline), Copy guide, Accessibility. These rules are defaults; keep them unless the lead decides otherwise:
-   - navigation goes to distinct pages; filters stay in-page (never a menu item that reloads a near-identical page with a filter applied);
-   - **one primary job per screen:** above the fold, at most the header, one guidance device from `references/guidance-library.md` and the start of the main content;
-   - **one main action per screen** (one filled button); a screen offers only the actions possible now;
-   - **no repeated look-alike blocks:** two blocks on one screen differ in shape and purpose; no KPI row that repeats counts listed below it; the same text never appears twice on a screen;
-   - **the header sentence names the task** or carries live facts (counts, dates, state); with nothing live there is no sentence; rules and detail go into an (i) popover;
-   - development infrastructure (VPN names, private IP ranges, internal hosts, tool names) and screen codes never appear in product UI;
-   - copy, sample data and fixtures are in `languages.ui`, with invented names only.
-
-   The **Copy guide** holds: voice and tone per audience (form of address, verbs, words to avoid, one example each); the term table, one name per thing; "only what the user needs now" (no text that explains system mechanics, such as "free", "not stored", timers or how checks work; a fact appears when its event happens); punctuation; letter case; number, date and unit formats from the UI locale. Take the values from `references/content-and-craft.md`.
-8. **Write `<docs_root>/05-design/design-system.md`** from `templates/design-system.md`, sections: Principles, Tokens (light and dark), Type scale, Spacing, Motion, Status vocabulary, Components, Charts, Scope layer, Density and copy, Craft rules, Accessibility. Use the kit's token names. Write the structural values (density, type roles, spacing, motion durations) from `references/foundation-rules.md`; in Tokens, mark the colour, font, radius and signature rows `set by kickoff:design-direction`, which fills them when the customer approves a direction:
-   - **Density modes** per audience: compact for staff consoles (32 px controls), comfortable for public desktop (40), touch for phones and coarse pointers (48), kiosk (64 in its layout px); the shell decides, never the component.
-   - **Type roles per mode** (display, headline, title-l, title, body, prose, body-s, label, button, meta, caption, figure, figure-l, value, code); weights 400/500/600/700, 700 only for display, never 800; at most 6 sizes per screen. Line height for languages with stacked diacritics (Vietnamese): ≥ 1.2 on any text box, ≥ 1.34 where titles wrap, ≥ 1.5 for paragraphs and clipped text; re-measure when the font changes.
-   - **Layout:** window classes, content widths, page types (`data` fluid to 1600 px, `form` to 1200, left-anchored on staff screens; 1200 px centred public container), the one-box rule.
-   - **Overlays and consequences:** the overlay decision table (one surface per task) and the consequence matrix (confirm only what destroys, locks out, publishes or overwrites; undo for the rest; a notice to another person held 10 s).
-   - **Motion:** tokens (100–300 ms, three curves, shifts per mode) and the patterns (route, master-detail, reveal, toast), reduced motion keeping dissolves.
-   - **Data at volume:** each list's expected volume and its functions (total, search, filter, sort, paging, bulk, export, URL state) from `references/data-at-volume.md`.
-
-   **Craft rules** set the type scale per density mode (at most 6 sizes per screen), weights, letter case (`--cap-case: none` for languages with stacked diacritics such as Vietnamese), spacing rhythm, and chip, button and icon rules (`references/content-and-craft.md`). Motion follows `references/guidance-library.md`, with a reduced-motion fallback for every motion. State that the product bundles its fonts and assets; the prototype's CDN use does not relax that.
-9. **Regenerate and validate:** `kickoff docs` (it regenerates the feature map; screens are not rendered there, they live in `features.yaml` and the ux-spec inventory), then `kickoff validate`.
-10. **Verify** (section below), then `kickoff phase done ux-design` and commit `docs: UX specification and design system`.
+At the end of every group of steps (3–5, 6–7, 9) list the rulings you took without the lead (`Ruling: <decision> — <why> — <cost if wrong>`) and ask which to revisit.
 
 ## Outputs
 
-- `<docs_root>/05-design/ux-spec.md` (or the path in `fe.ux_spec`)
-- `<docs_root>/05-design/design-system.md`
-- `.kickoff/features.yaml` with `screens` on every active feature (`<docs_root>/02-requirements/feature-map.md` is regenerated but does not list screens)
+- `<docs_root>/05-design/ux-spec.md` (or the path in `design.ux_spec`) with the Fit test written
+- `<docs_root>/05-design/design-rules.md`
+- `.kickoff/features.yaml` with `screens` on every active feature
+- Decision log entries `D<n>` for the choices the lead took
 - `.kickoff/state.yaml`: `ux-design: done`
 
 ## Verify
 
-1. Read the Screen inventory of `ux-spec.md`. Its header is exactly `| ID | Screen | Roles | Platform | Release |`, no earlier table starts with `ID`, and every row has five cells: a unique ID, role ids in lowercase letters and digits, a platform of `web`, `windows` or `android`, and a release from `project.yaml`.
+1. The Screen inventory header is exactly `| ID | Screen | Roles | Platform | Release |`, no earlier table starts with `ID`, and every row has five cells with a unique ID and a release from `project.yaml`.
 2. Every screen named in `features.yaml` `screens` is in the inventory, and every inventory screen serves at least one feature.
-3. Every role in "Roles and IA per role" has a shell (`site` or `app`), a home shape and a home screen, and that screen is the role's first row in the inventory. Two roles share a home shape only with a written reason.
-4. The Copy guide has voice per audience, a term table, punctuation, letter case and formats for the UI locale; `design-system.md` has Craft rules.
-5. `kickoff check-docs <ux-spec.md> <design-system.md>` prints `check-docs passed` (no placeholder, no forbidden phrase).
-6. Search both files with each pattern of `fe.forbidden` in `project.yaml`: no match.
-7. `kickoff validate` reports `0 errors`, and `kickoff docs --check` prints `documents up to date`.
+3. Every audience in "Audiences and structure" has an entry, its structure and navigation, and its platforms, and its entry is the first row of its screens in the inventory.
+4. Every rule of `design-rules.md` names its reason, its test and where it applies. The accessibility targets match `nfr.md`.
+5. The Copy guide has voice per audience and the formats of the UI locale, and `design-rules.md` has the term table. Every screen that shows lists or entities has its volumes and extremes written.
+6. The Fit test has an answer to each of the five questions, and the reviewers' P1 findings are fixed or logged as decisions.
+7. `kickoff check-docs <ux-spec.md> <design-rules.md>` prints `check-docs passed` (no placeholder, no forbidden phrase, none of `design.forbidden`).
+8. `kickoff validate` reports `0 errors`, and `kickoff docs --check` prints `documents up to date`.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
 
 ## Lessons
 
-- Every role saw the chair's home below 760 px: define a home screen per role here, so the prototype routes each role to its own home at every width.
-- A role token in the URL let an admin open meeting content: list the roles of every screen, so the prototype's role guard applies.
-- Dense, heavy text overwhelmed the reviewer: density modes per audience and the quiet type rules, one short sentence per header.
-- Screens felt heavy and sticky: bold everywhere, a rounded font at 800, touch sizes on desktop: density modes per audience and the quiet type rules (lessons row 22).
-- The same task used a drawer, a dialog and a sheet: the overlay decision table (lessons row 23).
-- Screens designed for 15 rows could not hold thousands: write each list's volume and functions into the design system and the screen briefs (lessons row 25).
-- A sidebar filter that reloaded a near-identical page confused the reviewer: navigation goes to a distinct page; filters stay in-page.
-- The product's public pages had a top menu, but the prototype showed a sidebar and the team wrote a "differs from the product" note: give every role its shell here (lessons row 14).
-- Every home opened with a look-alike row of KPI tiles, and users did not know what to read or do first: each role gets a home shape matched to its job, and the anti-flooding rules apply to every screen (lessons row 20).
-- Text that explained system mechanics ("free", "not stored", timers) crowded a kiosk screen: only what the user needs now; facts appear when their event happens (lessons row 20).
-- "+7.1%" sat next to "2.304", and small uppercase labels crowded stacked diacritics: formats come from the UI locale, and letter case is a craft rule (lessons rows 17 and 18).
-- Projects made with kickoff looked alike: the direction came from a lookup by product type and a blue default. The look is chosen in `kickoff:design-direction`, with the customer, on the real screens (lessons row 31).
+- A game came out as a management console: the spec was expanded from a template shaped for web tools, before the customer had chosen a structure. The spec now starts from the chosen concept, and ends with a review and a fit test.
+- Every audience saw the first audience's home below a width: give each audience its own entry on every platform it uses.
+- A role token in the URL let one audience open another's content: list the audiences of every screen, so the prototype can guard them.
+- Screens designed for 15 rows could not hold thousands: write each screen's volume and extremes here and in the screen briefs.
+- The product's public pages had a top menu but the prototype showed a sidebar and the team wrote a "differs from the product" note: the spec states the structure the product will have, and the prototype draws exactly that.
+- Text that explained system mechanics crowded a screen: only what the user needs now; facts appear when their event happens.
+- Formats and letter case crowded the language's own marks ("+7.1%" beside "2.304"): formats come from the UI locale and are written once in the copy guide.
+- Projects made with kickoff looked alike because the look came from a lookup by product type: the rules are derived from this brief.
 - Write every file with the file tools, not heredocs (literal `\n` in a Bash heredoc once became real newlines).
 
 ## Handoff
 
-`kickoff:fe-foundation`, which decides the presentation stack and scaffolds the FE v0 from this screen inventory with `kickoff fe new`; then `kickoff:design-direction` (gate CD) and `kickoff:prototype`. `kickoff status` names it.
+`kickoff:prototype`, which builds the clickable full product from this screen inventory and the project's design rules. `kickoff status` names it.

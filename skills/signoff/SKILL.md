@@ -16,13 +16,13 @@ Prepares the customer review workshop on the full-product prototype and records 
 ## Preconditions
 
 - `kickoff can signoff` exits 0 (prototype done).
-- `.kickoff/state.yaml` has `prototype.artifact` (the published link or the bundle path) and `prototype.version`.
-- The prototype's scenarios run cleanly: the last `kickoff fe check` printed `fe check passed`.
+- `.kickoff/state.yaml` has `prototype.artifact` (the link or path recorded with `kickoff prototype record`) and `prototype.version`.
+- `<docs_root>/05-design/prototype-coverage.md` covers every inventory screen, and every scenario of `prototype-brief.md` was played to its end in the last review. Checks that did not run are listed as skipped, not passed.
 
 ## Inputs
 
 - `.kickoff/features.yaml` and `<docs_root>/02-requirements/feature-map.md`: the feature set to sign off, by release.
-- The prototype: link and version in `.kickoff/state.yaml`, scenarios in `apps/web/src/kickoff/scenarios.ts`.
+- The prototype: link and version in `.kickoff/state.yaml`; scenarios and the workshop date in `<docs_root>/05-design/prototype-brief.md`; `prototype-coverage.md`; the rulings list of the prototype build plan.
 - `<docs_root>/01-discovery/open-questions.md`: questions due and the Decision log.
 - `.kickoff/plan.yaml`: the workshop package, risks, gates, `cut_order`; `.kickoff/project.yaml`: `hard_dates`, `releases`.
 - Workshop notes, minutes, e-mails or signed documents after the workshop.
@@ -42,12 +42,16 @@ Prepares the customer review workshop on the full-product prototype and records 
 3. **Write the workshop pack** at `<docs_root>/01-discovery/signoff/YYYY-MM-DD-workshop-pack.md` from `templates/workshop-pack.md`, in the language the lead asks for (customer deliverables). Sections:
    - **Goal:** sign off the full feature set across all releases, and lock the MVP.
    - **Agenda** with timings.
-   - **Demo script:** one row per scenario, with its link `#/<role>/<first screen>?scenario=<id>` (appended to the FE v0 link; the demo bar plays the steps) and the feature IDs it shows. Every feature in `features.yaml` is shown by a scenario or listed for a walk-through.
-   - **Decisions the customer must take:** a table of ID (the `Q<n>` the decision answers), Decision, Options, Recommended, Deadline.
+   - **Demo script:** one row per scenario of `prototype-brief.md`: how to open it (the link recorded with `kickoff prototype record`, plus the scenario's start point or step, or the walk-through video) and the feature IDs it shows. Every feature in `features.yaml` is shown by a scenario or listed for a walk-through.
+   - **Decisions the customer must take:** a table of ID (the `Q<n>` the decision answers), Decision, Options, Recommended, Deadline. Prepare each one as a card with the Decision card method (what the customer will see, who each option serves, what it costs and where a wrong choice would surface, a recommendation, "none of these" and "show me first").
+
+> **Decision card:** a design choice or a gate request is a card: what it decides and locks; 2–3 options, each with what the person will see, who it serves, what it costs and where a wrong choice would surface; a recommendation with its reason; what was assumed; and always "none of these" and "show me first".
+
    - **Open questions due:** questions from `open-questions.md` whose needed-by date falls before or soon after the workshop.
+   - **Rulings taken without the customer:** the rulings of the prototype build plan and the review loop that touch what the customer will see, so the customer can revisit them.
    - **Scope-cut order if dates are fixed:** the `cut_order` of `plan.yaml` with the effort each cut frees, as `kickoff schedule` reports it.
 
-   The prototype and any screenshots in the pack (taken from the FE v0 with the demo bar hidden, `?demo=0`) show the real product chrome and the customer's language, with no screen codes in the product UI and no "differs from the product" note (the fidelity rule of `kickoff:prototype`). If they do not, fix the prototype first.
+   The prototype and any captures in the pack show the real product chrome and the customer's language, with the prototype's own controls kept off the customer's screens, no screen codes in the product text and no "differs from the product" note (the fidelity rule of `kickoff:prototype`). If they do not, fix the prototype first.
 4. Commit `docs: sign-off workshop pack`. Sending the pack or the prototype link to the customer is publishing: ask the lead first.
 
 ### After the workshop
@@ -63,7 +67,7 @@ Prepares the customer review workshop on the full-product prototype and records 
    Write only what the customer said or signed. A gate needs evidence: signed minutes, an e-mail, or the record confirmed by the customer.
 6. **If the customer asked for changes:** commit the record, do not approve C3, and invoke `kickoff:feedback` with the Changes requested. It applies them in chain order and reopens C3. When the changed prototype is confirmed by the customer, add a dated confirmation to the record and continue with step 7.
 7. **Verify** (section below), then `kickoff phase done signoff` and commit `docs: feature sign-off record`.
-8. **Record the gates** only when the record says so, and never on anyone's behalf:
+8. **Record the gates** only when the record says so, and never on anyone's behalf. Asking the customer to sign is a gate request, so it is a Decision card: what is approved (the full feature set; the MVP scope), what becomes expensive to change afterwards (the architecture and plan start from it), the rulings taken without the customer so far, the open risks, and what you are least sure of.
    - C3 when the customer signed off the full feature set: `kickoff gate approve C3 --by Customer --evidence "<record path>"`.
    - C4 when the customer and the project lead locked the MVP (it needs C3): `kickoff gate approve C4 --by "Customer and project lead" --evidence "<record path>"`.
 
@@ -81,7 +85,7 @@ Prepares the customer review workshop on the full-product prototype and records 
 
 1. `kickoff check-docs <workshop pack> <sign-off record>` prints `check-docs passed` (no placeholder, no forbidden phrase). Attendees and owners are roles.
 2. Every active feature in `features.yaml` at the referenced commit appears in the record, as signed off or as a change requested.
-3. Every scenario in the demo script exists in `apps/web/src/kickoff/scenarios.ts`, and `kickoff fe check` prints `fe check passed` (its e2e sweep walks every scenario; exit 4 is a skipped check, not a pass).
+3. Every scenario in the demo script exists in `prototype-brief.md`, the link in the pack is the one in `state.yaml`, and each scenario was played to its end (name who played it, or say it was not played: a check that did not run is skipped, not passed).
 4. `kickoff validate` reports `0 errors`; `kickoff schedule` exits 0, or exits 3 with the lead's slip decision recorded as a `D<n>`; `kickoff docs --check` prints `documents up to date`.
 5. Every decision in the record is in the Decision log with its date and source.
 

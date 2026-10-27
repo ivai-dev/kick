@@ -2,56 +2,41 @@
 
 - **Version:** {{version}} ({{date}})
 - **Owner:** Project lead
-- **Inputs:** `.kickoff/features.yaml` at commit {{commit}}, `nfr.md`, `design-system.md`
+- **Inputs:** `.kickoff/features.yaml` at commit {{commit}}, `nfr.md`, `concepts.md` (chosen concept: {{name}}), `design-brief.md`, `design-rules.md`
 
-The prototype tools read the Screen inventory below: it stays the first table in this file whose first header cell is "ID", with exactly its five columns.
+`kickoff validate` reads the Screen inventory below: it stays the first table in this file whose first header cell is "ID", with exactly its five columns.
 
-## Roles and IA per role
+## Audiences and structure
 
-| Role id | Role | Shell | Home shape | Home screen | Navigation sections and their screens | Platforms |
-| --- | --- | --- | --- | --- | --- | --- |
-| {{role id}} | {{role name}} | {{site / app}} | {{approval inbox / pipeline / health and tasks / next-action hero / other: what it opens on}} | {{screen ID}} | {{section: screen IDs; section: screen IDs}} | {{web / windows / android}} |
+Written in the chosen concept's own vocabulary. A "screen" is any unit of experience: a screen, a scene, a level, a flow state.
 
-- **Shell:** `site` for public and self-service audiences (header with a top menu, footer; on phones a compact header and a bottom tab bar), `app` for work tools (sidebar). The prototype draws the same shell.
-- **Home shape:** what the home opens on, matched to the role's main job. Homes of different roles do not share one template.
-- **Phone tab bar** (site roles used on phones): {{role id}}: {{3–5 screen IDs}}.
+| Audience id | Audience | Entry (what it opens on, and why) | Structure and navigation | Platforms |
+| --- | --- | --- | --- | --- |
+| {{id}} | {{audience name}} | {{what the product opens on for them, from their job in the brief}} | {{the parts they move between and how, in the concept's model}} | {{platforms and devices}} |
 
 ## Screen inventory
 
 | ID | Screen | Roles | Platform | Release |
 | --- | --- | --- | --- | --- |
-| SC-01 | {{screen name}} | {{role id}}, {{role id}} | web | {{release}} |
-| W-01 | {{screen name}} | {{role id}} | windows | {{release}} |
-| A-01 | {{screen name}} | {{role id}} | android | {{release}} |
+| {{ID}} | {{screen name}} | {{audience id}}, {{audience id}} | {{platform}} | {{release}} |
 
-- One row per screen of the full product, every release and platform. IDs are permanent: `SC-nn` web, `W-nn` Windows, `A-nn` Android.
-- Roles: comma-separated role ids; only these roles may open the screen. Each role's home screen is its first row.
-- Platform: `web`, `windows` or `android`. Release: a release id from `.kickoff/project.yaml`.
+- One row per screen of the full product, every release and platform. IDs are permanent; prefixes are free (those in `.kickoff/project.yaml`, or `SC-`, `W-`, `A-`, `S-` and the like).
+- Roles: comma-separated audience ids that may open the screen (free text). Each audience's entry is its first row.
+- Platform: free text, the platforms the project uses. Release: a release id from `.kickoff/project.yaml`.
+- A device or mode view of a screen is a note below, not a row.
 
 ### Notes
 
-- {{features without a screen and why, e.g. a nightly import; or "None"}}
+- {{features without a screen and why, e.g. a nightly import; device or mode views of a screen; or "None"}}
 
 ## Navigation rules
 
-1. Navigation goes to distinct pages; filters, sorting and search stay in-page. No menu item reloads a near-identical page with a filter applied.
-2. Each role starts on its own home screen at every width, desktop and phone.
-3. A screen opens only for the roles listed in the inventory; any other role sees an access notice, never the content.
-4. A menu label is 24 characters or fewer and equals the page title it opens.
-5. {{project-specific rule, e.g. "Back from a detail page returns to the list with its filters kept"}}
+1. {{rule that follows from the concept, e.g. "The hub is always one action away"}}
+2. Each audience starts on its own entry on every platform it uses.
+3. {{who may open what, and what anyone else sees}}
+4. {{project-specific rule, e.g. "Back from a detail returns to the list with its filters kept"}}
 
-### Screen content
-
-1. One primary job per screen: above the fold, at most the header, one guidance device and the start of the main content.
-2. One main action per screen (one filled button); a screen offers only the actions possible now.
-3. No repeated look-alike blocks: two blocks on one screen differ in shape and purpose; no KPI row repeats counts listed below it; the same text never appears twice on a screen.
-4. The header sentence names the task or carries live facts (counts, dates, state); with nothing live there is no sentence.
-
-### Guidance devices
-
-| Screen group | Device (from the guidance library) | Where it is not used |
-| --- | --- | --- |
-| {{screen IDs}} | {{e.g. next-action card, process map, step groups, positive empty state}} | {{e.g. not on list screens}} |
+Every rule names its reason (the concept or the brief) when it is not obvious.
 
 ## Behaviour rules
 
@@ -61,57 +46,61 @@ The prototype tools read the Screen inventory below: it stays the first table in
 
 ## States
 
-| Screen or group | Empty | Loading | Error | Offline |
+| Screen or group | Empty | Loading | Error | Offline or interrupted |
 | --- | --- | --- | --- | --- |
-| {{screen IDs}} | {{what the user sees and the next action}} | {{skeleton or progress}} | {{message and recovery}} | {{what still works}} |
+| {{screen IDs}} | {{what the user sees and the next action}} | {{what shows while waiting}} | {{message and recovery}} | {{what still works}} |
+
+### Data at its real volume
+
+For every screen that shows lists, entities or state:
+
+| Screen | Typical | Maximum | Longest or worst value | What the screen does at each |
+| --- | --- | --- | --- | --- |
+| {{screen ID}} | {{e.g. 40 rows}} | {{e.g. 12,000 rows}} | {{e.g. a 60-character name}} | {{search, paging, truncation, summary}} |
 
 ## Copy guide
 
 - **Language and locale:** {{languages.ui}}, locale {{e.g. vi-VN}}; sample data uses invented names, organisations and addresses only.
-- **Only what the user needs now:** no text that explains system mechanics or policy ({{e.g. "free", "not stored", sign-out timers, how accounts are checked}}); a fact appears when its event happens.
-- **Page headers:** a title and one sentence that names the task or carries live facts, or no sentence; rules and detail go into an (i) popover.
-- **Never in the UI:** development infrastructure (VPN names, private IP ranges, internal host or tool names), screen codes, prototype words, internal IDs other than the ones users need.
+- **Only what the user needs now:** no text that explains system mechanics or policy; a fact appears when its event happens.
+- **Never in the UI:** development infrastructure (internal hosts, tool names), screen codes, prototype words, internal IDs the user does not need.
+- **Terms:** one name per thing, in `design-rules.md` (Terms).
 
 ### Voice and tone
 
 Voice in one sentence: {{e.g. "a helpful clerk who speaks plainly: warm, respectful, simple"}}.
 
-| Audience (roles) | Address | Tone | Verbs and words | Avoid | Example |
+| Audience | Address | Tone | Words to use | Avoid | Example |
 | --- | --- | --- | --- | --- | --- |
-| {{e.g. guest, seeker}} | {{form of address}} | {{e.g. plain, warm, no pressure}} | {{e.g. "Tap" on touch screens; buttons start with a verb}} | {{slang, marketing, officialese, English}} | {{one real string}} |
-
-### Terms
-
-One name per thing. A term in "Do not use" never appears in the UI.
-
-| Term | Use | Do not use |
-| --- | --- | --- |
-| {{term}} | {{meaning and where it appears}} | {{synonyms to avoid}} |
+| {{audience}} | {{form of address}} | {{e.g. plain, warm, no pressure}} | {{e.g. buttons start with a verb}} | {{slang, marketing, officialese}} | {{one real string}} |
 
 ### Formats
 
+Derived from the UI locale; write only what this product shows.
+
 | Thing | Format | Example |
 | --- | --- | --- |
-| Numbers, percent | {{locale rule}} | {{e.g. 2.304 · 7,1% · −4}} |
+| Numbers | {{locale rule}} | {{example}} |
 | Money | {{rule}} | {{example}} |
-| Ranges | {{en dash rule}} | {{e.g. 8–11; 20/10/2026 – 05/11/2026}} |
-| Dates | {{rule}} | {{example}} |
-| Date with weekday and time | {{rule}} | {{example}} |
-| Relative dates | {{rule}} | {{e.g. Today, 06:30 · 2 days left}} |
-| Times | {{rule}} | {{e.g. 07:00}} |
-| Units | {{non-breaking space rule}} | {{e.g. 60 people · 4 min}} |
+| Dates and times | {{rule}} | {{example}} |
+| Units | {{rule}} | {{example}} |
+| Letter case | {{rule, e.g. sentence case in titles}} | {{example}} |
 
-### Punctuation and letter case
+## Accessibility and inclusion
 
-- Sentence case in titles, buttons, labels and table headers; small uppercase labels {{allowed / not used (stacked diacritics)}}.
-- {{locale rules for names of organisations and places}}
-- No exclamation marks; typographic quotes “ ”; en dash for ranges; "—" only for missing data in table cells; "·" joins at most two facts; no full stop after labels, buttons or chips.
+Targets come from `nfr.md`; `design-rules.md` turns each into a testable rule.
 
-## Accessibility
+| Target | Source | How it is verified |
+| --- | --- | --- |
+| {{e.g. WCAG 2.2 AA}} | {{NFR-ACC<n>}} | {{tool check / reviewed by a person}} |
+| {{input methods, e.g. keyboard only, touch, controller}} | {{NFR or brief}} | {{…}} |
+| {{languages and locales}} | {{NFR or brief}} | {{…}} |
 
-- **Target:** {{e.g. WCAG 2.2 AA}} (see {{NFR-ACC<n>}}).
-- Text contrast at least 4.5:1 in light and dark themes; large text and icons at least 3:1.
-- Every action reachable by keyboard with a visible focus ring; dialogs and drawers trap and return focus.
-- Touch targets at least 44 × 44 px on phone screens; no horizontal scroll at 390 px width.
-- Tables have captions and header cells; charts have a text label and their values in a table or tooltip.
-- Motion respects the reduced-motion setting.
+## Fit test
+
+Written at the end of `ux-design`, on this spec, one short paragraph each (philosophy, "The fit test").
+
+1. **Swap the name:** {{would it still hold for another product of the category? what is specific here?}}
+2. **The default it follows:** {{decision or accident?}}
+3. **The signature:** {{what a user would remember; does it appear in every screen group?}}
+4. **Wrong shape?** {{could it be mistaken for another kind of product? which choice makes it so?}}
+5. **Hardest audience:** {{where do they stop?}}

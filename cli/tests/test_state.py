@@ -5,7 +5,7 @@ import pytest
 from kickoff.cli import main
 from kickoff.errors import KickoffError
 from kickoff.model import load_state, read_yaml
-from kickoff.state import approve, blockers, next_step, reopen, set_phase, status_lines
+from kickoff.state import approve, blockers, migrate, next_step, reopen, set_phase, status_lines
 
 
 def fresh():
@@ -73,32 +73,39 @@ def test_the_phase_being_re_run_is_not_listed_as_a_later_stale_one():
     assert next_step(s) == "continue kickoff:research; then re-run stale: feature-map, plan"
 
 
-def test_a_prototype_built_before_0_5_does_not_need_fe_foundation():
+def test_the_design_concept_comes_before_ux_design():
     s = fresh()
-    for p in ("init", "discovery", "research", "feature-map", "ux-design", "prototype"):
+    for p in ("init", "discovery", "research", "feature-map"):
         set_phase(s, p, "done")
     for g in ("C1", "C2"):
-        approve(s, g, "Project lead", "x", date(2026, 9, 26))
-    assert blockers(s, "signoff") == [] and blockers(s, "prototype") == []
-    assert next_step(s) == "run kickoff:signoff"
-    s2 = fresh()
-    for p in ("discovery", "feature-map", "ux-design", "plan"):  # a draft plan is not a built prototype
-        set_phase(s2, p, "done")
-    for g in ("C1", "C2"):
-        approve(s2, g, "Project lead", "x", date(2026, 9, 26))
-    assert blockers(s2, "design-direction") == ["phase fe-foundation is not done",
-                                                "gate CF (Frontend foundation approved) is not approved"]
-    assert blockers(s2, "prototype") == ["phase design-direction is not done",
-                                         "gate CD (Customer approved the design direction) is not approved"]
-
-
-def test_a_prototype_started_before_0_7_does_not_need_design_direction():
-    s = fresh()
-    for p in ("init", "discovery", "research", "feature-map", "ux-design", "fe-foundation"):
-        set_phase(s, p, "done")
-    for g in ("C1", "C2", "CF"):
         approve(s, g, "Project lead", "x", date(2026, 10, 1))
-    assert next_step(s) == "run kickoff:design-direction"
+    assert next_step(s) == "run kickoff:design-concept"
+    assert blockers(s, "ux-design") == ["phase design-concept is not done",
+                                        "gate CD (Customer chose the design concept) is not approved"]
+    set_phase(s, "design-concept", "done")
+    assert next_step(s).startswith("approve gate CD (Customer chose the design concept)")
+    approve(s, "CD", "Customer", "docs/05-design/codesign-2026-10-27.md", date(2026, 10, 27))
+    assert blockers(s, "ux-design") == [] and next_step(s) == "run kickoff:ux-design"
+    assert reopen(s, "CD", "customer wants another structure") == []
+    assert s["phases"]["design-concept"] == "in_progress"
+
+
+def test_a_prototype_needs_ux_design_and_nothing_else():
+    s = fresh()
+    for p in ("init", "discovery", "research", "feature-map", "design-concept", "ux-design"):
+        set_phase(s, p, "done")
+    for g in ("C1", "C2", "CD"):
+        approve(s, g, "Project lead", "x", date(2026, 10, 1))
+    assert blockers(s, "prototype") == [] and next_step(s) == "run kickoff:prototype"
+    assert blockers(fresh(), "prototype") == ["phase ux-design is not done"]
+
+
+def test_a_prototype_started_before_0_7_does_not_need_the_design_concept():
+    s = fresh()
+    for p in ("init", "discovery", "research", "feature-map", "ux-design"):
+        set_phase(s, p, "done")
+    for g in ("C1", "C2"):
+        approve(s, g, "Project lead", "x", date(2026, 10, 1))
     set_phase(s, "prototype", "in_progress")  # a 0.6 project in the middle of its prototype
     assert blockers(s, "prototype") == [] and blockers(s, "signoff") == ["phase prototype is not done"]
     lines = "\n".join(status_lines(s))
@@ -107,35 +114,58 @@ def test_a_prototype_started_before_0_7_does_not_need_design_direction():
     assert next_step(s) == "continue kickoff:prototype"
 
 
-def test_design_direction_and_cd_gate_the_prototype():
-    s = fresh()
-    for p in ("init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "design-direction"):
-        set_phase(s, p, "done")
-    for g in ("C1", "C2", "CF"):
-        approve(s, g, "Project lead", "x", date(2026, 10, 1))
-    assert next_step(s).startswith("approve gate CD (Customer approved the design direction)")
-    assert blockers(s, "prototype") == ["gate CD (Customer approved the design direction) is not approved"]
-    approve(s, "CD", "Customer", "docs/05-design/codesign-2026-10-20.md", date(2026, 10, 20))
-    assert blockers(s, "prototype") == [] and next_step(s) == "run kickoff:prototype"
-    assert reopen(s, "CD", "customer wants a warmer direction") == []
-    assert s["phases"]["design-direction"] == "in_progress"
+def raw_state(phases, gates=(), stale=()):
+    ok = {"approved_by": "Lead", "date": date(2026, 10, 1), "evidence": "x"}
+    return {"schema_version": 1, "phases": dict(phases), "gates": {g: ok for g in gates}, "stale": list(stale)}
+
+
+def test_a_0_7_state_moves_to_the_design_concept():
+    done = {p: "done" for p in ("init", "discovery", "research", "feature-map", "ux-design", "fe-foundation")}
+    s = migrate(raw_state({**done, "design-direction": "in_progress"}, ("C1", "C2", "CF"), ["fe-foundation"]))
+    assert s["phases"].get("design-concept") == "in_progress"
+    assert "design-direction" not in s["phases"] and "fe-foundation" not in s["phases"]
+    assert set(s["gates"]) == {"C1", "C2"} and s["stale"] == []
+    assert migrate(s) == s  # applying it again changes nothing
+
+
+def test_ux_design_finished_before_the_concept_is_run_again_after_it():
+    done = {p: "done" for p in ("init", "discovery", "research", "feature-map", "ux-design")}
+    s = migrate(raw_state({**done, "fe-foundation": "in_progress"}, ("C1", "C2")))
+    assert s["stale"] == ["ux-design"]
+    assert next_step(s) == "run kickoff:design-concept"
+    set_phase(s, "design-concept", "done")
+    approve(s, "CD", "Customer", "x", date(2026, 10, 27))
+    assert next_step(s) == "re-run kickoff:ux-design (stale after reopening a gate)"
+
+
+def test_a_part_done_ux_design_starts_again_after_the_concept():
+    s = migrate(raw_state({"init": "done", "discovery": "done", "research": "done", "feature-map": "done",
+                           "ux-design": "in_progress"}, ("C1", "C2")))
+    assert "ux-design" not in s["phases"] and any("ux-design reset" in h for h in s["history"])
+    assert next_step(s) == "run kickoff:design-concept"
+
+
+def test_a_project_past_the_concept_is_not_migrated_back():
+    done = {p: "done" for p in ("init", "discovery", "research", "feature-map", "ux-design", "prototype")}
+    s = migrate(raw_state(done, ("C1", "C2")))
+    assert s["stale"] == [] and "design-concept" not in s["phases"]
 
 
 def test_phase_start_refuses_a_blocked_phase(tmp_path, capsys):
     root = tmp_path
     assert main(["--root", str(root), "init", "--name", "Library Loans"]) == 0
     state = load_state(root)
-    state["phases"] = {p: "done" for p in ("init", "discovery", "feature-map", "ux-design", "fe-foundation")}
-    state["gates"] = {g: {"approved_by": "Lead", "date": date(2026, 10, 1), "evidence": "x"} for g in ("C1", "C2", "CF")}
+    state["phases"] = {p: "done" for p in ("init", "discovery", "feature-map")}
+    state["gates"] = {g: {"approved_by": "Lead", "date": date(2026, 10, 1), "evidence": "x"} for g in ("C1", "C2")}
     from kickoff.model import write_yaml
     write_yaml(root / ".kickoff" / "state.yaml", state)
-    assert main(["--root", str(root), "phase", "start", "prototype"]) == 2
-    assert "cannot start prototype: phase design-direction is not done" in capsys.readouterr().err
-    assert "prototype" not in load_state(root)["phases"]  # no legacy pass through a skipped gate
-    assert main(["--root", str(root), "phase", "done", "prototype"]) == 2
-    assert "cannot finish prototype: phase design-direction is not done" in capsys.readouterr().err
-    assert "prototype" not in load_state(root)["phases"]
-    assert main(["--root", str(root), "phase", "start", "design-direction"]) == 0
+    assert main(["--root", str(root), "phase", "start", "ux-design"]) == 2
+    assert "cannot start ux-design: phase design-concept is not done" in capsys.readouterr().err
+    assert "ux-design" not in load_state(root)["phases"]  # no pass through a skipped gate
+    assert main(["--root", str(root), "phase", "done", "ux-design"]) == 2
+    assert "cannot finish ux-design: phase design-concept is not done" in capsys.readouterr().err
+    assert "ux-design" not in load_state(root)["phases"]
+    assert main(["--root", str(root), "phase", "start", "design-concept"]) == 0
 
 
 def test_stale_prerequisite_blocks_the_next_phase():
@@ -145,16 +175,16 @@ def test_stale_prerequisite_blocks_the_next_phase():
     approve(s, "C1", "Project lead", "x", date(2026, 9, 25))
     approve(s, "C2", "Project lead", "x", date(2026, 9, 26))
     s["stale"] = ["feature-map", "plan"]
-    assert blockers(s, "ux-design") == ["phase feature-map is stale: re-run it first"]
+    assert blockers(s, "design-concept") == ["phase feature-map is stale: re-run it first"]
     assert blockers(s, "feature-map") == []  # the stale phase itself may be re-run
 
 
 def test_the_last_step_hands_the_wbs_over():
     s = fresh()
-    for p in ("init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "design-direction",
+    for p in ("init", "discovery", "research", "feature-map", "design-concept", "ux-design",
               "prototype", "signoff", "solution", "plan"):
         set_phase(s, p, "done")
-    for g in ("C1", "C2", "CF", "CD", "C3", "C4", "C5", "C6"):
+    for g in ("C1", "C2", "CD", "C3", "C4", "C5", "C6"):
         approve(s, g, "Project lead", "x", date(2026, 10, 1))
     assert next_step(s).startswith("done: plan baselined;") and "kickoff export" in next_step(s)
     s["phases"]["tickets"] = "done"  # a state.yaml from before 0.6 keeps loading and is ignored

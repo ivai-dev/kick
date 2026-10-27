@@ -5,7 +5,7 @@ description: Use when designing architecture, data model, technology stack or de
 
 # Solution
 
-Designs the architecture, data model, backend technology and design patterns for the feature set the customer signed off. The presentation stack is already decided (the *Accepted* ADRs of `kickoff:fe-foundation`), and the mock contract in `packages/mocks` is the first draft of the API. It decides the *Proposed* ADRs on the evidence of the validation results, records every new decision as an ADR, and adds the work the architecture needs to the plan. This is the phase the core principle protects: it runs only after C3 and C4.
+Designs the architecture, data model, backend technology and design patterns for the feature set the customer signed off. The prototype tooling is already decided (its ADR from `kickoff:prototype`) and decides no backend matter; the prototype's mock data is a first draft of the data the API must carry, not a decision. It decides the *Proposed* ADRs on the evidence of the validation results, records every new decision as an ADR, and adds the work the architecture needs to the plan. This is the phase the core principle protects: it runs only after C3 and C4.
 
 ## When to use
 
@@ -20,7 +20,7 @@ Designs the architecture, data model, backend technology and design patterns for
 ## Inputs
 
 - The signed-off `.kickoff/features.yaml` (the commit named in the sign-off record) and `<docs_root>/02-requirements/feature-map.md`.
-- `ux-spec.md` (roles, screens, platforms) and `<docs_root>/05-design/design-system.md`.
+- `ux-spec.md` (roles, screens, platforms) and `<docs_root>/05-design/design-rules.md` (the project's own design rules).
 - `<docs_root>/02-requirements/nfr.md`.
 - The *Proposed* ADRs in `<docs_root>/04-architecture/adr/`, and the validation results in `<docs_root>/03-research/validation-plan.md` (Results table).
 - `.kickoff/plan.yaml` (`assumptions`, packages, risks), `.kickoff/project.yaml` (`security`, `languages`, roles), `AGENTS.md`.
@@ -49,7 +49,7 @@ Designs the architecture, data model, backend technology and design patterns for
    - **Containers:** each deployable unit with its responsibility, technology (with its ADR), the design patterns it uses and the features it serves.
    - **Deployment:** environments, hosting, network boundaries, release and rollback.
    - **Data flow:** the main journeys, as numbered steps across containers, including where customer data is stored and processed.
-   - **Security:** the rules of `project.yaml` `security`, identity and access per role, secrets, data protection. State that the product bundles its fonts and assets; the prototype's CDN use does not carry over to the product.
+   - **Security:** the rules of `project.yaml` `security`, identity and access per role, secrets, data protection. State that the product bundles its own fonts and assets; a prototype's use of hosted libraries or assets does not carry over to the product.
    - **Observability:** logs, metrics, traces and alerts, without customer content in logs.
    - **NFR mapping:** one row per NFR in `nfr.md`: the mechanism that meets it and how it is verified.
    Diagrams are Mermaid code blocks inside the Markdown.
@@ -88,7 +88,7 @@ Designs the architecture, data model, backend technology and design patterns for
 
 - Features that arrive after the architecture is designed cause the refactors this workflow exists to prevent: design only for the feature set the customer signed off, across all releases, not only the MVP.
 - Decide on evidence: a validation result can overturn a *Proposed* ADR; a pending one keeps the decision open, in writing.
-- The prototype loads its libraries and fonts from a CDN; the product does not. Restate the product's own security rules here.
+- A prototype may load libraries and fonts from a hosted source; the product does not. Restate the product's own security rules here.
 - Write every file with the file tools, not heredocs (literal `\n` in a Bash heredoc once became real newlines).
 
 ## Handoff

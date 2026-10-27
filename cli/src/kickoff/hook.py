@@ -6,20 +6,18 @@ exit 0 (see commands/hook_cmd.py). A tree without .kickoff/ is never touched."""
 
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path, PurePosixPath
 
 from .ecc import doctor
 from .errors import KickoffError
-from .fe import KIT_NAME, KIT_PACKAGE, fe_root
 from .model import KICKOFF_DIR, ModelError, find_root, load_project, load_state
 from .state import blockers, status_lines
 from .validate import validate_root
 
 CLI_ONLY = {
     f"{KICKOFF_DIR}/state.yaml": "state.yaml is written by the kickoff CLI only: use kickoff phase, kickoff gate "
-                                 "or kickoff fe record",
+                                 "or kickoff prototype record",
 }
 GATEGUARD_HINT = ("ECC GateGuard asks for facts before the first write of each file. If it gets in the way, offer "
                   "`kickoff ecc setup` (show `--dry` first; it exempts only kickoff documents). Never turn GateGuard "
@@ -56,14 +54,6 @@ def _under(path: Path, folder: Path) -> PurePosixPath | None:
     return PurePosixPath(os.path.normcase(str(rel)).replace(os.sep, "/"))
 
 
-def _is_kickoff_kit(folder: Path) -> bool:
-    """Guard only the plugin's package, not a project folder that happens to be called packages/kit."""
-    try:
-        return json.loads((folder / "package.json").read_text(encoding="utf-8")).get("name") == KIT_NAME
-    except (OSError, ValueError, AttributeError):
-        return False
-
-
 def session_start(payload: dict) -> tuple[int, str]:
     root = _root(Path(payload.get("cwd") or Path.cwd()))
     if not root:
@@ -97,7 +87,6 @@ def pre_write(payload: dict) -> tuple[int, str]:
     try:
         project = load_project(root)
         arch = _under(path, project.docs_dir(root) / "04-architecture")
-        kit = _under(path, fe_root(root, project) / KIT_PACKAGE)
     except KickoffError:
         return 0, ""  # a broken project.yaml is validate's finding, not a reason to block every write
     if arch is not None and arch.parts[:1] != ("adr",):
@@ -107,9 +96,6 @@ def pre_write(payload: dict) -> tuple[int, str]:
             reasons = []
         if reasons:
             return 2, "architecture documents wait for C3 and C4: " + "; ".join(reasons)
-    if kit is not None and "node_modules" not in kit.parts and _is_kickoff_kit(fe_root(root, project) / KIT_PACKAGE):
-        return 2, ("packages/kit is plugin-owned and replaced by kickoff fe update; build in apps/web, "
-                   "packages/ui or packages/mocks")
     return 0, ""
 
 

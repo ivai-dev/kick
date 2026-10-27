@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "phases", "gates", "stale"],
   "$defs": {
-    "phase": { "enum": ["init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "design-direction", "prototype", "signoff", "solution", "plan", "tickets"] }
+    "phase": { "enum": ["init", "discovery", "research", "feature-map", "design-concept", "ux-design", "prototype", "signoff", "solution", "plan", "fe-foundation", "design-direction", "tickets"] }
   },
   "properties": {
     "schema_version": { "const": 1 },
@@ -16,7 +16,7 @@
     },
     "gates": {
       "type": "object",
-      "propertyNames": { "enum": ["C1", "C2", "CF", "CD", "C3", "C4", "C5", "C6"] },
+      "propertyNames": { "enum": ["C1", "C2", "CD", "C3", "C4", "C5", "C6", "CF"] },
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,

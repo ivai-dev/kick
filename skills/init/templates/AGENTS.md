@@ -12,9 +12,6 @@ Working rules for everyone who changes this repository. Keep this file short and
 | --- | --- | --- |
 | `.kickoff/` | Project settings, features, plan and state (source of truth for the plan) | Project lead |
 | `docs/` | Discovery, requirements, research, architecture, design and planning documents | Project lead |
-| `apps/web/` | The FE v0: screens (`src/screens/`), the screen registry and scenarios (`src/kickoff/`), tokens (`src/styles/tokens.css`) | Frontend developer |
-| `packages/ui/`, `packages/mocks/` | Shared UI components (shadcn on Radix) and the mock data layer behind the API client | Frontend developer |
-| `packages/kit/` | `@kickoff/kit`, plugin-owned: router, shells, prototype bar, checks; replaced by `kickoff fe update`, never edited | — |
 | `{{path}}` | {{contents: filled when the code structure exists}} | {{role}} |
 
 ## Security rules
@@ -43,11 +40,12 @@ The project follows the kickoff phases. Run `kickoff status` to see where it sta
 | 1 | discovery | vision and scope, stakeholders, open questions, decision log | C1 Vision | Project lead |
 | 2 | research | validation plan, proposed ADRs, assumptions | — | — |
 | 3 | feature-map | feature map, non-functional requirements | C2 Draft scope | Project lead |
-| 4 | ux-design | UX specification, design system | — | — |
-| 5 | prototype | clickable full-product prototype | prototype checks pass | — |
-| 6 | signoff | workshop pack, sign-off record | C3 Features signed off, C4 MVP locked | Customer; project lead and customer |
-| 7 | solution | architecture, data model, accepted ADRs | C5 Solution | Project lead |
-| 8 | plan | WBS, schedule, estimate workbook, risks | C6 Baseline | Project lead |
+| 4 | design-concept | design brief, concepts, co-design record, the chosen concept | CD Customer chose the design concept | Customer |
+| 5 | ux-design | UX specification with screen inventory, the project's design rules | — | — |
+| 6 | prototype | clickable or experienceable full-product prototype, coverage list | — | — |
+| 7 | signoff | workshop pack, sign-off record | C3 Features signed off, C4 MVP locked | Customer; project lead and customer |
+| 8 | solution | architecture, data model, accepted ADRs | C5 Solution | Project lead |
+| 9 | plan | WBS, schedule, estimate workbook, risks | C6 Baseline | Project lead |
 
 Rules:
 
@@ -57,6 +55,10 @@ Rules:
 - Merges, branch deletions, publishing and pushes to shared branches are confirmed with the project lead first.
 - Tickets and documents name the owning role, never a person.
 
+## Design
+
+The project's design rules live in `<docs_root>/05-design/design-rules.md`: each rule has its reason in the design brief and a test. Change a design rule there, with its reason, never in passing. Concepts, structure and look are chosen by the customer; design choices and gate requests are shown as decision cards (options visible, the cost of a wrong choice, "none of these", "show me first").
+
 ## Toolkit
 
 The project uses two Claude Code plugins: kickoff, and ECC (`ecc@ecc`).
@@ -64,7 +66,7 @@ The project uses two Claude Code plugins: kickoff, and ECC (`ecc@ecc`).
 - **Kickoff owns** the gates, `.kickoff/`, the IDs, the documents under `docs_root`, the plan, the schedule and the WBS export.
 - **ECC does the work it is given:** research, options, reviews, and after the baselined plan the build, review, QA and release (`orch-*`).
 - **ECC output becomes evidence:** its reports are saved under `docs_root` and cited when a gate is approved; they never approve a gate themselves.
-- **The CLI owns `.kickoff/state.yaml`:** a hook refuses hand edits; use `kickoff phase`, `kickoff gate` and `kickoff fe record`.
+- **The CLI owns `.kickoff/state.yaml`:** a hook refuses hand edits; use `kickoff phase`, `kickoff gate` and `kickoff prototype record`.
 
 ## Definition of Done
 

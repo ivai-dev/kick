@@ -96,4 +96,4 @@ Builds `.kickoff/plan.yaml` with the project lead (phases, groups and work packa
 
 ## Handoff
 
-Draft: continue the design phases (`kickoff:ux-design`, `kickoff:fe-foundation`, `kickoff:design-direction`, `kickoff:prototype`, `kickoff:signoff`). Baseline with C6: the kickoff is complete. Run `kickoff export` and give the lead `wbs.csv`, `wbs.json` and `wbs-items.md` (`<docs_root>/06-planning/export/`) to import into the team's tracker or to hand to an ECC session; kickoff itself creates no issues. `kickoff:feedback` handles later customer feedback.
+Draft: continue the design phases (`kickoff:design-concept`, `kickoff:ux-design`, `kickoff:prototype`, `kickoff:signoff`). Baseline with C6: the kickoff is complete. Run `kickoff export` and give the lead `wbs.csv`, `wbs.json` and `wbs-items.md` (`<docs_root>/06-planning/export/`) to import into the team's tracker or to hand to an ECC session; kickoff itself creates no issues. `kickoff:feedback` handles later customer feedback.

@@ -9,6 +9,8 @@ from pathlib import Path
 from .errors import KickoffError
 from .model import Features, ModelError, Plan, Project, load_raw
 from .schedule import CycleError, build_schedule
+from .uxspec import forbidden_patterns, parse_inventory, ux_spec_path
+from .uxspec import problems as inventory_problems
 
 FEATURE_REF = re.compile(r"\bF\d+\.\d+\b")
 
@@ -216,6 +218,10 @@ def check_docs(project: Project, paths: list[Path]) -> tuple[list[str], int]:
         patterns = [re.compile(p, re.I) for p in project.rules.get("forbidden_phrases") or []]
     except re.error as exc:
         raise KickoffError(f"rules.forbidden_phrases in project.yaml: invalid regular expression: {exc}") from exc
+    try:
+        patterns += [re.compile(p, re.I) for p in forbidden_patterns(project)]
+    except re.error as exc:
+        raise KickoffError(f"design.forbidden in project.yaml: invalid regular expression: {exc}") from exc
     files = _doc_files(paths)
     out: list[str] = []
     for f in files:
@@ -249,7 +255,35 @@ def validate_root(root: Path) -> list[Finding]:
     except KickoffError as exc:
         return [Finding("error", "model", str(exc))]
     return [*check_plan(project, plan), *check_features(project, plan, features),
-            *check_languages(project, plan), *check_phrases(project, raw), *check_legacy(root, raw)]
+            *check_languages(project, plan), *check_phrases(project, raw), *check_ux_spec(root, project, features),
+            *check_legacy(root, raw)]
+
+
+def check_ux_spec(root: Path, project: Project, features: Features) -> list[Finding]:
+    """The screen inventory of the ux-spec, once the file exists: well-formed rows, releases that exist, and the
+    features' `screens` IDs on both sides of it."""
+    try:
+        path = ux_spec_path(root, project)
+    except KickoffError as exc:
+        return [Finding("error", "project.yaml design.ux_spec", str(exc))]
+    if not path.is_file():
+        return []
+    rows = parse_inventory(path)
+    if not rows:
+        return []
+    where = path.relative_to(root).as_posix()
+    out = [Finding(level, where, text) for level, text in inventory_problems(rows, {r.id for r in project.releases})]
+    known = {row["code"].lower() for row in rows if row["code"]}
+    active = [f for f in features.all() if f.status == "active"]
+    for f in active:
+        for sid in f.screens:
+            if sid.lower() not in known:
+                out.append(Finding("error", f.id, f"screen {sid} is not in the ux-spec screen inventory"))
+    served = {sid.lower() for f in active for sid in f.screens}
+    for row in rows:
+        if row["code"] and row["code"].lower() not in served:
+            out.append(Finding("warning", where, f"screen {row['code']} is served by no active feature"))
+    return out
 
 
 def check_legacy(root: Path, raw: dict[str, dict]) -> list[Finding]:
@@ -260,4 +294,9 @@ def check_legacy(root: Path, raw: dict[str, dict]) -> list[Finding]:
         out.append(Finding("warning", "tickets.yaml", "kickoff no longer syncs a tracker; the file can be deleted"))
     if raw.get("project", {}).get("tracker") is not None:
         out.append(Finding("warning", "project.yaml tracker", "ignored since kickoff 0.6; the setting can be deleted"))
+    project = raw.get("project", {})
+    old = [k for k in ("fe", "proto") if project.get(k) and not project.get("design")]
+    if old:
+        out.append(Finding("warning", f"project.yaml {old[0]}",
+                           "renamed `design` in kickoff 0.8 (keys `ux_spec` and `forbidden`; `dir` is gone): rename it"))
     return out

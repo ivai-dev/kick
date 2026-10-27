@@ -2,6 +2,51 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.8.0] - 2026-10-27
+
+Process, not stack. A game project run through 0.7.0 came out of `ux-design` as a web management console. The plugin shipped one product shape (shells `app` and `site`, four business home shapes and a floor of rules taken from two web projects), so a product that is not a web app had nowhere to go; structure was decided early, alone and unreviewed, and the customer chose only colours at CD; and the confirmations were blind, one-line options with no preview and no word on what a wrong answer costs. Now the plugin holds process and design philosophy only and runs for any project (web, game, mobile, desktop, service). Spec: docs/plans/2026-10-27-kickoff-v0.8.0.md.
+
+**Breaking:**
+- The FE kit and every shipped design rule are removed (see Removed). `fe-foundation` and gate CF are gone; `design-direction` becomes `design-concept` and runs before `ux-design`; the prototype is built with tools the project chooses.
+- New order: `design-concept` needs `feature-map` and C2; `ux-design` needs `design-concept` and CD; `prototype` needs `ux-design`. CD is approved by the customer after `design-concept` and covers structure and feel, not only colour.
+- `kickoff fe ...` and `kickoff design ...` are gone; `kickoff prototype record` replaces `kickoff fe record`.
+- The `fe` block of `project.yaml` is renamed `design` and keeps `ux_spec` and `forbidden`; `fe.dir` is dropped.
+- Anthropic `frontend-design` and `impeccable` are no longer required: they are optional aids for web UI.
+- The ECC manifest drops the components only the removed skills used.
+
+### Changed
+
+- **`design-direction` is rewritten as `design-concept`:** a design brief that names the category's default and its predictable opposite, two or three concepts that differ in kind, a co-design session with the customer, and gate CD for structure and feel.
+- **`ux-design` loses the structural rule set and the web-shaped templates.** It derives the project's own `design-rules.md` (each rule with its reason in the brief and a test) in place of `design-system.md`, and ends with a review by the agents and a written fit test.
+- **`prototype` is tool-agnostic:** the tooling is an ADR in the phase and decides no backend matter. It writes `prototype-coverage.md` and the build plan, and ends with a design review.
+- **The five review agents** take their criteria from the brief, the project's `design-rules.md` and the philosophy, not from shipped values. They run on the concepts and the ux-spec as well as on the prototype; `art-director` applies the category-default test and the fit test; `craft-auditor` audits what the project's rules state; `integrator` returns its decisions for the lead as decision cards.
+- **`kickoff validate` checks the ux-spec screen inventory** (the first table headed `ID`, five columns; unique IDs; existing releases; every screen of an active feature listed; an unserved screen is a warning). A "screen" is any unit of experience: a screen, scene, level or flow state.
+- **`kickoff check-docs` applies `design.forbidden`** to the files it is given.
+- `using-kickoff` loses the design-tools start-up check and gains red flags for the new habits; `init` asks a Design question in place of the Frontend one; the `AGENTS.md` template drops the stack and kit lines.
+- Rulings are listed to the lead at every task-group end and every gate, not only at the end of a phase.
+
+### Removed
+
+- The kit and its template (`packages/kit`, `apps/`, `packages/ui`, `packages/mocks` scaffolds), `kickoff fe new|update|check|bundle|record`, `kickoff design doctor|setup`, the pre-write guard of `packages/kit`, the CI job `fe`, the Direction switch and the Tweaks panel.
+- The skill `kickoff:fe-foundation` and gate CF.
+- The shipped rules and references: `foundation-rules.md`, `content-and-craft.md`, `guidance-library.md`, `data-at-volume.md`, the `design-system.md` template, `screen-checklist.md`, `design-tools.md`, and the exception for the presentation stack in the core principle.
+
+### Added
+
+- **`using-kickoff/references/design-philosophy.md`:** eleven principles each with a test, the brief questions that decide the form, the fit test, and the shape of a project's own rules.
+- **The Decision card method** (`methods.md`): what is decided and locked; two or three options with what the person will see, who it serves, the cost and where a wrong choice would surface; a recommendation; what was assumed; always "none of these" and "show me first". Every design confirmation and gate request uses it.
+- **`kickoff prototype record --artifact <link|path> [--version <n>]`.**
+- **`design-rules.md` template**, and the `design` block of `project.yaml`.
+- Lessons rows 16–18: structure decided early and unreviewed, a bare two-option confirmation, one product's rules becoming every product's floor.
+
+### Migration
+
+- **State** is migrated when it is loaded and written back with the next change: `design-direction` is renamed `design-concept`; `fe-foundation` and gate CF are dropped; a project whose `ux-design` is done, has no `design-concept` and has not started `prototype` gets `ux-design` marked stale and re-runs it after CD; a project that started `prototype` before CD existed keeps the legacy rule (the phase and CD count as satisfied, and `kickoff status` shows `skipped (…)`). No manual edit is needed.
+- **Projects on the FE v0 (0.5 to 0.7)** keep `apps/` and `packages/` as plain project code. Kickoff no longer owns, updates or guards `packages/kit`; the kit and its rules stay in git history under the tag `v0.7.0`.
+- **`project.yaml`:** rename `fe` to `design` and drop `fe.dir`. A project that still has `fe` or `proto` is read as before and `kickoff validate` warns.
+
+Spec: docs/plans/2026-10-27-kickoff-v0.8.0.md.
+
 ## [0.7.0] - 2026-10-21
 
 Design studio. Products made with kickoff looked alike: the direction came from a lookup by product type (`ui-ux-pro-max --design-system` gave two of four B2B briefs the same `#2563EB`), and the FE template defaulted to blue and Segoe UI. Now the customer chooses the look from two or three directions drawn from the product's own world, on the real FE v0 screens, before the prototype is built. Spec: docs/plans/2026-10-21-kickoff-v0.7.0.md.
