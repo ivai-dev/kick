@@ -30,7 +30,6 @@ rules:
   synthetic_data_only: true
   forbidden_phrases: []
 security: []
-fe:
-  dir: "."
+design:
   ux_spec: docs/05-design/ux-spec.md
   forbidden: []

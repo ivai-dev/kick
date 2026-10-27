@@ -142,9 +142,9 @@ class Project:
     hard_dates: dict[str, date]
     rules: dict[str, Any]
     security: list[str]
-    proto: dict[str, Any]
-    fe: dict[str, Any]
+    design: dict[str, Any]
     date_format: str
+    design_key: str = ""  # the project.yaml key `design` was read from: "design", or a legacy "fe" or "proto"
 
     @classmethod
     def from_dict(cls, d: dict) -> Project:
@@ -159,6 +159,7 @@ class Project:
         releases = [
             Release(r, r) if isinstance(r, str) else Release(r["id"], r.get("name", r["id"])) for r in d["releases"]
         ]
+        design_key = next((k for k in ("design", "fe", "proto") if d.get(k)), "")
         return cls(
             name=d["name"],
             languages=d["languages"],
@@ -170,9 +171,9 @@ class Project:
             hard_dates={k: to_date(v) for k, v in (d.get("hard_dates") or {}).items()},
             rules=d.get("rules") or {},
             security=d.get("security") or [],
-            proto=d.get("proto") or {},
-            fe=d.get("fe") or {},
+            design=dict(d[design_key]) if design_key else {},
             date_format=d.get("date_format", "%d/%m/%Y"),
+            design_key=design_key,
         )
 
     def docs_dir(self, root: Path) -> Path:
@@ -366,6 +367,8 @@ def load_features(root: Path) -> Features:
 
 
 def load_state(root: Path) -> dict:
-    return load_raw(root, "state")
+    from .state import migrate  # state imports this module
+
+    return migrate(load_raw(root, "state"))
 
 

@@ -11,23 +11,22 @@ import yaml
 from .errors import KickoffError
 from .model import KICKOFF_DIR, write_yaml
 
-PHASES = ["init", "discovery", "research", "feature-map", "ux-design", "fe-foundation", "design-direction",
-          "prototype", "signoff", "solution", "plan"]
-GATES = {"C1": "Vision approved", "C2": "Draft scope approved", "CF": "Frontend foundation approved",
-         "CD": "Customer approved the design direction",
+PHASES = ["init", "discovery", "research", "feature-map", "design-concept", "ux-design", "prototype", "signoff",
+          "solution", "plan"]
+GATES = {"C1": "Vision approved", "C2": "Draft scope approved",
+         "CD": "Customer chose the design concept",
          "C3": "Customer signed off the full feature set",
          "C4": "MVP locked", "C5": "Solution approved", "C6": "Plan baselined"}
-GATE_AFTER = {"C1": "discovery", "C2": "feature-map", "CF": "fe-foundation", "CD": "design-direction",
+GATE_AFTER = {"C1": "discovery", "C2": "feature-map", "CD": "design-concept",
               "C3": "signoff", "C4": "signoff", "C5": "solution", "C6": "plan"}
 REQUIRES: dict[str, tuple[list[str], list[str]]] = {
     "init": ([], []),
     "discovery": (["init"], []),
     "research": (["discovery"], ["C1"]),
     "feature-map": (["discovery"], ["C1"]),
-    "ux-design": (["feature-map"], ["C2"]),
-    "fe-foundation": (["ux-design"], ["C2"]),
-    "design-direction": (["fe-foundation"], ["CF"]),
-    "prototype": (["design-direction"], ["CD"]),
+    "design-concept": (["feature-map"], ["C2"]),
+    "ux-design": (["design-concept"], ["CD"]),
+    "prototype": (["ux-design"], []),
     "signoff": (["prototype"], []),
     "feedback": (["prototype"], []),
     "solution": (["signoff"], ["C3", "C4"]),
@@ -42,9 +41,32 @@ DOC_DIRS = ["01-discovery", "02-requirements", "03-research", "04-architecture/a
 # A phase added in a later release, for projects that were past it when it arrived:
 # phase -> (its gate, the release, phases that show the project is past it, and whether "started" is enough)
 LEGACY = {
-    "fe-foundation": ("CF", "0.5.0", "prototype built", False),
-    "design-direction": ("CD", "0.7.0", "prototype started", True),
+    "design-concept": ("CD", "0.7.0", "prototype started", True),
 }
+
+
+def migrate(state: dict) -> dict:
+    """Bring a state file written by kickoff 0.7 or older to the 0.8 phases and gates, in memory; the next change
+    to state.yaml writes the result. `design-direction` is now `design-concept`; `fe-foundation` and gate CF are
+    gone. The design concept now comes before `ux-design`: a project that finished `ux-design` without it re-runs
+    `ux-design` after the concept (stale), and one that was part-way through `ux-design` starts it again after the
+    concept (its draft documents stay)."""
+    phases, stale = state["phases"], state["stale"]
+    if "design-direction" in phases:
+        phases["design-concept"] = phases.pop("design-direction")
+    phases.pop("fe-foundation", None)
+    state["gates"].pop("CF", None)
+    renamed = ["design-concept" if p == "design-direction" else p for p in stale if p != "fe-foundation"]
+    stale[:] = [p for i, p in enumerate(renamed) if p not in renamed[:i]]
+    past = "prototype" in phases or any(phases.get(p) == "done" for p in ("signoff", "solution"))
+    if "design-concept" not in phases and not past:
+        if phases.get("ux-design") == "done" and "ux-design" not in stale:
+            stale.append("ux-design")
+        elif phases.get("ux-design") == "in_progress":
+            del phases["ux-design"]
+            state.setdefault("history", []).append("ux-design reset: the design concept now comes first (0.8)")
+    stale.sort(key=PHASES.index)
+    return state
 
 
 def legacy(state: dict, phase: str) -> bool:

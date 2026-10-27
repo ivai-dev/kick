@@ -13,20 +13,19 @@ from .errors import KickoffError
 
 def commands() -> list:
     """Command modules, each with register(subparsers) and run(args) -> int; imported on demand, because
-    `kickoff hook` runs on every edit and must not pay for jsonschema, yaml and the frontend tooling."""
+    `kickoff hook` runs on every edit and must not pay for jsonschema and yaml."""
     from .commands import (
-        design_cmd,
         docs_cmd,
         ecc_cmd,
         export_cmd,
-        fe_cmd,
+        prototype_cmd,
         schedule_cmd,
         state_cmd,
         validate_cmd,
         workbook_cmd,
     )
 
-    return [schedule_cmd, validate_cmd, docs_cmd, workbook_cmd, export_cmd, state_cmd, fe_cmd, design_cmd, ecc_cmd,
+    return [schedule_cmd, validate_cmd, docs_cmd, workbook_cmd, export_cmd, state_cmd, prototype_cmd, ecc_cmd,
             hook_cmd]
 
 

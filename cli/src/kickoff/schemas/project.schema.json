@@ -113,6 +113,14 @@
       }
     },
     "security": { "type": "array", "items": { "type": "string" } },
+    "design": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ux_spec": { "$ref": "#/$defs/relpath" },
+        "forbidden": { "type": "array", "items": { "type": "string" } }
+      }
+    },
     "fe": {
       "type": "object",
       "additionalProperties": false,
