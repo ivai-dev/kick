@@ -1,6 +1,6 @@
 # Working methods
 
-Six methods every kickoff skill uses. Phase skills name them by section heading ("the Interview method") and carry a one-line rule card where they apply; this file holds the full text.
+Seven methods every kickoff skill uses. Phase skills name them by section heading ("the Interview method") and carry a one-line rule card where they apply; this file holds the full text. A design choice or a gate request uses the Decision card method, never a bare list of options.
 
 ## Interview
 
@@ -67,6 +67,38 @@ Example:
 
 Recommendation: B, validated by V2 (accuracy on 3 synthetic recordings) before C5.
 
+## Decision card
+
+**Rule:** a design choice or a gate request is a card: what it decides and locks; 2–3 options, each with what the person will see, who it serves, what it costs and where a wrong choice would surface; a recommendation with its reason; what was assumed; and always "none of these" and "show me first".
+
+Use it for every design confirmation (the brief, concepts, structure, the spec, the prototype approach) and for every gate request. The Interview method fills fields; the Option decision method records an engineering choice as an ADR. A card is how a person who cannot see the result yet makes a choice they will not regret.
+
+Steps:
+
+1. Write the card before asking. If the options cannot be pictured from words, make them visible first: a sketch, an ASCII layout, a screenshot of a reference, a quick mock, or a scenario told as a short story. Ask in the same message as the picture.
+2. The card has these parts, in this order:
+   - **Decision:** one sentence, and what it locks ("after this the screen inventory is built on it").
+   - **Options (2–3):** for each, **what you will see or do** (the picture or a concrete example), **who it serves and who it fails**, **cost** (effort, and the work that would be redone), and **found wrong in:** the phase or event in which a mistake would surface.
+   - **Recommendation:** one option and the reason in one or two sentences, tied to the brief.
+   - **Assumed:** what you decided on the person's behalf or guessed, as a list they can strike.
+   - **Always offered:** "none of these" (they describe what they want) and "show me first" (you produce a sketch or mock before they choose).
+3. One decision per card. Several small related decisions may share one message when they are shown together, each with its own recommendation.
+4. Restate the choice in one line ("Recorded: …") and what it now locks. A choice made on "show me first" is asked again after the picture.
+5. For a gate request, the card is: what is being approved, what becomes expensive to change afterwards, the rulings taken without the approver so far, the open risks, and what you are least sure of.
+6. Record the result where the phase's template says (a decision `D<n>`, the brief, the concept record), with the options that were not chosen.
+
+Example:
+
+> **Decision:** how a player moves between the town and a dungeon. Locks the scene list and the loading rules of `ux-design`.
+>
+> | Option | What you will see | Serves / fails | Cost | Found wrong in |
+> | --- | --- | --- | --- | --- |
+> | A. A world map | `[town]──[forest]──[dungeon]`, travel by choosing a node | Explorers / players who want to arrive fast | 4 extra scenes | the prototype review |
+> | B. A door in the town | the dungeon entrance is a building you walk into | Quick sessions / a sense of travel | 1 scene | the prototype review |
+> | C. A menu list | "Go to: Town · Forest · Dungeon" | Speed / immersion | none | the customer's first look |
+>
+> Recommendation: B, because the brief asks for sessions of ten minutes and a closed town. Assumed: no more than three destinations at launch. Also: none of these · show me a sketch first.
+
 ## Build plan
 
 **Rule:** a checklist of tasks; each names its files, inputs, exact verification command and expected output; every task leaves the project working.
@@ -88,9 +120,9 @@ Example:
 ```markdown
 - [ ] **Task 3: Meetings screen group**
   - Files: `apps/web/src/screens/sc-03.tsx` … `sc-07.tsx`, `packages/mocks/src/contract/meeting.ts`
-  - Inputs: `ux-spec.md` screens SC-03..SC-07, `design-system.md`
-  - Verify: `kickoff fe check`
-  - Expected: exit 0 and `prototype check passed` (all routes and scenarios, coverage complete)
+  - Inputs: `ux-spec.md` screens SC-03..SC-07, `design-rules.md`
+  - Verify: open each of the five screens in the scenario "Book a loan" and tick it in `prototype-coverage.md`
+  - Expected: the five rows read "shown", with the extremes (empty list, 2,000 rows, the longest name) captured
 ```
 
 ## Task run
@@ -120,7 +152,7 @@ Steps:
 
 1. Run every command listed in the skill's Verify section, in order.
 2. Read the real output and exit code of each. Do not infer a result from an earlier run or from the absence of an error message.
-3. Report each check as passed, failed (quote the failing lines) or skipped (say why: `kickoff fe check` exit 4 means pnpm or a browser for the e2e sweep is missing; `kickoff workbook --verify` without Docker says the recalculation was skipped). A skipped check is never reported as passed.
+3. Report each check as passed, failed (quote the failing lines) or skipped (say why: a tool the project uses is missing, or `kickoff workbook --verify` without Docker says the recalculation was skipped). A skipped check is never reported as passed.
 4. With any failure, the phase is not done: fix it and run the checks again, or stop and report.
 5. When every check passes, run `kickoff phase done <phase>` and make a Conventional Commit. `feedback` is not a phase: it ends with its commit and the gate reopen, without `kickoff phase done`.
 

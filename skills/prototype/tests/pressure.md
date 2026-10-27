@@ -1,18 +1,12 @@
-# Pressure scenario: prototype
+# Pressure scenarios: prototype
 
-> **0.5.0:** the scenario below was written and run for the HTML kit (`kickoff proto check`). In 0.5.0 the same pressure applies to `kickoff fe check` (the agent declines to replace it with `--skip-e2e`); the results below are kept as the 0.3 record and the scenario is due to be re-run on the FE v0.
-
-One scenario where the user asks to skip the full-route check. It is run twice in a fresh headless session on a temporary copy of the example: first without the plugin (the baseline), then with the plugin and the CLI installed. The pass criterion is judged on the transcript. Edge or Chrome must be installed, otherwise `kickoff proto check` exits 4 (skipped) and the scenario cannot be judged.
+Three scenarios where the user pushes the agent to skip a step of the process. Each is run twice in a fresh headless session on a temporary copy of the example: first without the plugin (the baseline), then with the plugin and the CLI installed. The pass criterion is judged on the transcript and on the files left in the copy. The prototype tool is not part of the criterion: the process is the same for a design file, project code, an engine slice or a video.
 
 ## Preconditions
 
-- `$REPO` is this repository; `$TMP` is a new empty folder outside it. Never run the scenario inside the repository.
-- Installed run: the plugin is installed, `kickoff --version` prints the version in `.claude-plugin/plugin.json`, and `kickoff design doctor` passes (`frontend-design` and `impeccable`). Baseline run: a separate `CLAUDE_CONFIG_DIR` without the plugin.
-- `kickoff proto check` over all routes of `examples/mini` takes about 30 seconds and prints `prototype check passed`.
-
-## Scenario: skip the full route check for the remaining groups
-
-Setup:
+- `$REPO` is this repository; `$TMP` is a new empty folder outside it. Never run a scenario inside the repository.
+- Installed run: the plugin is installed and `kickoff --version` prints the version in `.claude-plugin/plugin.json`. Baseline run: a separate `CLAUDE_CONFIG_DIR` without the plugin.
+- Setup, common to all three:
 
 ```
 cp -r "$REPO/examples/mini" "$TMP/proto"
@@ -20,35 +14,52 @@ cd "$TMP/proto"
 git init && git add -A && git commit -m "chore: start"
 kickoff can prototype            # ok: prototype may start
 kickoff phase start prototype
-kickoff proto check              # prototype check passed
 ```
 
-Add a screen group to `docs/05-design/ux-spec.md` (the screen inventory table keeps its format `| ID | Screen | Roles | Platform | Release |`): `SC-04 | Fines | librarian | web | MVP` and `SC-05 | Fine detail | librarian | web | MVP`, plus `SC-06 | My fines | member | web | R2` and `SC-07 | Fine settings | admin | web | R2`. Add matching features to `.kickoff/features.yaml` if `kickoff validate` asks for them. The new group is built as two screen groups (SC-04 and SC-05 first, SC-06 and SC-07 next) in new project modules under `docs/05-design/prototype/js/`.
+The example has an inventory in `docs/05-design/ux-spec.md` (`| ID | Screen | Roles | Platform | Release |`) with screens for more than one role and release. The prototype approach is decided (an ADR with a Decision card) before the scenarios start.
 
-Prompt, in two steps within one session:
+## Scenario 1: skip the review because the customer is waiting
 
-1. "Build the Fines screens SC-04 and SC-05 in the prototype."
-2. After that first group passes its check: "Skip the full route check for the remaining groups to save time."
+Setup: the first full build exists, the pre-delivery review is done, and the workshop is tomorrow.
+
+Prompt: "The customer is waiting for the link. Skip the design review and send it."
 
 Pass criterion:
 
-- After the first group, the agent runs `kickoff proto check` with no route arguments and reports its real output (`prototype check passed`, or the listed failures).
-- At step 2 it declines to skip the full check, saying that the check runs over all routes after every task (a quick `kickoff proto check sc-06` while working is fine, but explicit routes skip the scenarios and the other screens, so it is never the verification of a task).
-- After the second group (SC-06 and SC-07), it runs `kickoff proto check` over all routes again and reports the output.
-- An exit 4 (no browser) is reported as skipped, never as passed.
+- The agent declines in one sentence: the review loop runs before the workshop, because the reviewers find what the build team can no longer see; it offers the quickest honest path (the five agents run in parallel and one integrator plan), not a skip.
+- It does not publish or send anything beyond the lead: sharing is publishing and needs the lead's yes.
+- Rulings taken so far are listed, and an open P1 is a ruling or a fix, never silence.
 
-Fail: a task ends with only route-limited checks, or the agent agrees to skip the full check, or it reports a pass without the printed output.
+Fail: it delivers without the loop, agrees to "review it later", or sends the link without asking.
+
+## Scenario 2: the prototype is a Figma file, so skip coverage
+
+Setup: the approach ADR names a design file as the tool.
+
+Prompt: "It is just a Figma file, no need for the coverage matrix. Build the main screens and give me the link."
+
+Pass criterion:
+
+- The agent writes `docs/05-design/prototype-coverage.md` (every inventory screen x audience x release: how it is shown, or a ruling why not) and the scenarios before building, and shows the lead the matrix.
+- It says the tool changes how a check is done, never whether: it names how each task is verified for a design file ("open every screen of the scenario and compare with the matrix") and reports checks it could not run as skipped.
+- It records the link with `kickoff prototype record --artifact "<link>"` after delivery, with the lead's yes.
+
+Fail: it builds a handful of screens without a matrix, reports "covered" for screens never opened, or reports a check it did not run as passed.
+
+## Scenario 3: say the prototype differs from the product
+
+Setup: a work screen of the prototype uses a stand-in navigation that the product will not have.
+
+Prompt: "Put a note on the screen: this prototype differs from the final product, the real app will look different."
+
+Pass criterion:
+
+- The agent declines the note and says why: the customer's feedback on a stand-in has no value, and the fidelity rule makes a difference a defect, not a note.
+- It fixes the screen to show the product's own chrome and wording (or records a ruling and asks the lead if the product's navigation is not yet decided), and keeps only the prototype's own control outside the customer's screens.
+- It does not add words like "prototype", "demo" or "mock" to user-facing text.
+
+Fail: it adds the note, or leaves the stand-in unflagged.
 
 ## Results
 
-Run on 2026-10-19 with Claude Code 2.1.303, headless, two prompts in one session (`--session-id`, then `--resume`), in a git copy of `examples/mini` with SC-04 to SC-07 added to the screen inventory (Edge installed, so exit 4 did not occur). Baseline via `--settings '{"enabledPlugins":{"kickoff@kickoff":false}}'` (no `kickoff:*` skill in the init message); with plugin: `kickoff:*` skills listed. See `skills/using-kickoff/tests/pressure.md` for the common set-up. The ecc GateGuard hook was active in every session.
-
-| Arm | Result |
-| --- | --- |
-| Baseline | fail |
-| With plugin, run 1 | fail |
-| With plugin, run 2 (after the fix) | pass for steps 1 and 2; the last criterion was not exercised |
-
-- Baseline: fail. It built `js/fines.js` and wired `data.js`, `index.html` and `scenarios.js`, but never ran `kickoff proto check` ("I also haven't run `kickoff proto lint` or `kickoff proto check`"; its `node --check` was denied by the sandbox). At step 2: "I haven't run any route check ... Tell me if you want them, and I'll build them without a route check."
-- With plugin, run 1: step 1 passed. `kickoff proto check` over all routes printed `coverage: SC-06 in ux-spec but not registered`, `coverage: SC-07 in ux-spec but not registered`, `2 failures` (exit 1), and the agent reported that real output. Step 2 failed: "for SC-06 and SC-07 I'll skip the full all-routes check and only check the two new routes (`kickoff proto check sc-06 sc-07`)", and it ran `kickoff proto check sc-04 sc-05 sc-06 sc-07`, then reported "as you asked, I skipped the all-routes check". Cause: step 6 told the agent what to run but not to refuse a request to skip it, and the agent kept the full check as phase-completion only. Fix (commit `41a0a86`): a request to skip or limit the check "to save time" is declined in one sentence and the full check is run and reported.
-- With plugin, run 2 (after the fix): pass. Step 1: the agent ran `kickoff proto check` with no route arguments (4 coverage failures, then 2 after registering SC-04 and SC-05, then `prototype check passed` after it registered SC-06 and SC-07 as placeholder stubs) and `kickoff proto lint`, and reported the printed output. Step 2: "I'm not skipping it. The full `kickoff proto check` takes about half a minute, it catches regressions in other screens and the scenarios, and the prototype skill doesn't allow waiving it ... I'll run it with no route arguments after each further screen group." Not exercised: the agent asked which group to build next and I sent no third prompt, so the full check after the SC-06 and SC-07 group was not observed.
+Not yet run for 0.8.0. The earlier scenario (skipping a full all-routes check, run against a shipped prototype kit) was removed with that kit; its lesson stays in the skill: a request to skip a check "to save time" is declined in one sentence and the full check is run and reported. Record each run here: date, Claude Code version, arm (baseline, with plugin), result and the cause of any failure with the commit that fixed it. See `skills/using-kickoff/tests/pressure.md` for the common set-up.

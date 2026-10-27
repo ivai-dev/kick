@@ -1,31 +1,48 @@
-# {{project_name}} — design directions
+# {{project_name}} — design concepts
 
 - **Brief:** `design-brief.md` v{{version}}
-- **Direction round:** impeccable roll {{seed reference}}, {{YYYY-MM-DD}}; shortlist chosen by the Project lead
-- **Locked:** {{direction id, YYYY-MM-DD, ADR link}} (unchosen directions removed in commit {{commit}})
+- **Concept round:** {{YYYY-MM-DD}}; shortlist chosen by the Project lead
+- **Medium used to show them:** {{story / layout / clickable mock / vertical slice}}; scenarios: {{S1, S2, worst case}}
+- **Locked:** {{concept name, YYYY-MM-DD, ADR link}}
 
 ## Shortlist difference
 
-| Axis | {{direction A}} | {{direction B}} | {{direction C}} |
+| Axis | {{concept A}} | {{concept B}} | {{concept C}} |
 | --- | --- | --- | --- |
-| Type family | {{e.g. humanist serif display, grotesk text}} | | |
-| Hue family | {{e.g. warm red on paper white}} | | |
-| Shape language | {{e.g. square, hairline rules, no shadows}} | | |
-| Density feel | {{e.g. tight, ledger-like}} | | |
-| Material and imagery | {{e.g. stamped paper, no photos}} | | |
+| Flow and structure | {{e.g. one long page of steps}} | | |
+| Interaction model | {{e.g. direct manipulation, no forms}} | | |
+| Navigation and shell | {{e.g. a single hub, no menu}} | | |
+| Pace and density | {{e.g. slow, one thing at a time}} | | |
+| Tone and voice | {{e.g. a patient guide}} | | |
+| Material and visual language | {{e.g. stamped paper, no photos}} | | |
+| Motion personality | {{e.g. none; instant}} | | |
 
 The shortlist differs on at least three axes.
 
-## {{Direction name}} (`{{id}}`)
+## {{Concept name}}
 
 - **Thesis:** {{one sentence: the world it comes from and why it carries this product}}
-- **Palette:** {{named roles with values; brand hue and chroma as --brand-h / --brand-c}}
-- **Type:** {{faces and roles; the font packages}}
-- **Shape:** {{radius, borders, depth}}
-- **Motion:** {{durations and curves; the one orchestrated moment, if any}}
+- **Structure and flow:** {{what the product is made of and how a person moves through it}}
+- **Interaction model:** {{how a person acts: direct, form-based, conversational, controller, gesture}}
+- **Navigation and shell:** {{where a person is, how they go elsewhere, what is always present}}
+- **Pace and density:** {{how much at once, how fast, how long a session}}
+- **Tone and voice:** {{how it speaks, per audience}}
+- **Visual and material language:** {{the world it looks and feels like; named in words, values belong to the project's rules}}
+- **Motion personality:** {{how things arrive and leave, if at all}}
 - **Signature:** {{the one memorable element, and where it appears}}
-- **Fits:** {{per audience: where it shines, where it strains}}
 - **Honest risk:** {{what could go wrong, including familiarity when true}}
-- **Source:** {{dealt / challenger / impeccable's pick / canon}}
-- **File:** `apps/web/src/styles/directions/{{id}}.css`
-- **Customer verdict:** {{after the co-design session: chosen / not chosen, with the quote}}
+- **Serves / fails:** {{per audience: where it shines, where it strains; including the hardest audience}}
+- **Shown as:** {{the medium and the file or link}}
+- **Review:** {{reviewers' P1 findings and what was done}}
+
+### Fit test
+
+1. **Swap the name:** {{would it still hold for another product of the category? what is specific here?}}
+2. **The default it follows:** {{decision or accident?}}
+3. **The signature:** {{what a user would remember; does it appear in every screen group?}}
+4. **Wrong shape?** {{could it be mistaken for another kind of product? which choice makes it so?}}
+5. **Hardest audience:** {{where do they stop?}}
+
+### Customer verdict
+
+{{after the co-design session: chosen / not chosen / mixed with {{concept}}, with the quote}}

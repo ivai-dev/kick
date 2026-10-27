@@ -14,7 +14,7 @@ The customer signs off the full feature set of the product, across every release
 
 | Time | Item | Led by (role) | Output |
 | --- | --- | --- | --- |
-| {{HH:MM}} | Goal, scope by release, how to read the prototype (full, tags and MVP views) | Project lead | shared picture of the scope |
+| {{HH:MM}} | Goal, scope by release, how to read the prototype (the MVP line, the releases) | Project lead | shared picture of the scope |
 | {{HH:MM}} | Demo scenarios (below) | Project lead | comments per feature |
 | {{HH:MM}} | Decisions the customer must take | Customer | decisions with dates |
 | {{HH:MM}} | Open questions due | Project lead | answers or new dates |
@@ -22,11 +22,11 @@ The customer signs off the full feature set of the product, across every release
 
 ## Demo script
 
-Each link opens the prototype and plays the scenario; the viewer can stop it and step through by hand.
+Each row says how to open the prototype at the scenario's start (the recorded link and the start point, or the walk-through video); the viewer can stop and step through by hand.
 
-| # | Scenario | Link | Role | Features shown | What to ask |
+| # | Scenario | How to open | Role | Features shown | What to ask |
 | --- | --- | --- | --- | --- | --- |
-| 1 | {{scenario name}} | {{prototype link}}#scn-{{id}} | {{role}} | {{F<n>.<n>, F<n>.<n>}} | {{question for the customer}} |
+| 1 | {{scenario name}} | {{prototype link and start point, or video}} | {{role}} | {{F<n>.<n>, F<n>.<n>}} | {{question for the customer}} |
 
 Features shown without a scenario (walk-through):
 
@@ -39,6 +39,14 @@ Features shown without a scenario (walk-through):
 | ID | Decision | Options | Recommended | Deadline |
 | --- | --- | --- | --- | --- |
 | {{Q<n>}} | {{decision}} | {{A: …; B: …}} | {{option and why, in one line}} | {{YYYY-MM-DD}} |
+
+Each decision is also prepared as a decision card: what the customer will see for each option, who it serves, what it costs and where a wrong choice would surface, and "none of these" and "show me first".
+
+## Rulings taken without the customer
+
+| Ruling | Why | Cost if wrong | Screens or features |
+| --- | --- | --- | --- |
+| {{decision}} | {{why}} | {{cost}} | {{screen IDs or F<n>.<n>}} |
 
 ## Open questions due
 

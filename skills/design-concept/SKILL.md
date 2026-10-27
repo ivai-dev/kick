@@ -1,114 +1,97 @@
 ---
-name: design-direction
-description: Use when a project's visual direction must be chosen with the customer, explored as two or three distinct directions on the real FE v0 screens and locked before the prototype screens are built
+name: design-concept
+description: Use when a project's design concept (structure, interaction model, pace, tone and visual language) must be explored as two or three concepts that differ in kind, chosen with the customer and locked before the UX specification is written
 ---
 
-# Design direction
+# Design concept
 
-Finds the product's own look and gets the customer to choose it. The lead and impeccable's direction round turn the audiences' world into two or three directions that differ in kind, not in shade. Each one is built as a theme of the real FE v0, on the reference screens of `kickoff:fe-foundation` with their seeded data. The customer compares them in the published prototype, switches between them, adjusts them with the Tweaks panel and comments. The chosen direction is locked, and the customer approves gate CD. Every later screen is built in it.
+Finds the product's own shape and gets the customer to choose it. The lead turns the audiences' world into two or three concepts that differ in kind, not in shade: in flow and structure, interaction model, navigation, pace, tone and visual language. Each is made visible with the cheapest medium that lets the customer feel it, on the same scenarios. Read-only reviewers check the concepts early. The customer chooses in a co-design session, the chosen concept is locked, and the customer approves gate CD. `kickoff:ux-design` then expands it.
 
-**Floor, not ceiling:** the structural rules of `design-system.md` (density, type roles, Vietnamese line heights, overlays, data at volume, copy) hold in every direction. Palette, type, shape language, motion personality, imagery and the signature are free, and they come from this product's world, never from a catalogue default.
+The plugin ships no look, no stack and no rules. Everything here follows `../using-kickoff/references/design-philosophy.md`: the brief decides the form, concepts differ in kind, decisions are visible, judge on the worst case.
 
 ## When to use
 
-- After `kickoff:fe-foundation` and gate CF, before any screen beyond the reference screens is built.
-- Again when the customer rejects the locked direction (`kickoff:feedback` reopens CD). A remark about one screen's look is a prototype change, not a new direction. On a re-run, unlock first: remove `direction` from `config.ts`, list the directions to compare in `directions` again, and restore their files from git history or write new ones; while `direction` is set, the kit applies it everywhere and hides the switch.
+- After `kickoff:feature-map` and gate C2, before the UX specification.
+- Again when the customer rejects the locked concept (`kickoff:feedback` reopens CD). A remark about one screen's look is a prototype change, not a new concept.
 
 ## Preconditions
 
-- `kickoff can design-direction` exits 0 (fe-foundation done, CF approved).
-- `kickoff design doctor` exits 0: Anthropic `frontend-design` and `impeccable` are installed. Exit 1: stop, show its `fail:` lines, and tell the user to install them and start a new session.
-- The FE v0 is installed and `kickoff fe check` passes; the reference screens exist.
+- `kickoff can design-concept` exits 0 (feature-map done, C2 approved).
+- The project has a way to make a concept visible to the customer (paper, slides, a mock, a sketch tool, a short vertical slice in the product's own tool). Step 4 picks it.
 
 ## Inputs
 
-- `<docs_root>/01-discovery/vision-scope.md` and `stakeholders.md`: purpose, users, the customer's brand and constraints.
-- `ux-spec.md` (roles, shells, homes) and `design-system.md` (the structural rules every direction keeps).
-- The reference screens in `apps/web/src/screens/`, the presets in `packages/ui`, the kit guide `packages/kit/README.md` (Direction switch, Tweaks panel, `?look=` and `?tweak=` links).
-- `references/codesign.md` (the customer session) and the templates `templates/design-brief.md`, `templates/directions.md` and `templates/codesign-record.md` in this skill's folder.
-- `../using-kickoff/references/design-tools.md`: what `frontend-design` and `impeccable` do here, and which files they own.
+- `<docs_root>/01-discovery/vision-scope.md` and `stakeholders.md`: purpose, audiences, the customer's brand and constraints.
+- `<docs_root>/02-requirements/feature-map.md` and `nfr.md`: what the product does, accessibility, devices, locale.
+- `../using-kickoff/references/design-philosophy.md`: principles, the brief questions, the fit test.
+- `references/codesign.md` (the customer session) and the templates `templates/design-brief.md`, `templates/concepts.md` and `templates/codesign-record.md` in this skill's folder.
+- `../prototype/references/design-review.md`: how to write `BRIEF.md` and run the read-only reviewer agents.
 - Working methods: `../using-kickoff/references/methods.md`. Conventions: `../using-kickoff/references/conventions.md`.
 
 ## Steps
 
-1. Run `kickoff can design-direction`. Exit 1: stop and show the `blocked:` lines. Then `kickoff phase start design-direction`.
-2. **Tools:** run `kickoff design doctor`. On `warn: G3`, propose `kickoff design setup` (impeccable telemetry off for this customer project, its scratch files git-ignored) and run it after the lead's yes.
-3. **Design brief,** with the lead, using the Interview method:
-   - what the customer already owns and must keep: logo, colours, typefaces, brand guide (a pinned constraint beats every direction);
-   - each audience's real scene: where, on which device, in what light, how often, under what pressure;
-   - two or three products the customer admires and one they dislike, with the reason;
-   - the words the customer uses for how it should feel, and anything that must never appear.
+1. Run `kickoff can design-concept`. Exit 1: stop and show the `blocked:` lines. Then `kickoff phase start design-concept`.
+2. **Design brief,** with the lead. Facts the documents do not give (what the customer owns, the references and what they dislike, the feeling words) use the Interview method; every choice uses the Decision card method, with the options made visible in the same message.
 
 > **Interview:** one question per message; 2–4 options with a recommendation when a choice exists; restate the answer in one line; stop when the output template is filled.
 
-   Write `<docs_root>/05-design/design-brief.md` from the template. Name the category's default page and its predictable opposite (both are the rut), and the mode of each surface: *Operate* for work screens, *Persuade* for public pages that must win a decision, *Read* for help and documents. Then run `/impeccable init` and answer from the kickoff documents. It writes `PRODUCT.md`, impeccable's own context file.
-4. **Direction round** with impeccable's new-visual-world flow (`/impeccable` with the brief: a new world for this product):
-   - it derives seven candidates from the audiences' world, rolls `concept-seed --scope direction` (the dice break the category rut) and shows the hand on its decision page;
-   - the lead picks two or three for the customer: the dealt direction, a challenger, impeccable's pick, or its canon card (the category standard, played straight) when the lead wants one safe option;
-   - the shortlist must differ on at least three of these axes: type family, hue family, shape language (radius, borders, depth), density feel, material and imagery;
-   - none is one of the AI-default clusters that `frontend-design` lists (cream with terracotta, near-black with one acid accent, the SaaS card kit, template chrome) unless the brief pins it.
+> **Decision card:** a design choice or a gate request is a card: what it decides and locks; 2–3 options, each with what the person will see, who it serves, what it costs and where a wrong choice would surface; a recommendation with its reason; what was assumed; and always "none of these" and "show me first".
 
-   Write one card per direction in `<docs_root>/05-design/directions.md` from the template: thesis, palette, type, shape, motion, the signature, the honest risk, and where it fits each audience.
-5. **Build each direction** in the FE v0:
-   - one file `apps/web/src/styles/directions/<id>.css`, with a light block `:root[data-direction="<id>"]` and a dark block `:root[data-direction="<id>"][data-theme="dark"]` that repeats every variable the light block sets;
-   - brand colours written in terms of `--brand-h` and `--brand-c`, so the Tweaks panel can move them;
-   - fonts added as packages (for example `@fontsource-variable/<family>`), never from a CDN; radius, borders, shadows and motion (`--duration-*`, `--ease-*`) per direction;
-   - each file imported by `apps/web/src/styles/directions.css` (a project scaffolded before 0.7.0 creates that file and imports it after `tokens.css` in `index.css`), and listed in `config.ts` `directions` with `id`, `name` and a one-line `summary`.
+   Write `<docs_root>/05-design/design-brief.md` from the template, answering for each audience the questions of "The brief decides the form" (job, scene, rhythm, feeling, references). Also:
+   - **pinned constraints:** brand assets, platform rules, anything the customer owns (they beat every concept);
+   - **the category default and its predictable opposite:** say which one this product is closer to and why, as a decision card when the lead is unsure;
+   - **the product's archetype in the customer's words** ("a quiet clerk", "a ship's bridge", "a game hub"), before any concept is drawn;
+   - **the hardest audience:** the least skill, the worst device or the highest pressure.
+3. **Concept round.** Derive three candidate concepts from the audiences' world (their documents, places, rituals, objects; not the tools they operate). Each is a coherent answer to the brief with a thesis. The lead shortlists two or three. The shortlist must differ on at least three axes: flow and structure, interaction model, navigation and shell, pace and density, tone and voice, material and visual language, motion personality. A shortlist that varies one idea is one option: replace a concept until it is not. Include the category default only when the lead wants one safe option, and say so.
+4. **Make each concept visible,** with the cheapest medium that lets the customer feel it:
+   - a story: one scenario told as the user lives it, step by step;
+   - a paper-style or ASCII layout of the key moments;
+   - a clickable mock or a short vertical slice, only when words and layouts cannot show the pace or the feel.
 
-   **The screens are shared:** directions differ in tokens and CSS only. A signature that needs markup goes into a shared component in `packages/ui` with a CSS hook, so every direction renders the same screens with the same data. Per direction, follow `frontend-design`'s two passes: plan the token system, test the plan against the brief ("would this fit any product like it?"), build, then critique from screenshots.
-6. **Check every direction:** `kickoff fe check` (the first direction), then `kickoff fe check --direction <id>` for each of the others. Both run impeccable's detector, and the sweep runs axe in each direction. Take screenshots per direction with `kickoff fe check --direction <id> --shots <folder>/<id>` into a git-ignored folder.
-7. **Concept review,** in parallel, read-only agents with a `BRIEF.md` as in `../prototype/references/design-review.md`:
-   - `kickoff:art-director` on all directions against `design-brief.md`;
-   - `kickoff:craft-auditor` for contrast, type and Vietnamese line heights per direction;
-   - one `kickoff:viewpoint-reviewer` per main audience group.
+   Use the same two or three scenarios for every concept: the main job of each main audience, a first-time moment, and a **worst case** (no data, far too much, the longest name, an error, a slow connection). Real content in the real language, invented names.
 
-   Add `/impeccable critique` per direction on the reference screens. Fix every P1. Then show the lead the directions in the prototype bar and the reviews, using the Bounded approval method, and agree which directions go to the customer and in what order.
+   Write one card per concept in `<docs_root>/05-design/concepts.md` from the template: thesis, structure and flow, interaction model, navigation and shell, pace and density, tone and voice, visual and material language, motion personality, the signature, the honest risk, which audience it serves and which it fails.
+5. **Early concept review,** in parallel, read-only agents with a `BRIEF.md` as in `../prototype/references/design-review.md`: `kickoff:art-director` on all concepts against the brief, `kickoff:ia-reviewer` on structure and navigation, one `kickoff:viewpoint-reviewer` per main audience group; `kickoff:craft-auditor` when wording, type or accessibility targets are visible in the material. Then write the **fit test** for each concept to be shown: one short paragraph per question of "The fit test" in the philosophy. Fix every P1 and every concept that fails the fit test, or drop it. Then show the lead the concepts and the reviews and agree which go to the customer and in what order.
 
 > **Bounded approval:** present one table of proposed changes; change nothing before an explicit yes or edit.
 
-8. **Co-design session** with the customer, following `references/codesign.md`:
-   - publish the bundle (`kickoff fe bundle`, then a private Artifact) with the prototype bar visible; sharing it with the customer is publishing, so ask the lead first;
-   - in the meeting, the customer switches directions, plays the scenarios and moves the Tweaks; you make the changes they ask for in the direction files and republish while they watch;
-   - remote feedback comes as Artifact comments and as "Copy link" links, which carry `?look=` and `?tweak=` and reproduce exactly what the customer saw.
-
-   Write `<docs_root>/05-design/codesign-YYYY-MM-DD.md` from the template: who took part (roles), what was shown, reactions word for word, the chosen direction and its tweak link, the changes asked.
-9. **Lock the direction:**
-   - fold the chosen tweak values into the chosen direction file; set `direction: "<id>"` in `config.ts` and keep only that entry in `directions`; delete the other direction files and their imports (they stay in git history, and `directions.md` links the commit);
-   - fill the colour, font, radius and signature rows of `design-system.md` Tokens from the locked file;
-   - record the decision with the Option decision method as an ADR with status `Accepted — <date> (presentation layer)`: the options are the directions shown, with the customer's verdict and the signature; log it as `D<n>` in the Decision log;
-   - run `/impeccable document`, so impeccable's later commands (`audit`, `polish`, `critique`) read the locked world from its `DESIGN.md`.
+   The table lists one row per concept: shown or dropped, its position, the reviewers' P1 findings, the fit-test verdict.
+6. **Co-design session** with the customer, following `references/codesign.md`. The material goes to the customer by whatever the project uses; sharing it beyond the lead is publishing, so ask the lead first. Write `<docs_root>/05-design/codesign-YYYY-MM-DD.md` from the template: who took part (roles), what was shown and in what order, reactions word for word, the chosen concept and what was mixed or changed, and who approves CD and how.
+7. **Lock the concept:**
+   - write the chosen concept's final card in `concepts.md` (changes agreed in the session folded in) and mark the verdict on every card;
+   - record the decision with the Option decision method as an ADR in `<docs_root>/04-architecture/adr/` with status `Accepted — <date> (design concept)`: the options are the concepts shown, with the customer's verdict and the signature. It decides no backend, database, hosting or integration matter. Log it as `D<n>` in the Decision log.
 
 > **Option decision:** per decision 2–3 options with cost, risk and what each blocks; a recommendation; record the result as an ADR.
 
-10. **Verify** (section below), then `kickoff phase done design-direction` and commit `feat(design): lock the <name> direction`.
-11. **Ask for gate CD:** the customer approves the direction; the lead relays their written yes (an email, the signed record, an Artifact comment). Only then run `kickoff gate approve CD --by "Customer" --evidence "<codesign record or commit link>"` and commit `chore: approve CD`.
+8. **Verify** (section below), then `kickoff phase done design-concept` and commit `feat(design): lock the <name> concept`.
+9. **Ask for gate CD** with a decision card whose subject is the gate: what the customer approves (structure and feel, the chosen concept), what becomes expensive to change afterwards (the screen inventory and everything built on it), the rulings taken without them so far, the open risks, and what you are least sure of. The lead relays the customer's written yes (an email, the signed record, a comment). Only then run `kickoff gate approve CD --by "Customer" --evidence "<codesign record or commit link>"` and commit `chore: approve CD`.
+
+At the end of every group of steps and at the gate, list the rulings you took without the lead (`Ruling: <decision> — <why> — <cost if wrong>`) and ask which to revisit.
 
 ## Outputs
 
-- `<docs_root>/05-design/design-brief.md`, `directions.md` and `codesign-YYYY-MM-DD.md`
-- `apps/web/src/styles/directions/<id>.css` for the locked direction, imported by `directions.css`; `config.ts` `direction` and `directions`
-- `design-system.md` Tokens filled for the locked direction
-- `<docs_root>/04-architecture/adr/ADR-<nnn>-visual-direction.md` (*Accepted*) and `D<n>` in the Decision log
-- impeccable's own files: `PRODUCT.md`, `DESIGN.md`, `.impeccable/config.json`
-- `.kickoff/state.yaml`: `design-direction: done`, and CD once the customer approves
+- `<docs_root>/05-design/design-brief.md`, `concepts.md` and `codesign-YYYY-MM-DD.md`
+- `<docs_root>/04-architecture/adr/ADR-<nnn>-design-concept.md` (*Accepted*) and `D<n>` in the Decision log
+- `.kickoff/state.yaml`: `design-concept: done`, and CD once the customer approves
 
 ## Verify
 
-1. `kickoff fe check` prints `fe check passed`, with impeccable's detector included (no `--skip-detect`). With `design-direction` done it also fails until a direction is locked and its file has a light and a dark block.
-2. `directions.md` has a card for every direction shown, and the shortlist differs on at least three axes.
-3. The codesign record names the chosen direction, quotes the customer and links the tweak link or comment it came from.
-4. The ADR is *Accepted*, names the directions shown, and decides no backend, database, hosting or integration matter.
+1. The shortlist shown to the customer differs on at least three axes, and `concepts.md` says which.
+2. `concepts.md` has a card for every concept shown, with the customer's verdict on each, and a fit-test paragraph per question for every concept shown.
+3. The co-design record names the chosen concept, quotes the customer word for word and names who approves CD.
+4. The ADR is *Accepted*, names the concepts shown, and decides no backend, database, hosting or integration matter.
 5. `kickoff check-docs <docs_root>/05-design` prints `check-docs passed`, and `kickoff validate` reports `0 errors`.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
 
 ## Lessons
 
-- Projects made with kickoff looked alike: the direction came from a lookup by product type (two of four B2B briefs got the same `#2563EB`) and the template defaulted to blue. Directions now come from each product's world, and the template is neutral (lessons row 31).
-- The concept round was shown to the lead as static artboards, so the customer's taste arrived at sign-off, too late to change cheaply. The customer chooses here, on the real screens, with the real data.
-- A direction judged on a hero image fell apart on a list of thousands of rows. Every direction is shown on the same reference screens, including the list at volume.
+- The customer's taste arrived at sign-off, after the whole prototype was built, too late to change cheaply. The customer chooses structure and feel here, before the spec is expanded.
+- A concept judged on a hero image fell apart on a list of thousands of rows. Every concept is shown on the same scenarios, including the worst case.
+- Products made with kickoff looked alike because the look came from a lookup by product type. The brief decides, and the category default is named and tested.
+- A game came out as a management console: structure was decided alone and early, and the only thing the customer chose was colour. The shortlist now differs in structure and feel, and the customer chooses between them.
 - Write every file with the file tools, not heredocs (a literal `\n` in a Bash heredoc once became real newlines).
 
 ## Handoff
 
-`kickoff:prototype` after CD: it builds every remaining screen in the locked direction. `kickoff status` names it.
+`kickoff:ux-design` after CD: it expands the chosen concept into the full UX specification. `kickoff status` names it.
