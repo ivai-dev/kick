@@ -2,6 +2,19 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.8.1] - 2026-10-27
+
+A product can live inside another project's repository and still be sold on its own (AI Minute inside the FIS Platform monorepo). The CLI already used the nearest `.kickoff/`, but `kickoff:init` told the agent to stop whenever a parent had one.
+
+### Added
+
+- `kickoff init --nested`: starts a separate project in a folder below another project's `.kickoff/`.
+
+### Changed
+
+- `kickoff init` refuses to create a project below another one unless `--nested` is passed, so a nested project is never created by accident.
+- `kickoff:init` and `kickoff:using-kickoff` describe the nested case: when to nest (a separately sold product) and when to use an epic instead, and that the nearest `.kickoff/` decides every command.
+
 ## [0.8.0] - 2026-10-27
 
 Process, not stack. A game project run through 0.7.0 came out of `ux-design` as a web management console. The plugin shipped one product shape (shells `app` and `site`, four business home shapes and a floor of rules taken from two web projects), so a product that is not a web app had nowhere to go; structure was decided early, alone and unreviewed, and the customer chose only colours at CD; and the confirmations were blind, one-line options with no preview and no word on what a wrong answer costs. Now the plugin holds process and design philosophy only and runs for any project (web, game, mobile, desktop, service). Spec: docs/plans/2026-10-27-kickoff-v0.8.0.md.

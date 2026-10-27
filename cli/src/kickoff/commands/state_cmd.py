@@ -14,6 +14,8 @@ from ..state import PHASES, approve, blockers, init_project, next_step, reopen, 
 def register(sub) -> None:
     p = sub.add_parser("init", help="create .kickoff/ and the docs folders")
     p.add_argument("--name", required=True)
+    p.add_argument("--nested", action="store_true",
+                   help="allow a separate project inside a folder of another kickoff project (a product sold apart)")
     p.set_defaults(func=run_init)
     p = sub.add_parser("status", help="phases, gates, stale items and the next step")
     p.add_argument("--json", action="store_true")
@@ -42,7 +44,7 @@ def _save(root: Path, state: dict) -> None:
 
 def run_init(args) -> int:
     root = (args.root or Path.cwd()).resolve()
-    for path in init_project(root, args.name, date.today()):
+    for path in init_project(root, args.name, date.today(), args.nested):
         print("wrote", path.relative_to(root))
     print("next: fill .kickoff/project.yaml (kickoff:init skill), then kickoff validate")
     return 0

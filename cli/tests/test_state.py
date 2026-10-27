@@ -4,7 +4,7 @@ import pytest
 
 from kickoff.cli import main
 from kickoff.errors import KickoffError
-from kickoff.model import load_state, read_yaml
+from kickoff.model import find_root, load_state, read_yaml
 from kickoff.state import approve, blockers, migrate, next_step, reopen, set_phase, status_lines
 
 
@@ -242,3 +242,17 @@ def test_cli_init_and_status(tmp_path, capsys):
     assert main(["--root", str(tmp_path), "can", "solution"]) == 1
     assert main(["--root", str(tmp_path), "phase", "done", "init"]) == 0
     assert main(["--root", str(tmp_path), "validate"]) == 0
+
+
+def test_init_inside_another_project_needs_nested(tmp_path, capsys):
+    assert main(["--root", str(tmp_path), "init", "--name", "Platform"]) == 0
+    child = tmp_path / "apps" / "minute"
+    child.mkdir(parents=True)
+    assert main(["--root", str(child), "init", "--name", "Minute"]) == 2
+    assert "--nested" in capsys.readouterr().err
+    assert not (child / ".kickoff").exists()
+    assert main(["--root", str(child), "init", "--name", "Minute", "--nested"]) == 0
+    assert read_yaml(child / ".kickoff" / "project.yaml")["name"] == "Minute"
+    assert read_yaml(tmp_path / ".kickoff" / "project.yaml")["name"] == "Platform"
+    assert find_root(child) == child.resolve()
+    assert find_root(tmp_path / "apps") == tmp_path.resolve()

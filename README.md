@@ -98,7 +98,7 @@ Run `kickoff --help` or `kickoff <command> --help` for every option. `--root DIR
 
 | Command | What it does |
 | --- | --- |
-| `kickoff init --name NAME` | Create `.kickoff/` from a valid template and the docs folders; refuses if `.kickoff/` exists. |
+| `kickoff init --name NAME [--nested]` | Create `.kickoff/` from a valid template and the docs folders; refuses if `.kickoff/` exists, or if a parent folder has one unless `--nested` (a separate product inside another project's repository). |
 | `kickoff status [--json]` | Show phases, gates, stale items and the suggested next step. |
 | `kickoff can PHASE [--baseline]` | Exit 0 when the phase may start, 1 with the blocking phases and gates. |
 | `kickoff phase start\|done PHASE` | Record phase progress; `done` clears the phase's stale marker. |

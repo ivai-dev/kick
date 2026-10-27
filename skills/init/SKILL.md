@@ -16,9 +16,10 @@ Not for changing an existing project's settings: edit `.kickoff/project.yaml` an
 
 ## Preconditions
 
-- No `.kickoff/` folder in the repository root or any parent (`kickoff status` reports `no .kickoff/ folder`). If one exists, stop and invoke `kickoff:using-kickoff`.
+- No `.kickoff/` folder in the working directory (`kickoff status` reports `no .kickoff/ folder`). If one exists there, stop and invoke `kickoff:using-kickoff`.
+- A `.kickoff/` folder in a **parent** is a different case: a product that lives inside another project's repository but is built and sold on its own (a module with its own customers) is a nested project. Ask the lead whether it is one; if yes, run it from the product's folder and pass `--nested` in step 2. If it is only a part of the parent product, add it to the parent's `features.yaml` as an epic instead. Never nest silently: from inside the nested folder every kickoff command, hook and file guard uses the nested project (the nearest `.kickoff/`), and the parent project is reached with `--root`.
 - The CLI is installed and its version matches the plugin (checked by `kickoff:using-kickoff`).
-- The working directory is the repository root: `kickoff init` creates `.kickoff/` and `docs/` in the current directory.
+- The working directory is the project's root folder (the repository root, or the product's folder for a nested project): `kickoff init` creates `.kickoff/` and `docs/` in the current directory.
 
 ## Inputs
 
@@ -46,7 +47,7 @@ Not for changing an existing project's settings: edit `.kickoff/project.yaml` an
 
 Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the lead wants another root, move the created folders and set `docs_root` to match.
 
-2. **Create the skeleton:** `kickoff init --name "<name>"`. It writes `.kickoff/{project,state,features,plan}.yaml` and `docs/{01-discovery,02-requirements,03-research,04-architecture/adr,05-design,06-planning,07-task-specs,08-task-plans}/`.
+2. **Create the skeleton:** `kickoff init --name "<name>"` (`kickoff init --nested --name "<name>"` for a nested project; without `--nested` it refuses when a parent folder has `.kickoff/`). It writes `.kickoff/{project,state,features,plan}.yaml` and `docs/{01-discovery,02-requirements,03-research,04-architecture/adr,05-design,06-planning,07-task-specs,08-task-plans}/`.
 
 3. **Fill `.kickoff/project.yaml`** with the answers, using the Edit tool (never a shell heredoc). Quote strings that look like numbers or dates. Hard dates: `hard_dates` keys must be gate IDs that exist in `plan.yaml` (`kickoff validate` rejects any other key), and `plan.yaml` has no gates yet. Until the `plan` skill creates the gates, keep the hard dates as comments under `hard_dates: {}`, one per line: `# <gate id> <what must be done>: <YYYY-MM-DD>`.
 

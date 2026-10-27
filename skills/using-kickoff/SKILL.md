@@ -25,7 +25,7 @@ Run these in order at the start of every session:
 
 1. **CLI version.** Run `kickoff --version` (it prints `kickoff <version>`). The plugin root is two levels above this skill's base directory; read `"version"` in `<plugin root>/.claude-plugin/plugin.json`. If the command is missing or the versions differ, run `uv tool install --force "<plugin root>/cli"` and check again. The CLI must be reinstalled after every plugin update. If the versions still differ, stop and show both outputs.
 2. **ECC.** Run `kickoff ecc doctor`. Exit 1: stop, show its `fail:` lines and tell the user: "Install or update the ECC plugin (`ecc@ecc` 2.2.3 or later), then start a new session." ECC is required: kickoff delegates research, decisions and reviews to it (`references/ecc.md`). Read its `warn:` lines: D5 means `kickoff ecc setup` has not run in this project; offer it.
-3. **Project.** Run `kickoff status`. If it fails with `no .kickoff/ folder`, the repository is not set up: invoke `kickoff:init`. `kickoff init` is the only command that works without `.kickoff/`.
+3. **Project.** Run `kickoff status`. If it fails with `no .kickoff/ folder`, the repository is not set up: invoke `kickoff:init`. `kickoff init` is the only command that works without `.kickoff/`. A product folder inside another project's repository may hold its own `.kickoff/` (`kickoff init --nested`); the nearest one wins, so check which project `kickoff status` reports before acting, and use `--root` for the other.
 
 ## Route
 

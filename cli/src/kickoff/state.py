@@ -197,10 +197,19 @@ def status_lines(state: dict) -> list[str]:
     return lines
 
 
-def init_project(root: Path, name: str, today: date) -> list[Path]:
+def enclosing_project(root: Path) -> Path | None:
+    """The nearest parent folder of `root` that holds a .kickoff/ folder, or None."""
+    return next((p for p in root.resolve().parents if (p / KICKOFF_DIR).is_dir()), None)
+
+
+def init_project(root: Path, name: str, today: date, nested: bool = False) -> list[Path]:
     k = root / KICKOFF_DIR
     if k.exists():
         raise KickoffError(f"{k} already exists")
+    parent = enclosing_project(root)
+    if parent is not None and not nested:
+        raise KickoffError(f"{parent / KICKOFF_DIR} already exists above {root}; pass --nested to start a separate "
+                           "project here (every command run inside this folder then uses the nested project)")
     written = []
     data = yaml.safe_load(files("kickoff.templates").joinpath("project.yaml").read_text(encoding="utf-8"))
     data["name"] = name
