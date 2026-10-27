@@ -70,6 +70,10 @@ def check_plan(project: Project, plan: Plan) -> list[Finding]:
                 err(p.code, f"tail cannot refer to another tail package ({ref})")
         if p.effort_rate is not None and p.mode not in ("span", "period", "tail"):
             err(p.code, "effort_rate needs a span, period or tail schedule")
+        lo = p.effort if p.effort_min is None else p.effort_min
+        hi = p.effort if p.effort_max is None else p.effort_max
+        if not lo <= p.effort <= hi:
+            err(p.code, f"estimate range: min {lo:g} <= effort {p.effort:g} <= max {hi:g} does not hold")
     for code, after in plan.order_after.items():
         where = f"order_after {code}"
         if code not in by or after not in by:
@@ -125,8 +129,14 @@ def check_features(project: Project, plan: Plan, features: Features) -> list[Fin
         for code in f.wbs:
             if code not in codes:
                 out.append(Finding("error", f.id, f"unknown WBS code {code}"))
-        if f.status == "active" and not f.wbs:
-            out.append(Finding("warning", f.id, "active feature without a WBS package"))
+        est = f.estimate
+        if est:
+            lo, hi = est.get("min", est["likely"]), est.get("max", est["likely"])
+            if not lo <= est["likely"] <= hi:
+                out.append(Finding("error", f.id,
+                                   f"estimate range: min {lo:g} <= likely {est['likely']:g} <= max {hi:g} does not hold"))
+        if f.status == "active" and not f.wbs and not est:
+            out.append(Finding("warning", f.id, "active feature without a WBS package or an estimate"))
         if f.status == "removed" and not f.removed_by:
             out.append(Finding("warning", f.id, "removed feature without removed_by (decision reference)"))
     epic_ids = {e.id for e in features.epics}

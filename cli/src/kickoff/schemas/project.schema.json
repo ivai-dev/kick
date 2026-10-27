@@ -83,6 +83,15 @@
       }
     },
     "hard_dates": { "type": "object", "additionalProperties": { "$ref": "#/$defs/date" } },
+    "scheduling": {
+      "description": "off: no calendar, workbook or hard dates are needed, only the estimate; absent means on",
+      "enum": ["on", "off", true, false]
+    },
+    "estimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "overhead": { "type": "number", "minimum": 0, "maximum": 1 } }
+    },
     "tracker": {
       "description": "ignored since kickoff 0.6 (no tracker sync)",
       "type": "object",

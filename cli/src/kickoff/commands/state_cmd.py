@@ -8,6 +8,7 @@ from pathlib import Path
 
 from ..clarity import clarity_lines, load_clarity
 from ..errors import KickoffError
+from ..estimate import spread_text
 from ..model import KICKOFF_DIR, load_state, resolve_root, write_yaml
 from ..state import PHASES, approve, blockers, init_project, next_step, reopen, set_phase, status_lines
 
@@ -61,7 +62,7 @@ def run_status(args) -> int:
             out["clarity"] = clarity
         print(json.dumps(out, default=str, ensure_ascii=False, indent=2))
     else:
-        print("\n".join(status_lines(state) + (clarity_lines(clarity) if clarity else [])))
+        print("\n".join(status_lines(state) + (clarity_lines(clarity, spread_text(root)) if clarity else [])))
     return 0
 
 

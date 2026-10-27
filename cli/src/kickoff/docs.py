@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from .estimate import estimate, estimate_md
 from .model import Features, Plan, Project, load_features, load_plan, load_project, text, to_date
 from .schedule import Schedule, build_schedule
 
@@ -184,6 +185,7 @@ def render_docs(root: Path) -> dict[Path, str]:
         base / "02-requirements" / "feature-map.md": feature_map_md(project, features),
         base / "06-planning" / "wbs.md": wbs_md(project, plan, sched),
         base / "06-planning" / "risk-register.md": risks_md(project, plan),
+        base / "06-planning" / "estimate.md": estimate_md(project, estimate(project, plan, features)),
         plan_path: fill_markers(current, plan_blocks(project, plan, sched)),
     }
 

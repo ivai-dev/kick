@@ -18,6 +18,7 @@ def commands() -> list:
         clarity_cmd,
         docs_cmd,
         ecc_cmd,
+        estimate_cmd,
         export_cmd,
         prototype_cmd,
         schedule_cmd,
@@ -26,8 +27,8 @@ def commands() -> list:
         workbook_cmd,
     )
 
-    return [schedule_cmd, validate_cmd, docs_cmd, workbook_cmd, export_cmd, state_cmd, clarity_cmd, prototype_cmd,
-            ecc_cmd, hook_cmd]
+    return [schedule_cmd, estimate_cmd, validate_cmd, docs_cmd, workbook_cmd, export_cmd, state_cmd, clarity_cmd,
+            prototype_cmd, ecc_cmd, hook_cmd]
 
 
 def build_parser() -> argparse.ArgumentParser:

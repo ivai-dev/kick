@@ -38,6 +38,18 @@
                 "wbs": { "type": "array", "items": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)*$" } },
                 "status": { "enum": ["active", "removed"] },
                 "removed_by": { "type": "string" },
+                "estimate": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["likely"],
+                  "properties": {
+                    "min": { "type": "number", "minimum": 0 },
+                    "likely": { "type": "number", "minimum": 0 },
+                    "max": { "type": "number", "minimum": 0 },
+                    "confidence": { "enum": ["low", "medium", "high"] },
+                    "basis": { "type": "string" }
+                  }
+                },
                 "i18n": { "$ref": "#/$defs/i18n" }
               }
             }

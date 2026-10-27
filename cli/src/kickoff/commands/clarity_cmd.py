@@ -6,6 +6,7 @@ from datetime import date
 
 from ..clarity import clarity_lines, clarity_path, default_clarity, load_clarity, set_area
 from ..errors import KickoffError
+from ..estimate import spread_text
 from ..model import resolve_root, write_yaml
 
 
@@ -44,5 +45,5 @@ def run(args) -> int:
     if data is None:
         print("clarity: not started (kickoff clarity init)")
         return 0
-    print("\n".join(clarity_lines(data)))
+    print("\n".join(clarity_lines(data, spread_text(root))))
     return 0

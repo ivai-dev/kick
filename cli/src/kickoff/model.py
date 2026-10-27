@@ -101,6 +101,10 @@ def to_date(value: Any) -> date:
     return value if isinstance(value, date) else date.fromisoformat(str(value))
 
 
+def _opt_float(value: Any) -> float | None:
+    return None if value is None else float(value)
+
+
 def code_key(code: str) -> tuple[int, ...]:
     return tuple(int(x) for x in code.split("."))
 
@@ -145,6 +149,8 @@ class Project:
     design: dict[str, Any]
     date_format: str
     design_key: str = ""  # the project.yaml key `design` was read from: "design", or a legacy "fe" or "proto"
+    estimate_overhead: float = 0.0  # management share added to the work total (project.yaml estimate.overhead)
+    scheduling: str = "on"  # "off": no calendar, workbook or hard dates are needed; an absent key means "on"
 
     @classmethod
     def from_dict(cls, d: dict) -> Project:
@@ -174,6 +180,8 @@ class Project:
             design=dict(d[design_key]) if design_key else {},
             date_format=d.get("date_format", "%d/%m/%Y"),
             design_key=design_key,
+            estimate_overhead=float((d.get("estimate") or {}).get("overhead", 0.0)),
+            scheduling="off" if d.get("scheduling", "on") in ("off", False) else "on",  # YAML reads a bare off as false
         )
 
     def docs_dir(self, root: Path) -> Path:
@@ -218,6 +226,10 @@ class Package:
     schedule: tuple = ("seq",)
     effort_rate: float | None = None
     item: dict | None = None  # work-item detail for `kickoff export`
+    effort_min: float | None = None  # the range around `effort` (the likely value); None means a point estimate
+    effort_max: float | None = None
+    confidence: str = ""  # low | medium | high, or "" when not stated
+    basis: str = ""  # what the estimate rests on: a comparison, a spike, an assumption id
     i18n: dict = field(default_factory=dict)
 
     @property
@@ -243,6 +255,10 @@ class Package:
             schedule=parse_schedule(d.get("schedule")),
             effort_rate=d.get("effort_rate"),
             item=d.get("item"),
+            effort_min=_opt_float(d.get("min")),
+            effort_max=_opt_float(d.get("max")),
+            confidence=d.get("confidence", ""),
+            basis=d.get("basis", ""),
             i18n=d.get("i18n") or {},
         )
 
@@ -296,6 +312,7 @@ class Feature:
     wbs: tuple[str, ...] = ()
     status: str = "active"
     removed_by: str = ""
+    estimate: dict | None = None  # {min, likely, max, confidence, basis} in person-days, before any WBS exists
     i18n: dict = field(default_factory=dict)
 
 
@@ -330,6 +347,7 @@ class Features:
                     wbs=tuple(f.get("wbs") or ()),
                     status=f.get("status", "active"),
                     removed_by=f.get("removed_by", ""),
+                    estimate=f.get("estimate"),
                     i18n=f.get("i18n") or {},
                 )
                 for f in e.get("features") or []
