@@ -1,0 +1,10 @@
+schema_version: 1
+languages:
+  chat: vi
+  docs: vi
+  code: en
+  ui:
+  - vi
+  commits: en
+overhead: 0.1
+budget_days: 60

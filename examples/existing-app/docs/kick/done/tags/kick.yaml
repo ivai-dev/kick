@@ -1,0 +1,11 @@
+schema_version: 1
+title: Tags on notes
+kind: feature
+started: '2026-10-20'
+status: done
+agreed:
+  understand: '2026-10-20'
+  shape: '2026-10-20'
+  plan: '2026-10-21'
+  result: '2026-10-23'
+roadmap: tags

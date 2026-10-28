@@ -1,0 +1,9 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Notes</title>
+<ul id="notes"></ul>
+<script>
+  fetch("/notes").then((r) => r.json()).then((notes) => {
+    document.getElementById("notes").innerHTML = notes.map((n) => `<li>${n.text}</li>`).join("");
+  });
+</script>
