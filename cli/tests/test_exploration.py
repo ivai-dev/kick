@@ -168,3 +168,43 @@ def test_status_names_every_phase_in_progress():
     assert next_step(state) == "continue kickoff:research and kickoff:feature-map"
     state["phases"]["ux-design"] = "in_progress"
     assert next_step(state) == "continue kickoff:research, kickoff:feature-map and kickoff:ux-design"
+
+
+# ---------------------------------------------------------------- review fixes
+def test_accepted_adrs_stay_valid_while_a_reopened_sign_off_waits(tmp_path):
+    state = state_with(init="done", discovery="done", signoff="in_progress", solution="done")
+    state["stale"] = ["solution"]  # C3 was reopened by a change request: its gates are gone
+    root = write_kickoff(tmp_path, state=state)
+    write(root, "docs/04-architecture/adr/ADR-001-store.md", "# ADR-001\n\n## Status\n\nAccepted — 2026-10-01\n")
+    assert not [f for f in validate_root(root) if f.level == "error"]
+
+
+def test_a_draft_label_survives_a_byte_order_mark(tmp_path):
+    root = write_kickoff(tmp_path)
+    assert pre_write(payload(root, ARCH, content="﻿# A\n\n- **Status:** Draft\n")) == (0, "")
+
+
+def test_the_estimate_rows_add_up_after_rounding(tmp_path):
+    from kickoff.estimate import estimate
+    from kickoff.model import Features, Plan
+
+    project = project_from({"estimate": {"overhead": 0.1}})
+    est = estimate(project, Plan.from_dict(plan_dict([pkg("1.1.1", effort=336.75)])), Features([]))
+    assert est["total"]["likely"] == round(est["work"]["likely"] + est["overhead"]["likely"], 2)
+
+
+def test_status_survives_a_malformed_register(tmp_path, capsys):
+    root = write_kickoff(tmp_path)
+    (root / ".kickoff" / "clarity.yaml").write_text("schema_version: 1\nareas: [{id: X}]\n", encoding="utf-8")
+    assert main(["--root", str(root), "status"]) == 0
+    captured = capsys.readouterr()
+    assert "Phases:" in captured.out and "clarity.yaml" in captured.err
+
+
+def test_a_repeated_ref_is_stored_once():
+    from kickoff.clarity import default_clarity, set_area
+
+    data = default_clarity(DAY)
+    set_area(data, "scope", None, None, None, ["Q1", "Q1", "D2"], DAY)
+    set_area(data, "scope", None, None, None, ["D2"], DAY)
+    assert next(a for a in data["areas"] if a["id"] == "scope")["refs"] == ["Q1", "D2"]

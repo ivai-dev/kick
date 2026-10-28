@@ -49,7 +49,7 @@ def set_area(data: dict, area: str, status: str | None, confidence: str | None, 
     if note is not None:
         entry["note"] = note
     if refs:
-        entry["refs"] = [*(entry.get("refs") or []), *(r for r in refs if r not in (entry.get("refs") or []))]
+        entry["refs"] = list(dict.fromkeys([*(entry.get("refs") or []), *refs]))  # added, never dropped, no repeats
     entry["updated"] = day
 
 

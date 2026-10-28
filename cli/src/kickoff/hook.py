@@ -76,7 +76,7 @@ def _is_draft(payload: dict, path: Path) -> bool:
             old, new = edit.get("old_string"), edit.get("new_string")
             if isinstance(old, str) and isinstance(new, str) and old:
                 text = text.replace(old, new) if edit.get("replace_all") else text.replace(old, new, 1)
-    return bool(DRAFT.search("\n".join(text.splitlines()[:DRAFT_LINES])))
+    return bool(DRAFT.search("\n".join(text.lstrip("﻿").splitlines()[:DRAFT_LINES])))  # a BOM may start the file
 
 
 def session_start(payload: dict) -> tuple[int, str]:

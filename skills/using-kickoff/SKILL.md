@@ -50,7 +50,7 @@ When the user asks for a specific phase instead of the next one:
 
 1. Run `kickoff can <phase>` (`kickoff can plan --baseline` for a baseline plan).
 2. Exit 0: invoke `kickoff:<phase>`.
-3. Exit 1: show the `blocked:` lines, do not start the phase or do its work informally, and propose the path that clears the blockers.
+3. Exit 1: do not start the phase or do its work informally. Read the `blocked:` lines yourself and tell the person in plain words what is missing and the path that clears it (methods.md, Plain words), not the raw lines, which hold phase names and gate IDs.
 
 Customer feedback is handled by `kickoff:feedback` (check it with `kickoff can feedback`). It is not a phase in `kickoff status`: it reopens C3 and marks later phases stale.
 

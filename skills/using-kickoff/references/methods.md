@@ -49,10 +49,10 @@ Example. Not this: "C3 is open; run kickoff:signoff to lock the feature set befo
 Steps:
 
 1. Open the output template the interview fills and list its empty fields. That list is the interview; do not ask anything that fills no field.
-2. Confirm facts already in the inputs instead of asking for them again: "The brief says the MVP is web only. Correct?"
+2. Confirm facts already in the inputs instead of asking for them again: "The brief says the first version is web only. Correct?"
 3. Ask one question per message. When a choice exists, offer 2–4 options labelled A–D, mark one as recommended and give the reason in one line. When no choice exists, ask an open question with an example answer.
 4. Restate each answer in one line ("Recorded: …") before the next question. If the user corrects it, restate again.
-5. An answer the user does not know becomes an open question with a needed-by date and the work it blocks, never a guess.
+5. An answer the user does not know becomes an open question with the work it blocks, an owner, a priority, and a needed-by date when scheduling is on, never a guess.
 6. Stop when every field is filled. Write the file, then show the user where it is.
 
 Example:
@@ -73,17 +73,17 @@ Example:
 Steps:
 
 1. Collect every proposed change first. Do not edit files while collecting.
-2. Present one table: `#`, Item, Proposed change, Files touched, Effect (for example a date that moves).
+2. Present one table: `#`, What changes (in words), What it means for the person, Effect (for example more or less work, or a date that moves when scheduling is on), and a last Reference column with the IDs and files touched, which the person can ignore.
 3. Ask: "Approve all, edit rows, or reject?"
 4. Change nothing until the answer is an explicit yes or an edit of named rows. "Looks interesting" or silence is not approval. An edit changes the table; show the edited table again only when the edit is ambiguous.
 5. Apply exactly the approved rows. A row that cannot be applied as approved is reported, not improvised.
 
 Example:
 
-| # | Item | Proposed change | Files touched | Effect |
+| # | What changes | What it means for you | Effect | Reference |
 | --- | --- | --- | --- | --- |
-| 1 | FB-1 | Move F4.2 Excel export from R2 to MVP | `features.yaml`, `plan.yaml` | +3 person-days for dev before G1 |
-| 2 | FB-2 | Lighter admin tables (density 3) | `ux-spec.md`, prototype | none |
+| 1 | The Excel export moves from the second version to the first | Your team gets the export from day one; the first version grows | About 3 more days of work (2 to 5) | FB-1, F4.2 |
+| 2 | The admin tables become lighter and less dense | Easier to scan; nothing else changes | None | FB-2 |
 
 ## Option decision
 
@@ -102,10 +102,10 @@ Example:
 
 | Option | Cost | Risk | Blocks |
 | --- | --- | --- | --- |
-| A. Managed speech-to-text API | 2 pd integration, per-minute fee | customer data leaves the network | on-premise deployment |
-| B. Self-hosted model on a GPU server | 8 pd setup, hardware | accuracy unproven for the domain | nothing; needs a validation run |
+| A. A ready-made speech-to-text service | 2 days to connect, a fee per minute | the customer's recordings leave their network | running it inside the customer's own network |
+| B. Our own model on a server we host | 8 days to set up, hardware | we do not yet know if it understands the customer's vocabulary | nothing; it needs a check first |
 
-Recommendation: B, validated by V2 (accuracy on 3 synthetic recordings) before C5.
+Recommendation: B, after a check on three sample recordings that it understands the vocabulary well enough, and before the technical approach is approved. (Reference: V2, C5.)
 
 ## Decision card
 
@@ -118,7 +118,7 @@ Steps:
 1. Write the card before asking. If the options cannot be pictured from words, make them visible first: a sketch, an ASCII layout, a screenshot of a reference, a quick mock, or a scenario told as a short story. Ask in the same message as the picture.
 2. The card has these parts, in this order:
    - **Decision:** one sentence, and what it locks ("after this the screen inventory is built on it").
-   - **Options (2–3):** for each, **what you will see or do** (the picture or a concrete example), **who it serves and who it fails**, **cost** (effort, and the work that would be redone), and **found wrong in:** the phase or event in which a mistake would surface.
+   - **Options (2–3):** for each, **what you will see or do** (the picture or a concrete example), **who it serves and who it fails**, **cost** (effort, and the work that would be redone), and **found wrong:** the moment or event at which a mistake would surface ("when the customer first sees it"), never the name of a phase.
    - **Recommendation:** one option and the reason in one or two sentences, tied to the brief.
    - **Assumed:** what you decided on the person's behalf or guessed, as a list they can strike.
    - **Always offered:** "none of these" (they describe what they want) and "show me first" (you produce a sketch or mock before they choose).
@@ -129,13 +129,13 @@ Steps:
 
 Example:
 
-> **Decision:** how a player moves between the town and a dungeon. Locks the scene list and the loading rules of `ux-design`.
+> **Decision:** how a player moves between the town and a dungeon. After this we draw the scenes and plan the loading between them around it.
 >
-> | Option | What you will see | Serves / fails | Cost | Found wrong in |
+> | Option | What you will see | Serves / fails | Cost | Found wrong |
 > | --- | --- | --- | --- | --- |
-> | A. A world map | `[town]──[forest]──[dungeon]`, travel by choosing a node | Explorers / players who want to arrive fast | 4 extra scenes | the prototype review |
-> | B. A door in the town | the dungeon entrance is a building you walk into | Quick sessions / a sense of travel | 1 scene | the prototype review |
-> | C. A menu list | "Go to: Town · Forest · Dungeon" | Speed / immersion | none | the customer's first look |
+> | A. A world map | `[town]──[forest]──[dungeon]`, travel by choosing a node | Explorers / players who want to arrive fast | 4 extra scenes | when the team first plays the prototype |
+> | B. A door in the town | the dungeon entrance is a building you walk into | Quick sessions / a sense of travel | 1 scene | when the team first plays the prototype |
+> | C. A menu list | "Go to: Town · Forest · Dungeon" | Speed / immersion | none | when the customer first sees it |
 >
 > Recommendation: B, because the brief asks for sessions of ten minutes and a closed town. Assumed: no more than three destinations at launch. Also: none of these · show me a sketch first.
 

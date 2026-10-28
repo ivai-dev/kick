@@ -308,8 +308,9 @@ ADR_ACCEPTED = re.compile(r"^(?:#+[ \t]*status[ \t]*\n+[ \t]*|[\s>*_-]*status[\s
 def check_adrs(root: Path, project: Project) -> list[Finding]:
     """An ADR may be *Accepted* only once C3 and C4 are approved: before that the architecture is explored, not
     committed (a *Proposed* ADR and a `Status: Draft` sketch are fine)."""
-    if not blockers(load_state(root), "solution"):
-        return []
+    state = load_state(root)
+    if "solution" in state["phases"] or not blockers(state, "solution"):
+        return []  # a started solution phase may have Accepted ADRs, also while a reopened C3 waits for its re-approval
     folder = project.docs_dir(root) / "04-architecture" / "adr"
     if not folder.is_dir():
         return []

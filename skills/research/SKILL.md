@@ -29,7 +29,7 @@ Not for committing to the database, architecture or design patterns: that is `ki
 
 ## Steps
 
-1. Run `kickoff can research`. Exit 1: stop and show the `blocked:` lines. Then `kickoff phase start research`.
+1. Run `kickoff can research`. Exit 1: stop, read its output yourself and tell the lead in plain words what is not finished yet and the path to it (methods.md, Plain words), not the raw `blocked:` lines. Then `kickoff phase start research`.
 2. **List the technical unknowns** from `open-questions.md` and `vision-scope.md`, each with its question ID (`Q<n>`) or the section it comes from. Ignore business questions; they stay with the lead.
 3. **Research each unknown with ECC first** (`../using-kickoff/references/ecc.md`):
    - Run `ecc:search-first` for existing tools, libraries, services and vendors.
@@ -64,7 +64,7 @@ Not for committing to the database, architecture or design patterns: that is `ki
    - It decides nothing: every ADR stays *Proposed*, the containers and the data store are marked as options, and no implementation starts from it. `kickoff:solution` later diffs it against the signed-off scope.
    - Present the sketch to the lead in plain words (methods.md, Plain words): "a first guess at how it could be built, to check it is feasible and to size the work; nothing is decided". Where it shows a feature or quality target is hard or costly, say so in everyday terms and note it for the estimate (`kickoff:feature-map` sizes features, `kickoff:plan` refines them). No file names, ADR IDs or `A<n>` IDs in what the lead reads.
 10. **Validate:** `kickoff validate`; fix every error. An ADR with status *Accepted* before C3 and C4 is an error.
-11. **Set the clarity areas** this phase touched: `kickoff clarity set solution` and `kickoff clarity set architecture`, each with `--status`, `--confidence`, a short `--note` and a `--ref` for the `V<n>`, `A<n>` and `ADR-<nnn>` behind it. Use `assumed` for a hypothesis and `validated` only when a passed `V<n>` confirms it (the ref names that `V<n>`); `decided` is for `kickoff:solution`, after C3 and C4.
+11. **Set the clarity areas** this phase touched (a project from 0.8 has no register yet: run `kickoff clarity init` first): `kickoff clarity set solution` and `kickoff clarity set architecture`, each with `--status`, `--confidence`, a short `--note` and a `--ref` for the `V<n>`, `A<n>` and `ADR-<nnn>` behind it. Use `assumed` for a hypothesis and `validated` only when a passed `V<n>` confirms it (the ref names that `V<n>`); `decided` is for `kickoff:solution`, after C3 and C4.
 12. **Verify** (section below), then `kickoff phase done research` and commit `docs: research — validation plan, proposed ADRs, assumptions and draft architecture`.
 
 ## Outputs

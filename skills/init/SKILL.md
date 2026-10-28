@@ -53,15 +53,15 @@ Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the
 
 3. **Fill `.kickoff/project.yaml`** with the answers (name, languages, releases, security, forbidden phrases, `design.forbidden`), using the Edit tool (never a shell heredoc). Quote strings that look like numbers or dates. Leave `roles`, `calendar`, `hard_dates`, `scheduling: "off"` and `estimate.overhead` as the template has them. Set the clarity areas that the idea already answers: `kickoff clarity set problem --status assumed --confidence low --note "<the idea>"`; leave the others `open`.
 
-4. **Write `AGENTS.md`** in the repository root from `templates/AGENTS.md`: replace every `{{...}}` placeholder (the idea line goes into the Product section), copy the `security` rules verbatim, keep the repository map as a placeholder table until the code exists. Roles and calendar are not filled: the file points to `project.yaml`. If an `AGENTS.md` already exists, use the Bounded approval method to merge the kickoff sections into it:
+4. **Write `AGENTS.md`** in the repository root from `templates/AGENTS.md`: replace every `{{...}}` placeholder (the idea line goes into the Product section), copy the `security` rules verbatim, keep the repository map as a placeholder table until the code exists. Roles and calendar are not filled: the file points to `project.yaml`. If an `AGENTS.md` already exists, use the Bounded approval method to merge the kickoff sections into it, and put the merge to the lead in plain words (methods.md, Plain words): "your project's instructions file already exists; I would add a short section on how this project is run and keep everything you have written. Add it, change it, or leave the file as it is?", with each added section named by what it says, not by heading or file name:
 
 > **Bounded approval:** present one table of proposed changes; change nothing before an explicit yes or edit.
 
 5. **Validate:** `kickoff validate`. Fix every error and run it again until it reports `0 errors`.
    **ECC setup** (`../using-kickoff/references/ecc.md`):
-   - Run `kickoff ecc setup --dry` and show the lead the diff. It exempts `.kickoff/**`, `<docs_root>/**` and `AGENTS.md` from ECC's GateGuard in `.claude/settings.json`.
+   - Run `kickoff ecc setup --dry`, read the diff yourself and tell the lead in plain words (methods.md, Plain words) what would change: "the safety check that asks for a reason before each first edit would skip this project's planning documents, so the work is not interrupted on every file. Nothing else changes. Go ahead?" (the file names stay out of the question). The command exempts `.kickoff/**`, `<docs_root>/**` and `AGENTS.md` from ECC's GateGuard in `.claude/settings.json`.
    - After a yes, run `kickoff ecc setup`.
-   - Then offer `kickoff ecc setup --router` separately. It adds the kickoff route to the user's ecc-router table, outside this repository, so it needs its own yes.
+   - Then offer `kickoff ecc setup --router` separately, in plain words: "I can also teach your assistant's request router that this project's work goes through the kickoff steps. That changes your personal setup, outside this project, so I ask on its own." It needs its own yes.
 
 6. **Verify** (section below), then `kickoff phase done init` and commit with the message `chore: kickoff init`.
 

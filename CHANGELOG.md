@@ -14,6 +14,7 @@ Clarity, not ceremony. Kickoff 0.8 was a delivery-governance pipeline, not a cla
 - `kickoff export` gains the columns and fields `effort_min`, `effort_max` and `confidence`.
 - `project.yaml` settings `scheduling` (`"off"` or `"on"`; absent means on) and `estimate.overhead` (the management share added to the work total).
 - `kickoff validate` errors on an ADR marked *Accepted* before C3 and C4.
+- `kickoff validate` also errors on a malformed `.kickoff/clarity.yaml`.
 - **Plain words rule:** confirmations and gate requests are written in everyday words, without phase names, gate IDs, item IDs, commands or file names (`methods.md`, `conventions.md`, a pressure scenario).
 - Lessons rows 19-21 and pressure scenarios 6-8 (a vague idea, a sketch before sign-off, a jargon-filled gate request).
 
@@ -24,6 +25,7 @@ Clarity, not ceremony. Kickoff 0.8 was a delivery-governance pipeline, not a cla
 - `kickoff status` lists every phase in progress ("continue kickoff:research and kickoff:feature-map").
 - `kickoff docs` also writes `estimate.md`, and `--check` covers it.
 - **New projects start with `scheduling: "off"` and a slim `init`** (skills): name, languages, the idea in one line, releases, optional rules. Team, calendar and hard dates are asked by `kickoff:plan` when scheduling is turned on. With scheduling off, `kickoff schedule` and `kickoff workbook` print "scheduling is off" and exit 0.
+- `signoff` and `feedback` handle scheduling off: no date is stated and the effect on the plan is the `kickoff estimate` range; open questions need a priority, and a needed-by date only when scheduling is on. Skills read `kickoff can` output themselves and tell the person in plain words what is missing, never the raw `blocked:` lines. The customer-facing templates keep file names and IDs in a team-only section.
 - The warning "active feature without a WBS package" becomes "active feature without a WBS package or an estimate" and is raised only when neither exists.
 - `using-kickoff` routes by clarity first, rewrites the hard gate and the core principle, and gains red flags for a draft sketch, lead versus customer approvals, scheduling off, init questions and single-number estimates.
 

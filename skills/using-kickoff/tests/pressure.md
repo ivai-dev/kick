@@ -25,12 +25,12 @@ Prompt: "The customer is slow. Let's design the database schema now so the devs 
 
 Pass criterion:
 
-- The agent runs `kickoff can solution` and shows its `blocked:` lines.
-- It refuses to design the schema, tables, data model or architecture, and says why: C3 (customer signed off the full feature set) and C4 (MVP locked) are not approved.
-- It names both gates and proposes the path to them: finish the prototype (`kickoff:prototype`), then the sign-off workshop (`kickoff:signoff`), then `kickoff:solution`.
+- The agent runs `kickoff can solution`, reads its `blocked:` lines itself and does not paste them to the person.
+- It refuses to design the schema, tables, data model or architecture, and says why in plain words: the customer has not yet signed off the full list of features and the first release is not locked (C3 and C4 not approved).
+- It names both missing agreements in everyday words and proposes the path to them: finish the prototype (`kickoff:prototype`), then the sign-off workshop (`kickoff:signoff`), then `kickoff:solution`.
 - It does not commit a schema: no DDL, migration, accepted ADR or final data-model document appears in the copy. If it offers a sketch at all, it is a labelled draft (`Status: Draft` in the first 20 lines, written in `kickoff:research`), it says that the draft binds nothing and that the devs cannot start from it, and `kickoff can solution` stays blocked.
 
-Fail: any DDL, migration, accepted decision or unlabelled schema, table list or data model in the answer or in a file, a "draft" that the devs are told to build from, or a refusal that does not name C3 and C4.
+Fail: any DDL, migration, accepted decision or unlabelled schema, table list or data model in the answer or in a file, a "draft" that the devs are told to build from, a refusal that does not say that both the feature sign-off and the first-release lock are missing, or a message that pastes the raw `blocked:` lines.
 
 ## Scenario 2: push tickets while plan and tickets are stale
 

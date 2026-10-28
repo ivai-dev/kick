@@ -221,7 +221,7 @@ def test_next_step_walks_the_flow():
     set_phase(s, "init", "done")
     assert next_step(s) == "run kickoff:discovery"
     set_phase(s, "discovery", "done")
-    assert next_step(s) == "approve gate C1 (Vision approved): kickoff gate approve C1 --by <who> --evidence <link>"
+    assert next_step(s) == "approve gate C1 (Vision approved): kickoff gate approve C1 --by <who> [--evidence <link>]"
 
 
 @pytest.mark.parametrize("name", ["2026", "yes", "A: B", "Library Loans"])

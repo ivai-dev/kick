@@ -97,8 +97,9 @@ def estimate(project: Project, plan: Plan, features: Features) -> dict:
         basis["point_estimates"] += "min" not in e and "max" not in e
         basis["low_confidence"] += e.get("confidence") == "low"
     rate = project.estimate_overhead
-    overhead = {k: (work[k] - loe[k]) * rate for k in work}
-    total = {k: work[k] + overhead[k] for k in work}
+    overhead = _rounded({k: (work[k] - loe[k]) * rate for k in work})
+    work = _rounded(work)
+    total = {k: round(work[k] + overhead[k], 2) for k in work}  # the printed rows add up
     release_order = [r.id for r in project.releases]
     role_order = [*project.roles, UNASSIGNED]
     return {
@@ -107,9 +108,9 @@ def estimate(project: Project, plan: Plan, features: Features) -> dict:
         | {r: _rounded(v) for r, v in releases.items() if r not in release_order and r != UNASSIGNED},
         "roles": {r: _rounded(roles[r]) for r in role_order if r in roles}
         | {r: _rounded(v) for r, v in roles.items() if r not in role_order},
-        "work": _rounded(work),
-        "overhead": {"rate": rate, **_rounded(overhead)},
-        "total": _rounded(total),
+        "work": work,
+        "overhead": {"rate": rate, **overhead},
+        "total": total,
         "basis": basis,
     }
 

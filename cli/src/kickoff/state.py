@@ -172,7 +172,7 @@ def next_step(state: dict) -> str:
         ready = all(g in state["gates"] for g in GATE_NEEDS.get(gate, []))
         if _done(state, phase) and phase not in stale and not _gate_ok(state, gate) and ready:
             return (f"approve gate {gate} ({GATES[gate]}): kickoff gate approve {gate} --by <who> "
-                    "--evidence <link>")
+                    + ("[--evidence <link>]" if gate in LEAD_GATES else "--evidence <link>"))
     for phase in stale:
         if not blockers(state, phase):
             rest = [p for p in stale if p != phase]

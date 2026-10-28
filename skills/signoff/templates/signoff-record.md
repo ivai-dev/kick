@@ -1,8 +1,8 @@
 # {{project_name}} — record of the feature agreement
 
-Written in plain words so the customer can confirm it as it stands. Codes in the Reference columns are for the project team's records only.
+Written in plain words so the customer can confirm it as it stands. Codes in the Reference columns are for the project team's records only, and the last section, "For the project team only", is not part of what the customer reads or confirms.
 
-- **Workshop document:** `{{YYYY-MM-DD}}-workshop-pack.md`
+- **Workshop document:** the workshop document of {{YYYY-MM-DD}}
 - **Prototype:** {{prototype link or file}}, version {{n}}
 - **Recorded by:** Project lead
 
@@ -16,7 +16,7 @@ Written in plain words so the customer can confirm it as it stands. Codes in the
 
 ## Features agreed, by release
 
-Reference: `.kickoff/features.yaml` at commit `{{commit}}`.
+The list of features as it stood at the workshop. Its version is in the team-only section at the end.
 
 | Release | Features agreed (in words) | Count | Notes | Reference |
 | --- | --- | --- | --- | --- |
@@ -30,7 +30,7 @@ Reference: `.kickoff/features.yaml` at commit `{{commit}}`.
 
 ## Changes requested
 
-Each request is worked through in a feedback session (`01-discovery/feedback/`): the feature list, the screens, the prototype and the plan are updated in that order, and the customer is asked to look again.
+Each request is worked through with you: we update the list of features, the screens, the prototype and the plan, in that order, and ask you to look again.
 
 | # | Request (as said) | Raised by (role) | What it affects | Reference |
 | --- | --- | --- | --- | --- |
@@ -38,7 +38,7 @@ Each request is worked through in a feedback session (`01-discovery/feedback/`):
 
 ## Decisions
 
-Also recorded in the Decision log of `open-questions.md`.
+Each decision is also kept in the project's list of decisions.
 
 | Decision | Taken by (role) | Question it answers | Source | Reference |
 | --- | --- | --- | --- | --- |
@@ -52,6 +52,15 @@ Also recorded in the Decision log of `open-questions.md`.
 
 ## Next steps
 
-| Step | Owner (role) | Due |
+| Step | Owner (role) | Due (when a date is set) |
 | --- | --- | --- |
-| {{step}} | {{role}} | {{YYYY-MM-DD}} |
+| {{step}} | {{role}} | {{YYYY-MM-DD, or "after the step above"}} |
+
+## For the project team only
+
+Not part of what the customer reads or confirms: omit this section from any copy shown or sent to the customer.
+
+- **Workshop pack file:** `{{YYYY-MM-DD}}-workshop-pack.md`
+- **Feature list version:** `.kickoff/features.yaml` at commit `{{commit}}`
+- **Changes requested are worked through in:** `01-discovery/feedback/` (a feedback session)
+- **Decisions also recorded in:** the Decision log of `open-questions.md`

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -55,7 +56,11 @@ def run_init(args) -> int:
 def run_status(args) -> int:
     root = resolve_root(args.root)
     state = load_state(root)
-    clarity = load_clarity(root)
+    try:
+        clarity = load_clarity(root)
+    except KickoffError as exc:  # `kickoff validate` reports it; status still shows the phases
+        print(f"clarity.yaml: {exc}", file=sys.stderr)
+        clarity = None
     if args.json:
         out = {**state, "next": next_step(state)}
         if clarity:
