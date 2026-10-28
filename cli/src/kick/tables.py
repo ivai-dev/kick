@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -65,8 +66,8 @@ def _column(header: list[str], name: str) -> int | None:
 def read_table(path: Path, heading: str) -> tuple[list[str], list[tuple[int, list[str]]]] | None:
     """The header and the (line number, cells) rows of the first table under `## heading`; None when the page has
     no such heading. HTML comments are skipped."""
-    text = COMMENT.sub(lambda m: "\n" * m.group(0).count("\n"), path.read_text(encoding="utf-8"))
-    lines = text.splitlines()
+    text = COMMENT.sub(lambda m: "\n" * m.group(0).count("\n"), path.read_text(encoding="utf-8-sig"))
+    lines = [line.rstrip("\r") for line in text.split("\n")]  # not splitlines(): a cell may hold U+2028
     start = next((i for i, line in enumerate(lines) if line.strip().lower() == f"## {heading.lower()}"), None)
     if start is None:
         return None
@@ -98,6 +99,8 @@ def parse_days(text: str) -> tuple[float, float, float, bool]:
         values = [float(p) for p in parts]
     except ValueError as exc:
         raise ValueError(f"days {text!r} is not min–likely–max or one number") from exc
+    if not all(math.isfinite(v) and v >= 0 for v in values):
+        raise ValueError(f"days {text!r}: days are finite numbers, 0 or more")
     if len(values) == 1:
         return values[0], values[0], values[0], True
     if len(values) != 3:
@@ -111,7 +114,7 @@ def parse_days(text: str) -> tuple[float, float, float, bool]:
 def _split_key(text: str) -> tuple[str, str]:
     key, sep, title = text.partition(":")
     key = key.strip().strip("`")
-    if not sep or not KEY.match(key):
+    if not sep or not KEY.fullmatch(key):
         raise ValueError(f"{text!r} does not start with a short key and a colon (for example `login: …`)")
     return key, title.strip()
 
@@ -199,6 +202,35 @@ def check_links(items: list[Item], rel: str) -> list[str]:
                 errors.append(f"{rel}: the tasks wait for each other in a circle: {' → '.join(cycle[start:])}")
                 break
     return errors
+
+
+def fill_cell(path: Path, spec, key: str, column: str, value: str) -> bool:
+    """Write `value` into the `column` cell of the row whose key is `key`, when that cell is empty. False when the
+    row or column is missing or the cell already holds something else."""
+    heading, first, _ = spec
+    table = read_table(path, heading)
+    if table is None:
+        return False
+    header, rows = table
+    key_col, col = _column(header, first), _column(header, column)
+    if key_col is None or col is None:
+        return False
+    lines = path.read_text(encoding="utf-8-sig").split("\n")
+    for number, cells in rows:
+        cells += [""] * (len(header) - len(cells))
+        try:
+            row_key, _ = _split_key(cells[key_col])
+        except ValueError:
+            continue
+        if row_key != key:
+            continue
+        if cells[col] not in ("", value):
+            return False
+        cells[col] = value
+        lines[number - 1] = "| " + " | ".join(c.replace("|", "\\|") for c in cells) + " |"
+        path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
+        return True
+    return False
 
 
 def read_endpoints(path: Path) -> tuple[list[Endpoint], list[str]]:

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .errors import KickError
 from .estimate import days, kick_items, kick_total, linked_kick, product_total, roadmap_items
-from .files import kick_dir, project_dir
+from .files import RESERVED, SLUG, kick_dir, project_dir
 from .kickfile import RESULT, Kick, kick_folders, load_kick
 from .projectfile import Project, languages_line, load_project
 from .tables import read_endpoints
@@ -41,7 +41,7 @@ def kick_line(kick: Kick) -> str:
     items, _ = kick_items(kick)
     done = sum(i.status == "done" for i in items)
     left = kick_total(kick, remaining=True)
-    estimate = days(left.low, left.likely, left.high) + " left" if left.items else "no tasks yet"
+    estimate = days(left.low, left.likely, left.high) + " left" if items else "no tasks yet"
     unclear = len(find_unclear(kick.path))
     return (f"  {kick.slug}  {kick.kind}  {kick.step}  tasks {done}/{len(items)}  {estimate}"
             + (f"  unclear {unclear}" if unclear else ""))
@@ -49,17 +49,25 @@ def kick_line(kick: Kick) -> str:
 
 def status_lines(root: Path, project: Project) -> list[str]:
     out = [languages_line(project)]
-    kicks = [load_kick(f) for f in kick_folders(root)]
-    if kicks:
+    kicks, broken = [], []
+    for folder in kick_folders(root):
+        try:
+            kicks.append(load_kick(folder))
+        except KickError as exc:
+            broken.append(f"  {folder.name}: cannot be read ({exc}); run kick check")
+    if kicks or broken:
         out.append("Kicks:")
-        out += [kick_line(k) for k in kicks]
+        out += [kick_line(k) for k in kicks] + broken
     else:
-        out.append("No kick in progress: start one (kick new).")
+        out.append("No kick in progress: start one with the kick:start skill.")
     roadmap, _ = roadmap_items(root)
     if roadmap:
         states = {"done": 0, "in progress": 0, "not started": 0}
         for item in roadmap:
-            kick = linked_kick(root, item.kick) if item.kick else None
+            try:
+                kick = linked_kick(root, item.kick) if item.kick else None
+            except KickError:
+                kick = None
             states["not started" if kick is None else "done" if kick.status == "done" else "in progress"] += 1
         left = product_total(root, remaining=True)
         out.append(f"Roadmap: {len(roadmap)} features: {states['done']} done, {states['in progress']} in progress, "
@@ -120,7 +128,7 @@ def check_kick(root: Path, folder: Path, roadmap_keys: set[str] | None, found: F
         found.errors.append(str(exc))
         return
     items, errors = kick_items(kick)
-    found.errors += [f"{name}/{e}" if not e.startswith(kick.slug) else e for e in errors]
+    found.errors += [f"{name}/{e}" for e in errors]
     found.warnings += kick.agreement_warnings()
     started = [i.key for i in items if i.status in ("doing", "done") and not i.probe]
     if started and "plan" not in kick.agreed and kick.status != "done":
@@ -145,9 +153,17 @@ def check_root(root: Path, slug: str | None = None) -> Findings:
         found.errors += [f"project/{e}" for e in errors]
         roadmap_keys = {i.key for i in items}
         for item in items:
-            if item.kick and linked_kick(root, item.kick) is None:
-                found.errors.append(f"project/roadmap.md:{item.line}: {item.key} names the kick {item.kick}, "
-                                    "which does not exist")
+            if not item.kick:
+                continue
+            where = f"project/roadmap.md:{item.line}: {item.key}"
+            if not SLUG.fullmatch(item.kick) or item.kick in RESERVED:
+                found.errors.append(f"{where}: {item.kick!r} in the Kick column is not a kick name")
+                continue
+            try:
+                if linked_kick(root, item.kick) is None:
+                    found.errors.append(f"{where} names the kick {item.kick}, which does not exist")
+            except KickError:
+                pass  # the broken kick.yaml is reported with its kick below
     if (project_dir(root) / "api.md").is_file():
         _, errors = read_endpoints(project_dir(root) / "api.md")
         found.errors += [f"project/{e}" for e in errors]

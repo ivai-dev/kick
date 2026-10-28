@@ -134,7 +134,7 @@ def test_status_of_one_kick(root, capsys):
 
 def test_status_without_kicks_and_without_project(root, tmp_path_factory, capsys):
     assert main(["--root", str(root), "status"]) == 0
-    assert "No kick in progress: start one (kick new)." in capsys.readouterr().out
+    assert "No kick in progress: start one with the kick:start skill." in capsys.readouterr().out
     empty = tmp_path_factory.mktemp("empty")
     assert main(["--root", str(empty), "status"]) == 2
     assert "run kick init" in capsys.readouterr().err

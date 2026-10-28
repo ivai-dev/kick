@@ -5,6 +5,7 @@ from __future__ import annotations
 from ..files import resolve_root
 from ..kickfile import KINDS, finish_kick, new_kick
 from ..projectfile import init_project, languages_line, load_project, make_languages, project_file
+from ..tables import FEATURES, fill_cell
 
 
 def register(sub) -> None:
@@ -47,6 +48,13 @@ def run_new(args) -> int:
     written = new_kick(root, args.slug, args.title, args.kind, args.roadmap)
     for path in written:
         print("wrote", path.relative_to(root).as_posix())
+    if args.roadmap:
+        roadmap = project_file(root).parent / "roadmap.md"
+        if roadmap.is_file() and fill_cell(roadmap, FEATURES, args.roadmap, "Kick", args.slug):
+            print(f"linked: roadmap row {args.roadmap} → {args.slug}")
+        else:
+            print(f"warn: the roadmap has no row {args.roadmap} with an empty Kick cell; add or fix the row so the "
+                  "product total counts this kick")
     print(f"next: understand ({project_file(root).parent.relative_to(root).as_posix()} is read first)")
     return 0
 

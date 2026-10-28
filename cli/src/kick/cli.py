@@ -26,7 +26,18 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", metavar="<command>")
     for module in commands():
         module.register(sub)
+    _root_everywhere(parser)
     return parser
+
+
+def _root_everywhere(parser: argparse.ArgumentParser) -> None:
+    """Accept --root after the command too (`kick init --root DIR`); SUPPRESS keeps a value given before it."""
+    for action in parser._actions:  # argparse has no public way to list subparsers
+        if isinstance(action, argparse._SubParsersAction):
+            for child in set(action.choices.values()):
+                if "--root" not in child._option_string_actions:
+                    child.add_argument("--root", type=Path, default=argparse.SUPPRESS, help="project root")
+                _root_everywhere(child)
 
 
 def main(argv: list[str] | None = None) -> int:

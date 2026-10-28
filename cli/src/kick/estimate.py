@@ -6,7 +6,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .files import DONE, kick_dir, project_dir
+from .errors import KickError
+from .files import DONE, RESERVED, SLUG, kick_dir, project_dir
 from .kickfile import Kick, load_kick
 from .tables import FEATURES, TASKS, Item, read_items
 
@@ -21,6 +22,7 @@ class Total:
     low_confidence: int = 0
     unestimated: int = 0
     by_release: dict[str, list[float]] = field(default_factory=dict)
+    warnings: list[str] = field(default_factory=list)  # tables that could not be read, so their rows are missing
 
     def add(self, low: float, likely: float, high: float, release: str = "") -> None:
         self.low += low
@@ -48,7 +50,8 @@ class Total:
                 "total": [r(self.low * (1 + overhead)), r(self.likely * (1 + overhead)), r(self.high * (1 + overhead))],
                 "items": self.items, "point_estimates": self.points, "low_confidence": self.low_confidence,
                 "unestimated": self.unestimated, "budget_days": budget,
-                "by_release": {k: [r(x) for x in v] for k, v in self.by_release.items()}}
+                "by_release": {k: [r(x) for x in v] for k, v in self.by_release.items()},
+                "warnings": self.warnings}
 
 
 def r(value: float) -> float:
@@ -56,15 +59,17 @@ def r(value: float) -> float:
 
 
 def kick_items(kick: Kick) -> tuple[list[Item], list[str]]:
+    """The kick's tasks and the errors met reading them; error texts start with "tasks.md"."""
     path = kick.path / "tasks.md"
     if not path.is_file():
-        return [], [f"{kick.slug}/tasks.md does not exist"]
+        return [], ["tasks.md does not exist"]
     return read_items(path, TASKS)
 
 
 def kick_total(kick: Kick, remaining: bool = False) -> Total:
     total = Total()
-    items, _ = kick_items(kick)
+    items, errors = kick_items(kick)
+    total.warnings += [f"{kick.slug}: {e}" for e in errors]
     for item in items:
         if remaining and item.status == "done":
             continue
@@ -80,8 +85,12 @@ def roadmap_items(root: Path) -> tuple[list[Item], list[str]]:
 
 
 def linked_kick(root: Path, slug: str) -> Kick | None:
+    """The kick a roadmap row names, active or done; None when the cell is empty, not a kick name (it could point
+    outside docs/kick/) or names no kick. A broken kick.yaml raises KickError."""
+    if not slug or not SLUG.fullmatch(slug) or slug in RESERVED:
+        return None
     for folder in (kick_dir(root) / slug, kick_dir(root) / DONE / slug):
-        if slug and (folder / "kick.yaml").is_file():
+        if (folder / "kick.yaml").is_file():
             return load_kick(folder)
     return None
 
@@ -90,9 +99,14 @@ def product_total(root: Path, remaining: bool = False) -> Total:
     """Roadmap rows; a row whose kick exists counts with that kick's tasks (nothing when it is done and only the
     remaining work is asked for; the row itself while the kick has no estimated task yet)."""
     total = Total()
-    items, _ = roadmap_items(root)
+    items, errors = roadmap_items(root)
+    total.warnings += [f"roadmap: {e}" for e in errors]
     for item in items:
-        kick = linked_kick(root, item.kick) if item.kick else None
+        try:
+            kick = linked_kick(root, item.kick) if item.kick else None
+        except KickError as exc:
+            total.warnings.append(str(exc))
+            kick = None
         if kick is None:
             total.add_item(item, item.release)
             continue
@@ -100,7 +114,8 @@ def product_total(root: Path, remaining: bool = False) -> Total:
             total.items += 1
             continue
         sub = kick_total(kick, remaining)
-        if sub.items - sub.unestimated == 0 and not (remaining and kick.step == "finish"):
+        total.warnings += sub.warnings
+        if kick_total(kick).items - kick_total(kick).unestimated == 0:  # no estimated task yet: the row counts
             total.add_item(item, item.release)
             continue
         total.items += 1
@@ -135,4 +150,5 @@ def estimate_lines(label: str, total: Total, overhead: float, budget: float | No
         out.append(f"  budget    {fmt(budget)} days: {verdict}")
     for release, (low, likely, high) in total.by_release.items():
         out.append(f"  release {release}: {days(low, likely, high)}")
+    out += [f"warn: {w} (its rows are not counted; run kick check)" for w in total.warnings]
     return out

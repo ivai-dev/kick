@@ -41,7 +41,7 @@ def project_dir(root: Path) -> Path:
 
 
 def check_slug(slug: str) -> str:
-    if not SLUG.match(slug or ""):
+    if not isinstance(slug, str) or not SLUG.fullmatch(slug):
         raise KickError(f"invalid name {slug!r}: use 2-41 lowercase letters, digits and dashes, starting with a "
                         "letter or digit")
     if slug in RESERVED:
@@ -51,12 +51,14 @@ def check_slug(slug: str) -> str:
 
 def read_yaml(path: Path) -> dict:
     try:
-        text = path.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8-sig")
     except FileNotFoundError as exc:
         raise KickError(f"{path} does not exist") from exc
+    except (OSError, UnicodeDecodeError) as exc:
+        raise KickError(f"{path}: cannot be read: {exc}") from exc
     try:
         data = yaml.safe_load(text)
-    except yaml.YAMLError as exc:
+    except (yaml.YAMLError, ValueError) as exc:  # PyYAML raises ValueError for an impossible date (2026-02-30)
         raise KickError(f"{path}: invalid YAML: {exc}") from exc
     if not isinstance(data, dict):
         raise KickError(f"{path}: expected a mapping at the top")
@@ -68,7 +70,12 @@ def write_yaml(path: Path, data: dict) -> None:
 
 
 def as_date(value) -> date:
-    return value if isinstance(value, date) else date.fromisoformat(str(value))
+    if isinstance(value, date):
+        return value
+    try:
+        return date.fromisoformat(str(value))
+    except ValueError as exc:
+        raise KickError(f"{value!r} is not a date (YYYY-MM-DD)") from exc
 
 
 def copy_templates(kind: str, dest: Path, values: dict[str, str]) -> list[Path]:

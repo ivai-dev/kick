@@ -90,13 +90,15 @@ def answers_file() -> Path:
 
 def load_answers() -> dict[str, str]:
     try:
-        data = yaml.safe_load(answers_file().read_text(encoding="utf-8")) or {}
+        data = yaml.safe_load(answers_file().read_text(encoding="utf-8-sig")) or {}
     except FileNotFoundError:
         return {}
-    except yaml.YAMLError as exc:
-        raise KickError(f"{answers_file()}: invalid YAML: {exc}") from exc
+    except (OSError, UnicodeDecodeError, yaml.YAMLError, ValueError) as exc:
+        raise KickError(f"{answers_file()}: cannot be read: {exc}") from exc
     answers = data.get("answers") if isinstance(data, dict) else None
-    return {k: v for k, v in (answers or {}).items() if k in BY_ID and v in ANSWERS}
+    if not isinstance(answers, dict):
+        return {}
+    return {k: v for k, v in answers.items() if k in BY_ID and v in ANSWERS}
 
 
 def mark(companion_id: str, answer: str) -> None:

@@ -18,6 +18,9 @@ def register(sub) -> None:
     p.set_defaults(func=run)
 
 
+CHECKED = frozenset({"kick.yaml", "project.yaml", "tasks.md", "roadmap.md", "api.md"})  # files post-write checks
+
+
 def _start(event: str, payload: dict) -> Path | None:
     """The folder to search upwards from for docs/kick/, or None when the payload names no file."""
     cwd = Path(payload.get("cwd") or Path.cwd())
@@ -28,6 +31,8 @@ def _start(event: str, payload: dict) -> Path | None:
     if not isinstance(raw, str) or not raw:
         return None
     path = Path(raw)
+    if path.name not in CHECKED:  # most writes: answer before importing yaml and jsonschema
+        return None
     return (path if path.is_absolute() else cwd / path).parent
 
 

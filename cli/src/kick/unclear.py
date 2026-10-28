@@ -21,8 +21,8 @@ def find_unclear(folder: Path) -> list[Unclear]:
     """Markers in the Markdown files directly in `folder`, outside HTML comments (template guidance)."""
     out = []
     for path in sorted(folder.glob("*.md")):
-        text = path.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8-sig")
         text = COMMENT.sub(lambda m: "\n" * m.group(0).count("\n"), text)
-        for number, line in enumerate(text.splitlines(), 1):
+        for number, line in enumerate(text.split("\n"), 1):
             out += [Unclear(path, number, m.group(1).strip()) for m in MARKER.finditer(line)]
     return out

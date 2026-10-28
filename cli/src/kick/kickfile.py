@@ -120,9 +120,6 @@ def finish_kick(root: Path, slug: str) -> tuple[Path, list[str]]:
         raise KickError(f"{target} already exists")
     warnings = [] if "result" in kick.agreed else [
         f"{slug}: nobody agreed '{RESULT[kick.kind]}' yet; it is moved to done/ anyway"]
-    data = read_yaml(folder / "kick.yaml")
-    data["status"] = "done"
-    write_yaml(folder / "kick.yaml", data)
     target.parent.mkdir(parents=True, exist_ok=True)
     if _tracked(root, folder):
         moved = subprocess.run([shutil.which("git"), "mv", str(folder), str(target)], cwd=root, capture_output=True,
@@ -131,4 +128,7 @@ def finish_kick(root: Path, slug: str) -> tuple[Path, list[str]]:
             raise KickError(f"git mv failed: {moved.stderr.strip()}")
     else:
         shutil.move(str(folder), str(target))
+    data = read_yaml(target / "kick.yaml")  # written after the move: a failed move leaves the kick as it was
+    data["status"] = "done"
+    write_yaml(target / "kick.yaml", data)
     return target, warnings

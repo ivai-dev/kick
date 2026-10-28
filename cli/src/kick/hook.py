@@ -7,13 +7,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from .commands.hook_cmd import CHECKED
 from .ecc import doctor
 from .errors import KickError
 from .files import KICK_DIR, find_root
 from .projectfile import load_project
 from .report import check_root, status_lines
-
-CHECKED = {"kick.yaml", "project.yaml", "tasks.md", "roadmap.md", "api.md"}
 
 
 def _cwd(payload: dict) -> Path:

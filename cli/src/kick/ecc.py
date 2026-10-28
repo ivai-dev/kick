@@ -97,8 +97,8 @@ def plugin_install(match, project: Path | None = None) -> Install | None:
         data = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
         data = {}
-    except ValueError as exc:
-        raise EccError(f"{path}: invalid JSON: {exc}") from exc
+    except (OSError, ValueError) as exc:
+        raise EccError(f"{path}: cannot be read: {exc}") from exc
     plugins = data.get("plugins") if isinstance(data, dict) else None
     lists = [v for k, v in plugins.items() if match(k)] if isinstance(plugins, dict) else []
     entries = [e for v in lists if isinstance(v, list) for e in v if isinstance(e, dict)]
