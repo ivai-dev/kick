@@ -1,10 +1,50 @@
 # Working methods
 
-Seven methods every kickoff skill uses. Phase skills name them by section heading ("the Interview method") and carry a one-line rule card where they apply; this file holds the full text. A design choice or a gate request uses the Decision card method, never a bare list of options.
+Seven methods every kickoff skill uses, and one rule, Plain words, that governs how every method is worded. Phase skills name them by section heading ("the Interview method") and carry a one-line rule card where they apply; this file holds the full text. A design choice or a gate request uses the Decision card method, never a bare list of options.
+
+## Plain words
+
+**Rule:** the person you ask does not know kickoff. Every question, option list, approval request and report said to a person is understandable on its own, in everyday words: no phase names, gate IDs, item IDs, commands, file names or plugin terms. IDs, file names and commands belong in the files you write and in commits, never in the chat text.
+
+Steps:
+
+1. Open with where the work stands and why you are asking, in one or two sentences: what we are doing, and what the answer unlocks or changes.
+2. Describe every option by what it means for the person's product, work, money or time, with a concrete example. Never describe it by how the plugin works.
+3. Translate every plugin term before it reaches the person (table below). If an ID helps the person find a record later, put it after the plain description, in brackets: "the first list of features (C2)".
+4. Say what each answer leads to: yes, no, "not sure". Say what becomes expensive to change once they answer, and what you assumed on their behalf.
+5. Say what the person has to do: pick a letter, answer in a sentence, or ask to see something first. Never leave the next move to be guessed.
+6. Write in the chat language of the project (`languages.chat` in `project.yaml`), in short sentences, one decision per message unless they belong together.
+7. Before sending, read the message as someone who has never seen the plugin. If a word needs the plugin to be understood, rewrite it.
+
+| In the plugin | Say to the person |
+| --- | --- |
+| Gate C1 (vision) | "Agree that this describes what we are building and for whom." |
+| Gate C2 (draft scope) | "Agree on the first list of features. It can still change, but changes now cost little." |
+| Gate CD (design concept) | "Choose the direction for how the product is organised and feels." |
+| Gate C3 | "Confirm that the full list of features is right. Features added after this cost more, because the technical design is built on it." |
+| Gate C4 | "Agree which features go into the first release." |
+| Gate C5 | "Approve the technical approach: how it will be built, and with what." |
+| Gate C6 | "Approve the plan and the estimate as the version the team commits to and is measured against." |
+| Phase or skill name | What the step is for: "next we turn the list of features into a clickable prototype." |
+| ADR | "A recorded technical decision, with the options we compared and why we picked one." |
+| Draft architecture | "An early technical sketch to check that this can be built and to estimate it. Nothing in it is final." |
+| WBS, work package | "The task breakdown", "one task". |
+| Estimate range, confidence | "Between 8 and 15 days; our best guess is 10; we are not very sure because we have not built anything like it." |
+| Basis | "What the number is based on." |
+| Overhead | "Time for managing the project, added on top of the work." |
+| Stale | "Needs to be redone because something it depends on changed." |
+| Clarity, weakest area | "What we are still unsure about, and the biggest unknown right now." |
+| Assumption, validation item | "Something we are guessing", "a check that will prove or disprove it". |
+| Ruling | "A small call I made without asking you; tell me if you disagree." |
+| Hard gate | "We cannot start this yet because something it needs has not been agreed." |
+
+Example. Not this: "C3 is open; run kickoff:signoff to lock the feature set before solution." This:
+
+> The prototype is ready for the customer to try. Next step: a short session where the customer goes through it and tells us whether the list of features is complete. If they say yes, we freeze that list and start designing how it is built; adding a feature after that costs noticeably more. Shall I prepare the session material (A), or do you want to look at the prototype yourself first (B)?
 
 ## Interview
 
-**Rule:** one question per message; 2–4 options with a recommendation when a choice exists; restate the answer in one line; stop when every field of the output template is filled.
+**Rule:** one question per message; 2–4 options with a recommendation when a choice exists; restate the answer in one line; stop when every field of the output template is filled. Worded in plain words (above): the template's field names are for the file, not for the question.
 
 Steps:
 
@@ -28,12 +68,12 @@ Example:
 
 ## Bounded approval
 
-**Rule:** present one table of proposed changes; nothing changes before an explicit yes or edit.
+**Rule:** present one table of proposed changes; nothing changes before an explicit yes or edit. The table is in plain words (above): describe each change by what it does to the product or the plan, and name files or IDs only in a last column the person can ignore.
 
 Steps:
 
 1. Collect every proposed change first. Do not edit files while collecting.
-2. Present one table: `#`, Item, Proposed change, Files touched, Effect (for example a gate that moves).
+2. Present one table: `#`, Item, Proposed change, Files touched, Effect (for example a date that moves).
 3. Ask: "Approve all, edit rows, or reject?"
 4. Change nothing until the answer is an explicit yes or an edit of named rows. "Looks interesting" or silence is not approval. An edit changes the table; show the edited table again only when the edit is ambiguous.
 5. Apply exactly the approved rows. A row that cannot be applied as approved is reported, not improvised.
@@ -47,7 +87,7 @@ Example:
 
 ## Option decision
 
-**Rule:** for each decision, 2–3 options with cost, risk and what each blocks; a recommendation; the result recorded as an ADR.
+**Rule:** for each decision, 2–3 options with cost, risk and what each blocks; a recommendation; the result recorded as an ADR. The ADR is the record; the question to the person is in plain words (above): what each option means for their product, cost and risk, with no ADR number, force or NFR code.
 
 Steps:
 
@@ -71,7 +111,7 @@ Recommendation: B, validated by V2 (accuracy on 3 synthetic recordings) before C
 
 **Rule:** a design choice or a gate request is a card: what it decides and locks; 2–3 options, each with what the person will see, who it serves, what it costs and where a wrong choice would surface; a recommendation with its reason; what was assumed; and always "none of these" and "show me first".
 
-Use it for every design confirmation (the brief, concepts, structure, the spec, the prototype approach) and for every gate request. The Interview method fills fields; the Option decision method records an engineering choice as an ADR. A card is how a person who cannot see the result yet makes a choice they will not regret.
+Use it for every design confirmation (the brief, concepts, structure, the spec, the prototype approach) and for every gate request. The Interview method fills fields; the Option decision method records an engineering choice as an ADR. A card is how a person who cannot see the result yet makes a choice they will not regret. It is written in plain words (above): "Decision", "Options" and "Recommendation" are the card's parts, not words to say; say what is being decided, not which phase or gate it belongs to.
 
 Steps:
 

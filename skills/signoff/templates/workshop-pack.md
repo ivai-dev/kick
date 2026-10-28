@@ -1,63 +1,73 @@
-# {{project_name}} — feature sign-off workshop
+# {{project_name}} — workshop to agree the features
+
+Written for people who have not seen the project's working documents. Everything you need to decide is on this page; the codes in the Reference columns are only for the project team's records.
 
 - **Date and place:** {{YYYY-MM-DD HH:MM}}, {{place or call link}}
-- **Prototype:** {{prototype link or file}}, version {{n}}
-- **Feature set:** `.kickoff/features.yaml` at commit {{commit}}; feature map in `02-requirements/feature-map.md`
+- **What you will look at:** {{prototype link or file}} (a clickable model of the whole product), version {{n}}
 - **Prepared by:** Project lead
-- **Attendees:** {{roles and organisations, e.g. "Customer: product owner, department head; Supplier: project lead"}}
+- **Who attends:** {{roles and organisations, e.g. "Customer: product owner, department head; Supplier: project lead"}}
 
-## Goal
+## What we ask you to agree
 
-The customer signs off the full feature set of the product, across every release, and the customer and the project lead lock the scope of the first release ({{MVP release}}). Architecture and data design start only after this sign-off.
+1. **That the full list of features is right,** for every release, so nothing is missing and nothing is there that you do not want. After you agree, the technical design and the plan are built from this list. Adding or removing a feature later means redoing that design work, so this is the moment to say so.
+2. **Which features are in the first release** ({{first release name and what it is for}}). The rest come in later releases. The first release is what we plan, build and date first.
+
+If you agree with changes, we update the prototype and ask you to look again; nothing is designed before then.
 
 ## Agenda
 
-| Time | Item | Led by (role) | Output |
+| Time | Item | Led by (role) | What comes out of it |
 | --- | --- | --- | --- |
-| {{HH:MM}} | Goal, scope by release, how to read the prototype (the MVP line, the releases) | Project lead | shared picture of the scope |
-| {{HH:MM}} | Demo scenarios (below) | Project lead | comments per feature |
-| {{HH:MM}} | Decisions the customer must take | Customer | decisions with dates |
-| {{HH:MM}} | Open questions due | Project lead | answers or new dates |
-| {{HH:MM}} | Feature sign-off and MVP lock | Customer and project lead | sign-off or list of changes |
+| {{HH:MM}} | Goal, what is in each release, how to read the prototype (where the first release ends) | Project lead | a shared picture of the scope |
+| {{HH:MM}} | Walk through the prototype (below) | Project lead | your comments per feature |
+| {{HH:MM}} | Decisions we need from you | Customer | decisions with dates |
+| {{HH:MM}} | Questions we still need answered | Project lead | answers or new dates |
+| {{HH:MM}} | Agree the features and the first release | Customer and project lead | agreement, or a list of changes |
 
-## Demo script
+## Walk through the prototype
 
-Each row says how to open the prototype at the scenario's start (the recorded link and the start point, or the walk-through video); the viewer can stop and step through by hand.
+Each row says how to open the prototype at the start of that walk-through (the link and where to begin, or a video). You can stop and click through by hand at any point.
 
-| # | Scenario | How to open | Role | Features shown | What to ask |
+| # | What we show | How to open it | Who is using it | What it lets them do (features) | What we would like to hear from you | Reference |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | {{scenario name}} | {{prototype link and start point, or video}} | {{role}} | {{each feature in a few words}} | {{question for the customer}} | {{F<n>.<n>, F<n>.<n>}} |
+
+Features we will not click through but want you to see (a short look at each):
+
+| What it lets people do | Where to find it | Release | Note | Reference |
+| --- | --- | --- | --- | --- |
+| {{feature in a few words}} | {{screen name}} | {{release}} | {{note}} | {{F<n>.<n>, screen ID}} |
+
+## Decisions we need from you
+
+For each decision: what each answer means for you, what we recommend, and what happens if you want none of the options (say so and we will show you more first).
+
+| Decision | Your options and what each means for you | Our recommendation and why | Needed by | Reference |
+| --- | --- | --- | --- | --- |
+| {{what is to be decided, in a sentence}} | {{A: what you will see or get, who it suits, what it costs; B: …}} | {{option and why, in one line}} | {{YYYY-MM-DD}} | {{Q<n>}} |
+
+## Small calls we made without you
+
+While building the prototype we made these choices ourselves so the work could go on. Tell us if you disagree; each row says what changing it would cost.
+
+| What we chose | Why | What it costs to change | Where you will see it | Reference |
+| --- | --- | --- | --- | --- |
+| {{what was chosen}} | {{why}} | {{cost}} | {{screen names or features, in words}} | {{screen IDs or F<n>.<n>}} |
+
+## Questions we still need answered
+
+| Question | Needed by | What waits for the answer | Who answers (role) | Reference |
+| --- | --- | --- | --- | --- |
+| {{question in one plain sentence}} | {{YYYY-MM-DD}} | {{what we cannot finish without it, in words}} | {{role}} | {{Q<n>}} |
+
+## What moves to a later release if the dates are fixed
+
+If the fixed dates cannot hold with everything planned for the first release, features move to a later release in this order:
+
+| Order | Feature | Planned for | Effort freed (person-days) | What users lose until the later release | Reference |
 | --- | --- | --- | --- | --- | --- |
-| 1 | {{scenario name}} | {{prototype link and start point, or video}} | {{role}} | {{F<n>.<n>, F<n>.<n>}} | {{question for the customer}} |
+| 1 | {{feature in a few words}} | {{release}} | {{effort}} | {{what users lose until the later release}} | {{F<n>.<n>}} |
 
-Features shown without a scenario (walk-through):
+## For the project team
 
-| Feature | Screen | Release | Note |
-| --- | --- | --- | --- |
-| {{F<n>.<n>}} | {{screen ID}} | {{release}} | {{note}} |
-
-## Decisions the customer must take
-
-| ID | Decision | Options | Recommended | Deadline |
-| --- | --- | --- | --- | --- |
-| {{Q<n>}} | {{decision}} | {{A: …; B: …}} | {{option and why, in one line}} | {{YYYY-MM-DD}} |
-
-Each decision is also prepared as a decision card: what the customer will see for each option, who it serves, what it costs and where a wrong choice would surface, and "none of these" and "show me first".
-
-## Rulings taken without the customer
-
-| Ruling | Why | Cost if wrong | Screens or features |
-| --- | --- | --- | --- |
-| {{decision}} | {{why}} | {{cost}} | {{screen IDs or F<n>.<n>}} |
-
-## Open questions due
-
-| ID | Question | Needed by | Blocks | Owner (role) |
-| --- | --- | --- | --- | --- |
-| {{Q<n>}} | {{question}} | {{YYYY-MM-DD}} | {{phase or WBS code}} | {{role}} |
-
-## Scope-cut order if dates are fixed
-
-If the fixed dates cannot hold with the full first release, features move to a later release in this order:
-
-| Order | Feature | Release now | Effort freed (person-days) | Effect on the first release |
-| --- | --- | --- | --- | --- |
-| 1 | {{F<n>.<n> name}} | {{release}} | {{effort}} | {{what users lose until the later release}} |
+- **Feature list version:** `.kickoff/features.yaml` at commit {{commit}}; feature map in `02-requirements/feature-map.md`.

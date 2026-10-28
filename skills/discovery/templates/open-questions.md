@@ -3,11 +3,11 @@
 - **Updated:** {{date}}
 - **Owner:** Project lead
 
-Every question has the date by which an answer is needed and the work it blocks. Questions due first are listed first. IDs are permanent: an answered question keeps its row with status `Answered` and a link to the decision.
+Every question has a priority, an owner and the work it blocks. Questions with priority `now` are listed first. The needed-by date is optional while `project.yaml` has `scheduling: "off"` and required once scheduling is on. IDs are permanent: an answered question keeps its row with status `Answered` and a link to the decision.
 
-| ID | Question | Why it matters | Blocks (phase/WBS) | Needed by (date) | Owner (role) | Status |
-| --- | --- | --- | --- | --- | --- | --- |
-| Q1 | {{question}} | {{what goes wrong or waits without an answer}} | {{e.g. feature-map, 1.2.3}} | {{YYYY-MM-DD}} | {{role}} | {{Open / Answered (D<n>) / Dropped}} |
+| ID | Question | Why it matters | Blocks (phase/WBS) | Priority (now/soon/later) | Needed by (date, optional while scheduling is off) | Owner (role) | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Q1 | {{question}} | {{what goes wrong or waits without an answer}} | {{e.g. feature-map, 1.2.3}} | {{now / soon / later}} | {{YYYY-MM-DD, or "—" while scheduling is off}} | {{role}} | {{Open / Answered (D<n>) / Dropped}} |
 
 ## Decision log
 

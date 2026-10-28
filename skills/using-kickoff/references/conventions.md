@@ -11,7 +11,22 @@ Repository and work items in `languages.repo`; chat in `languages.chat`; the wor
 
 ## Estimates
 
-By role and focus percentage; person-days at 100% focus; every plan has a scope-cut order; a slipped hard date always ends in an explicit decision. When `rules.forbidden_phrases` lists a phrase such as "AI assistance", estimates may assume it but no document, work item or report states it; `kickoff validate` warns when one does.
+An estimate is a range, never a single number. Person-days at 100% focus.
+
+- **Range, confidence, basis.** A package keeps `effort` as the likely value and may add `min`, `max`, `confidence` (`low`, `medium`, `high`) and `basis` (one line: what the number rests on). A feature may carry `estimate: {min, likely, max, confidence, basis}` in `features.yaml`. `kickoff validate` errors unless `min <= effort <= max`. A package without `min` and `max` is a point estimate; say so, and give it a basis.
+- **Top-down, then bottom-up.** A feature with `wbs` packages is estimated by them; one without uses its own `estimate`. Estimate each active feature right after C2, then refine it into packages. `kickoff estimate` prints min, likely and max by release and by role, the overhead and a Basis line; `kickoff docs` writes it to `<docs_root>/06-planning/estimate.md`.
+- **Overhead is a rate.** `project.yaml` `estimate: {overhead: 0.10}` is the management share added to the work total. Do not add level-of-effort packages for plain project management.
+- **Scheduling is optional.** `project.yaml` `scheduling: "off"` (new projects) means no schedule, workbook or hard dates; `kickoff schedule` and `kickoff workbook` print "scheduling is off". With it on (or the key absent), packages are planned by role and focus percentage, every plan has a scope-cut order, and a slipped hard date always ends in an explicit decision.
+- **The plan is the estimate and the baseline.** C6 baselines the estimate; the schedule, when on, derives from it.
+
+When `rules.forbidden_phrases` lists a phrase such as "AI assistance", estimates may assume it but no document, work item or report states it; `kickoff validate` warns when one does.
+
+## Talking to the person
+
+- Chat is in plain words, in `languages.chat`. The person does not know kickoff: no phase names, gate IDs (C1 to C6, CD), item IDs (Q3, D2, A4, V1, F1.2, ADR-001), CLI commands, file names or terms such as WBS, ADR, clarity, baseline, stale or decision card. Say what it is in everyday words; the code may follow in brackets for the record (`references/methods.md`, "Plain words").
+- A question or confirmation says what is being agreed or chosen, what it makes expensive to change, and what the person will see. It never explains the plugin's process.
+- IDs, commands and file names belong in files, commit messages and reports to the lead who asked for them, not in the questions.
+- Self-check before sending: read the message as someone who has never seen the plugin. If any word needs the plugin to be understood, rewrite it.
 
 ## Owners
 
@@ -32,7 +47,7 @@ Merges, deleting branches, publishing and pushing to shared branches are confirm
 ## Role-based owners
 
 - Documents, templates, plans and work items name roles ("Project lead", "QA", "Customer"), never a person or an assistant, as owner of a task, question, risk or decision.
-- Gate approvals record the approving role: `kickoff gate approve C1 --by "Project lead" --evidence "<link>"`.
+- Gate approvals record the approving role. Evidence is required for the customer's gates (CD, C3, C4): `kickoff gate approve C3 --by "Customer" --evidence "<link>"`. For the project lead's gates (C1, C2, C5, C6) it is optional: `kickoff gate approve C1 --by "Project lead"` records "decision in session <date>"; add `--evidence` when a record exists.
 - People's names appear only where the customer gave them as stakeholder data (`stakeholders.md`), never as owners.
 
 ## Forbidden phrases
@@ -79,10 +94,10 @@ Confirm with the lead before any of these, and do nothing until the answer is ye
 | --- | --- |
 | 0 | Success; the check passed; the phase may start. |
 | 1 | A check failed: `validate` errors, `can` blocked, `docs --check` would change files, `check-docs` findings, `workbook --verify` mismatches. |
-| 2 | The command was refused or misused; the reason is on the `error:` line (for example an unknown phase, a gate without `--by` or evidence, no `.kickoff/` folder). |
+| 2 | The command was refused or misused; the reason is on the `error:` line (for example an unknown phase, a gate without `--by`, a customer gate without evidence, no `.kickoff/` folder). |
 | 3 | `schedule`: a hard date slips; present the `cut_order` options and ask the lead to decide. |
 | 4 | Reserved: no command uses it. A check that cannot run is reported as skipped, never as passed. |
 
 ## Commits
 
-Conventional Commits (`docs:`, `feat:`, `chore:` …), one per phase output or per build-plan task, with messages that state what changed. Commit messages follow the forbidden-phrases rule.
+Conventional Commits (`docs:`, `feat:`, `chore:` …), one per phase output or per build-plan task, with messages that state what changed. Commit messages follow the forbidden-phrases rule. A gate approval changes `state.yaml`; that change may ride in the next commit, and no separate commit is required for it.

@@ -42,7 +42,7 @@ The plugin ships no look, no stack and no rules. Everything here follows `../usi
    - **the category default and its predictable opposite:** say which one this product is closer to and why, as a decision card when the lead is unsure;
    - **the product's archetype in the customer's words** ("a quiet clerk", "a ship's bridge", "a game hub"), before any concept is drawn;
    - **the hardest audience:** the least skill, the worst device or the highest pressure.
-3. **Concept round.** Derive three candidate concepts from the audiences' world (their documents, places, rituals, objects; not the tools they operate). Each is a coherent answer to the brief with a thesis. The lead shortlists two or three. The shortlist must differ on at least three axes: flow and structure, interaction model, navigation and shell, pace and density, tone and voice, material and visual language, motion personality. A shortlist that varies one idea is one option: replace a concept until it is not. Include the category default only when the lead wants one safe option, and say so.
+3. **Concept round.** Derive three candidate concepts from the audiences' world (their documents, places, rituals, objects; not the tools they operate). Each is a coherent answer to the brief with a thesis. The lead shortlists two or three (put to the lead in plain words: what each concept feels like and who it serves, not IDs or file names). The shortlist must differ on at least three axes: flow and structure, interaction model, navigation and shell, pace and density, tone and voice, material and visual language, motion personality. A shortlist that varies one idea is one option: replace a concept until it is not. Include the category default only when the lead wants one safe option, and say so.
 4. **Make each concept visible,** with the cheapest medium that lets the customer feel it:
    - a story: one scenario told as the user lives it, step by step;
    - a paper-style or ASCII layout of the key moments;
@@ -63,8 +63,9 @@ The plugin ships no look, no stack and no rules. Everything here follows `../usi
 
 > **Option decision:** per decision 2–3 options with cost, risk and what each blocks; a recommendation; record the result as an ADR.
 
-8. **Verify** (section below), then `kickoff phase done design-concept` and commit `feat(design): lock the <name> concept`.
-9. **Ask for gate CD** with a decision card whose subject is the gate: what the customer approves (structure and feel, the chosen concept), what becomes expensive to change afterwards (the screen inventory and everything built on it), the rulings taken without them so far, the open risks, and what you are least sure of. The lead relays the customer's written yes (an email, the signed record, a comment). Only then run `kickoff gate approve CD --by "Customer" --evidence "<codesign record or commit link>"` and commit `chore: approve CD`.
+8. **Set the clarity area** this phase touched: `kickoff clarity set design` with `--status`, `--confidence`, a short `--note` and a `--ref` for the decision `D<n>` behind it. `decided` once the customer chose the concept in the co-design session; `assumed` while the choice is the lead's guess.
+9. **Verify** (section below), then `kickoff phase done design-concept` and commit `feat(design): lock the <name> concept`.
+10. **Ask for gate CD** with a decision card whose subject is the gate, put to the customer in plain words (`../using-kickoff/references/methods.md`, Plain words; no gate names, IDs or file names): what the customer agrees (the structure and feel of the product, the chosen concept), what becomes expensive to change afterwards (every screen built on it), the rulings taken without them so far, the open risks, and what you are least sure of. The lead relays the customer's written yes (an email, the signed record, a comment). Only then run `kickoff gate approve CD --by "Customer" --evidence "<codesign record or commit link>"` and commit `chore: approve CD`.
 
 At the end of every group of steps and at the gate, list the rulings you took without the lead (`Ruling: <decision> — <why> — <cost if wrong>`) and ask which to revisit.
 
@@ -72,6 +73,7 @@ At the end of every group of steps and at the gate, list the rulings you took wi
 
 - `<docs_root>/05-design/design-brief.md`, `concepts.md` and `codesign-YYYY-MM-DD.md`
 - `<docs_root>/04-architecture/adr/ADR-<nnn>-design-concept.md` (*Accepted*) and `D<n>` in the Decision log
+- `.kickoff/clarity.yaml`: `design` set
 - `.kickoff/state.yaml`: `design-concept: done`, and CD once the customer approves
 
 ## Verify

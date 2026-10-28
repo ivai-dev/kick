@@ -7,9 +7,13 @@
 
 Changes were applied in chain order: feature map, UX specification, prototype, draft plan, schedule. Feedback IDs are permanent and continue from the previous session.
 
+## In short
+
+{{Three to five sentences in everyday words, as told to the lead: what the customer asked for, what was changed, what moved in the plan, what the customer must confirm next. No IDs, file names or plugin terms; the tables below carry those.}}
+
 ## Items
 
-Class is one of: scope, ux, visual, concept, question, decision. A concept item reopens gate CD. Status is one of: Done, Open (`Q<n>`), Rejected (`D<n>`), Deferred (`D<n>`).
+Class is one of: scope (add, remove or move a feature), ux (change how something works), visual (change look or wording inside the agreed look and feel), concept (rethink structure or overall feel), question (to find out), decision (the customer decided). A concept item reopens gate CD. Status is one of: Done, Open (`Q<n>`), Rejected (`D<n>`), Deferred (`D<n>`).
 
 | ID | Source | Feedback (quoted) | Class | Change made | Files | Status |
 | --- | --- | --- | --- | --- | --- | --- |

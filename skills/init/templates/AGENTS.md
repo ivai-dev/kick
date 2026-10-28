@@ -4,7 +4,7 @@ Working rules for everyone who changes this repository. Keep this file short and
 
 ## Product
 
-{{one_paragraph: who uses the product, the problem it solves, the platforms, and what the MVP delivers. Filled from the brief at init and refined after discovery (docs/01-discovery/vision-scope.md).}}
+{{idea: one line from the interview at init: who the product is for and the problem it solves. A seed; discovery refines it into who uses the product, the platforms and what the MVP delivers (docs/01-discovery/vision-scope.md).}}
 
 ## Repository map
 
@@ -30,28 +30,33 @@ Working rules for everyone who changes this repository. Keep this file short and
 | Estimate workbook and customer deliverables | {{languages.workbook}} |
 | UI strings and fixtures | {{languages.ui}} |
 
+## Team and calendar
+
+Roles, focus, calendar, holidays and hard dates live in `.kickoff/project.yaml` (default roles until changed). They are confirmed when planning, in `kickoff:plan`, if the project lead turns scheduling on (`scheduling` in `project.yaml`). Until then the plan is an estimate without dates.
+
 ## Workflow
 
-The project follows the kickoff phases. Run `kickoff status` to see where it stands; a phase starts only when `kickoff can <phase>` succeeds.
+The project follows the kickoff phases. Run `kickoff status` to see where it stands and what is still unclear (the clarity register, `.kickoff/clarity.yaml`); a phase starts only when `kickoff can <phase>` succeeds.
 
 | # | Phase | Output | Gate to leave | Approver |
 | --- | --- | --- | --- | --- |
-| 0 | init | `.kickoff/project.yaml`, this file | — | — |
+| 0 | init | `.kickoff/project.yaml`, `.kickoff/clarity.yaml`, this file | — | — |
 | 1 | discovery | vision and scope, stakeholders, open questions, decision log | C1 Vision | Project lead |
-| 2 | research | validation plan, proposed ADRs, assumptions | — | — |
+| 2 | research | validation plan, proposed ADRs, assumptions, architecture sketch (`Status: Draft`) | — | — |
 | 3 | feature-map | feature map, non-functional requirements | C2 Draft scope | Project lead |
 | 4 | design-concept | design brief, concepts, co-design record, the chosen concept | CD Customer chose the design concept | Customer |
 | 5 | ux-design | UX specification with screen inventory, the project's design rules | — | — |
 | 6 | prototype | clickable or experienceable full-product prototype, coverage list | — | — |
 | 7 | signoff | workshop pack, sign-off record | C3 Features signed off, C4 MVP locked | Customer; project lead and customer |
 | 8 | solution | architecture, data model, accepted ADRs | C5 Solution | Project lead |
-| 9 | plan | WBS, schedule, estimate workbook, risks | C6 Baseline | Project lead |
+| 9 | plan | WBS, estimate (ranges), risks; with scheduling on also the schedule and the estimate workbook | C6 Baseline | Project lead |
 
 Rules:
 
-- No database, architecture or technology decision before C3 and C4 are approved.
-- Customer feedback is classified first, then applied in order: features → UX specification → prototype → plan → schedule; it reopens C3.
-- Plan dates come from `kickoff schedule`, never from manual edits; the WBS handed to the team comes from `kickoff export`.
+- Commit late, explore early: no database, architecture or technology decision is committed (no accepted ADR, no final architecture document) before C3 and C4 are approved. An architecture sketch may be explored earlier if it carries `Status: Draft`; it binds nothing and no implementation starts from it.
+- Estimates are ranges with a confidence and a basis, never a single number.
+- Customer feedback is classified first, then applied in order: features → UX specification → prototype → plan → schedule (when scheduling is on); it reopens C3.
+- With scheduling on, plan dates come from `kickoff schedule`, never from manual edits; the WBS handed to the team comes from `kickoff export`.
 - Merges, branch deletions, publishing and pushes to shared branches are confirmed with the project lead first.
 - Tickets and documents name the owning role, never a person.
 

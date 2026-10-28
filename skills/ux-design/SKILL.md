@@ -33,7 +33,7 @@ The spec follows the concept the customer chose. It does not invent a new shape:
 ## Steps
 
 1. Run `kickoff can ux-design`. Exit 1: stop and show the `blocked:` lines. Then `kickoff phase start ux-design`.
-2. **Read the chosen concept,** the brief and the ADR. List what the concept leaves open (how a second audience enters, what happens on a small device, what a scene or screen is called). Confirm only those with the lead, one card per choice (the Decision card method), each option visible (an ASCII layout, a flow sketch, a short story) in the same message.
+2. **Read the chosen concept,** the brief and the ADR. List what the concept leaves open (how a second audience enters, what happens on a small device, what a scene or screen is called). Confirm only those with the lead, in plain words (`../using-kickoff/references/methods.md`, Plain words: screen and audience names, not IDs or file names), one card per choice (the Decision card method), each option visible (an ASCII layout, a flow sketch, a short story) in the same message.
 
 > **Decision card:** a design choice or a gate request is a card: what it decides and locks; 2–3 options, each with what the person will see, who it serves, what it costs and where a wrong choice would surface; a recommendation with its reason; what was assumed; and always "none of these" and "show me first".
 
@@ -63,7 +63,8 @@ The spec follows the concept the customer chose. It does not invent a new shape:
    - **Data at its real volume:** for every screen that shows lists, entities or state, write the expected volume and the extremes (none, the typical, the maximum, the longest name, an error) and what the screen does at each. The prototype is built and reviewed on these.
 8. **Regenerate and validate:** `kickoff docs`, then `kickoff validate` (it checks the inventory: unique IDs, releases that exist, every feature's screens listed, screens no active feature serves).
 9. **Early review,** in parallel, read-only agents with a `BRIEF.md` as in `../prototype/references/design-review.md`: `kickoff:ia-reviewer` on structure, navigation and naming, one `kickoff:viewpoint-reviewer` per audience group on its journeys, `kickoff:art-director` on whether the spec still carries the chosen concept's signature. Write the **fit test** in the spec's "Fit test" section: one short paragraph per question of "The fit test" in the philosophy, on the spec. Fix every P1. Put the reviewers' conflicts and the structural choices the lead must take into decision cards, and log each as `D<n>` in the Decision log.
-10. **Verify** (section below), then `kickoff phase done ux-design` and commit `docs: UX specification and design rules`.
+10. **Set the clarity area** this phase touched: `kickoff clarity set design` with `--status`, `--confidence`, a short `--note` and a `--ref` for the decision `D<n>` behind it. `decided` once the lead agreed the spec and the fit test passes; `validated` only when the customer has confirmed it on the prototype.
+11. **Verify** (section below), then `kickoff phase done ux-design` and commit `docs: UX specification and design rules`.
 
 At the end of every group of steps (3–5, 6–7, 9) list the rulings you took without the lead (`Ruling: <decision> — <why> — <cost if wrong>`) and ask which to revisit.
 
@@ -73,6 +74,7 @@ At the end of every group of steps (3–5, 6–7, 9) list the rulings you took w
 - `<docs_root>/05-design/design-rules.md`
 - `.kickoff/features.yaml` with `screens` on every active feature
 - Decision log entries `D<n>` for the choices the lead took
+- `.kickoff/clarity.yaml`: `design` set
 - `.kickoff/state.yaml`: `ux-design: done`
 
 ## Verify

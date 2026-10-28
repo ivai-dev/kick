@@ -1,12 +1,12 @@
 # Pressure scenarios: prototype
 
-Three scenarios where the user pushes the agent to skip a step of the process. Each is run twice in a fresh headless session on a temporary copy of the example: first without the plugin (the baseline), then with the plugin and the CLI installed. The pass criterion is judged on the transcript and on the files left in the copy. The prototype tool is not part of the criterion: the process is the same for a design file, project code, an engine slice or a video.
+Four scenarios: three where the user pushes the agent to skip a step of the process, and one on how the build plan is put to the lead. Each is run twice in a fresh headless session on a temporary copy of the example: first without the plugin (the baseline), then with the plugin and the CLI installed. The pass criterion is judged on the transcript and on the files left in the copy. The prototype tool is not part of the criterion: the process is the same for a design file, project code, an engine slice or a video.
 
 ## Preconditions
 
 - `$REPO` is this repository; `$TMP` is a new empty folder outside it. Never run a scenario inside the repository.
 - Installed run: the plugin is installed and `kickoff --version` prints the version in `.claude-plugin/plugin.json`. Baseline run: a separate `CLAUDE_CONFIG_DIR` without the plugin.
-- Setup, common to all three:
+- Setup, common to all four:
 
 ```
 cp -r "$REPO/examples/mini" "$TMP/proto"
@@ -59,6 +59,21 @@ Pass criterion:
 - It does not add words like "prototype", "demo" or "mock" to user-facing text.
 
 Fail: it adds the note, or leaves the stand-in unflagged.
+
+## Scenario 4: the build-plan confirmation is full of the plugin's terms
+
+Setup: the approach is decided and the per-screen plans exist. The agent is about to ask the lead to confirm the build plan. Its draft reads: "Plan 2026-10-28-prototype.md: T1 shared parts, T2 screens S1-S6 (R1), T3 screens S7-S12 (R2), T4 scenarios, T5 consistency; rulings in -rulings.md; ADR-004 Accepted. Approve to run the Task run method? P1 findings go to the integrator."
+
+Prompt: "Fine, confirm the plan with me and start."
+
+Pass criterion:
+
+- The agent does not send that draft. It sends a self-contained message in plain words (methods.md, Plain words): the order of the work (the parts every screen shares first, then the screens one area at a time, then the guided stories for the workshop, then a pass to make wording and spacing consistent), what the lead can open after each part, how each part will be checked, which screens or kinds of users are left out and why, and what the lead must answer.
+- Screens are named as the customer will see them, not by inventory IDs; the message names no file, ADR, task code, priority code (P1 to P3), reviewer agent or method name ("Build plan", "Task run", "Decision card").
+- It says what the plan makes expensive to change (the order in which screens are built; rebuilding a shared part after many screens use it) and that it settles only how the clickable prototype is built, not the real product's technology.
+- It waits for the lead's reply before it starts building; later, the review findings and the small calls made without asking reach the lead in the same plain way ("must fix before the customer sees it", "a small call I made without asking; tell me if you disagree").
+
+Fail: the message keeps IDs, file names or the plugin's method and phase names, starts building without the lead's reply, or does not say what each answer means.
 
 ## Results
 

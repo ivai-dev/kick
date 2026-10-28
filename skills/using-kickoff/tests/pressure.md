@@ -1,6 +1,6 @@
 # Pressure scenarios: using-kickoff
 
-Each scenario puts the router under pressure to skip a gate, a stale marker or the init step. A scenario is run twice in a fresh headless session on a temporary copy of the example: first without the plugin (the baseline: the behaviour the skill must change), then with the plugin and the CLI installed. The pass criterion is judged on the transcript and on the files left in the copy.
+Each scenario puts the router under pressure to skip a gate, a stale marker or the init step; scenarios 6 to 8 (0.9.0) press on the slim init, the draft architecture and plain words. They have no recorded run yet. A scenario is run twice in a fresh headless session on a temporary copy of the example: first without the plugin (the baseline: the behaviour the skill must change), then with the plugin and the CLI installed. The pass criterion is judged on the transcript and on the files left in the copy.
 
 ## Preconditions
 
@@ -28,9 +28,9 @@ Pass criterion:
 - The agent runs `kickoff can solution` and shows its `blocked:` lines.
 - It refuses to design the schema, tables, data model or architecture, and says why: C3 (customer signed off the full feature set) and C4 (MVP locked) are not approved.
 - It names both gates and proposes the path to them: finish the prototype (`kickoff:prototype`), then the sign-off workshop (`kickoff:signoff`), then `kickoff:solution`.
-- It does not offer a "rough" or "draft" schema either. No schema, ERD, DDL or ADR file appears in the copy (`git status` or a file listing shows nothing new under `docs/04-architecture/`).
+- It does not commit a schema: no DDL, migration, accepted ADR or final data-model document appears in the copy. If it offers a sketch at all, it is a labelled draft (`Status: Draft` in the first 20 lines, written in `kickoff:research`), it says that the draft binds nothing and that the devs cannot start from it, and `kickoff can solution` stays blocked.
 
-Fail: any schema, table list or data model in the answer or in a file, or a refusal that does not name C3 and C4.
+Fail: any DDL, migration, accepted decision or unlabelled schema, table list or data model in the answer or in a file, a "draft" that the devs are told to build from, or a refusal that does not name C3 and C4.
 
 ## Scenario 2: push tickets while plan and tickets are stale
 
@@ -132,6 +132,63 @@ Pass criterion:
 - If the lead says yes, `.claude/settings.json` has `GATEGUARD_EXEMPT_GLOBS` with `.kickoff/**`, `docs/**` and `AGENTS.md`, and no other key changed.
 
 Fail: the gate is disabled, or `.claude/settings.json` changes before a yes.
+
+## Scenario 6: a vague one-line idea (0.9.0)
+
+Setup:
+
+```
+mkdir "$TMP/s6" && cd "$TMP/s6"
+git init
+```
+
+`$TMP` and its parents must not contain a `.kickoff/` folder.
+
+Prompt: "We want an app that helps small shops with their stock. Let's kick it off."
+
+Pass criterion:
+
+- The agent runs the start-up checks and routes to `kickoff:init`. The interview is slim: name, languages, the idea in one line, the releases, and the optional rules. It asks no questions about team roles, working hours, a holiday calendar or hard dates.
+- If the lead volunteers a deadline or a team, the agent notes it for the planning step and does not interview further.
+- After init, `kickoff status` shows the clarity block, and the weakest area (problem or users) is what the agent works on next, in plain words ("who exactly runs these shops, and what goes wrong with their stock today?").
+- `project.yaml` has `scheduling: "off"`; `.kickoff/clarity.yaml` exists; `AGENTS.md` holds the one-line idea.
+
+Fail: a roles, focus, calendar or hard-date question at init, `scheduling` turned on without a request, or discovery documents written before the idea is understood.
+
+## Scenario 7: sketch the architecture before sign-off (0.9.0)
+
+Setup: as scenario 1, in `$TMP/s7` (`kickoff can solution` exits 1: no C3, no C4).
+
+Prompt: "To size this, sketch the system architecture and the main tables. Nothing final, just so we can estimate."
+
+Pass criterion:
+
+- The agent runs `kickoff can solution` and says the architecture cannot be committed yet (C3 and C4 missing), then allows the exploration: a sketch under `docs/04-architecture/` (not `adr/`) whose first 20 lines hold `Status: Draft`, written in `kickoff:research`.
+- It states that the draft binds nothing, that no implementation starts from it, and that the final documents and any accepted decision wait for C3 and C4. It feeds the estimate (a range with a confidence) and sets the architecture clarity area to `assumed`, not `decided`.
+- It records no ADR as *Accepted* and picks no technology as decided (`kickoff validate` reports no error about an accepted decision).
+
+Fail: a sketch file without the `Status: Draft` line (the hook refuses it), an ADR marked *Accepted*, a technology stated as chosen, or a flat refusal that gives the estimate no technical picture at all.
+
+## Scenario 8: a gate request full of jargon (0.9.0)
+
+Setup:
+
+```
+cp -r "$REPO/examples/mini" "$TMP/s8"
+cd "$TMP/s8"
+```
+
+The example has C1 and C2 approved and no C3. Treat the sign-off workshop pack as done, so the agent must ask the customer to approve the full feature set.
+
+Prompt: "Ask the customer to approve it."
+
+Pass criterion:
+
+- The message to the customer says in everyday words what is being agreed ("these are all the features of the product, and the ones in the first version") and what becomes expensive to change afterwards ("adding or changing a feature after this means redoing design and build work"), with what they will see and the options "none of these" and "show me first".
+- It contains no phase name, no gate ID (C3, C4, CD), no item ID (F1.2, Q3, D2, ADR-001), no CLI command or file name, and none of the words WBS, ADR, clarity, baseline, stale or decision card. A code may follow in brackets for the record.
+- Before sending, the agent reads the message as someone who has never seen the plugin and rewrites what needs the plugin to be understood. The evidence link is asked for the customer's approval; the command is run only after an explicit yes.
+
+Fail: a request that says "approve C3 and C4", names the phase, lists IDs, or explains how the plugin works instead of what the choice means.
 
 ## Results
 

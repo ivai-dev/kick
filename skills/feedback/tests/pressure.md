@@ -1,6 +1,6 @@
 # Pressure scenario: feedback
 
-Two scenarios with a mixed note. They check that the agent classifies each remark, asks for one approval before changing any file, and applies the approved changes in chain order. It is run twice in a fresh headless session on a temporary copy of the example: first without the plugin (the baseline), then with the plugin and the CLI installed. The pass criterion is judged on the transcript and on the files left in the copy.
+Three scenarios (two with a mixed note, one on how the approval is worded). They check that the agent classifies each remark, asks for one approval before changing any file, and applies the approved changes in chain order. It is run twice in a fresh headless session on a temporary copy of the example: first without the plugin (the baseline), then with the plugin and the CLI installed. The pass criterion is judged on the transcript and on the files left in the copy.
 
 ## Preconditions
 
@@ -53,10 +53,10 @@ Prompt (pasted note):
 Pass criterion:
 
 - Four items `FB-1` to `FB-4`, each quoted and classified once: (1) scope, (2) visual, (3) question, (4) decision.
-- One approval table (ID, source, quoted feedback, class, proposed change, files, effect) is shown before any file changes. `git status` is clean at that point. The agent waits for an explicit yes or edits.
+- One approval table (remark number, who said it, quoted feedback, kind of change, proposed change, what it touches, what it may move) is shown before any file changes, in plain words (methods.md, Plain words): no `FB-<n>`, class names, gate IDs or file paths in the message. `git status` is clean at that point. The agent waits for an explicit yes or edits.
 - After the approval, the edits follow the chain order: `features.yaml` (then `kickoff docs` and `kickoff validate`), `ux-spec.md`, the prototype (the coverage matrix updated for the new screen, the changed screens walked against `coverage-checklist.md`, the link recorded with `kickoff prototype record`), draft `plan.yaml`, then `kickoff schedule`, with gate dates before and after reported.
 - The question becomes a `Q<n>` with a needed-by date and the decision a `D<n>` in `docs/01-discovery/open-questions.md`; the visual item is fixed where it is defined (the project's rules or the shared parts), not on one screen.
-- The agent runs `kickoff gate reopen C3 --reason "Feedback session <date>: FB-1..FB-4"`, reports the printed line (`C3 reopened; stale: solution, plan`), and writes the session record `docs/01-discovery/feedback/<date>.md`. It does not reopen CD: no item is about structure or feel.
+- The agent runs `kickoff gate reopen C3 --reason "Feedback session <date>: FB-1..FB-4"`, tells the lead in plain words what the printed line (`C3 reopened; stale: solution, plan`) means (the customer's agreement is open again; the technical design and the plan need redoing), and writes the session record `docs/01-discovery/feedback/<date>.md`. It does not reopen CD: no item is about structure or feel.
 - It does not run `kickoff phase done feedback` or `kickoff phase start feedback`.
 
 Fail: any file changed before the approval table is accepted, a different class for any of the four items, edits out of chain order, or no `kickoff gate reopen C3`.
@@ -72,10 +72,25 @@ Prompt (pasted note):
 Pass criterion:
 
 - Two items: the first is classified `concept`, the second `visual` (or `ux`); the agent shows a decision card for the first, because the class decides whether CD reopens, then one approval table. No file changes before the yes.
-- After the yes, it runs `kickoff gate reopen CD --reason "Feedback session <date>: FB-1"` and reports the printed line, and re-runs `kickoff:design-concept` with the customer before the ux-spec and prototype change for FB-1; it then reopens C3.
+- After the yes, it runs `kickoff gate reopen CD --reason "Feedback session <date>: FB-1"` and tells the lead in plain words what it means (the customer's agreement on the look and feel is open again), and re-runs `kickoff:design-concept` with the customer before the ux-spec and prototype change for FB-1; it then reopens C3.
 - The second item is a change of one screen in the prototype and the ux-spec, not a reopening of CD.
 
 Fail: FB-1 is treated as a colour or wording fix, CD is not reopened, or both items reopen CD.
+
+## Scenario 3: the approval message is full of the plugin's terms
+
+Setup: as above, with the note of scenario 1. The agent has the classification ready and is about to ask the lead to approve it.
+
+Prompt: "Show me what you are going to change and ask me to approve." The draft the agent is about to send reads: "FB-1 scope -> features.yaml, ux-spec.md, plan.yaml; FB-2 visual -> design-rules.md; FB-3 question -> Q4; FB-4 decision -> D5. Approve? This reopens C3 and marks solution and plan stale."
+
+Pass criterion:
+
+- The agent does not send that draft. It sends a self-contained message in plain words (methods.md, Plain words): four numbered remarks, each quoted and described as what kind of change it is ("add a feature", "change the look inside the agreed look and feel", "something we must find out", "something the customer decided"), what will change in everyday words (the feature list, the screens, the clickable prototype, the plan), and what each answer means.
+- It says what approving makes expensive: the customer's agreement on the full feature list is withdrawn until they confirm the changed prototype, and the technical design and the plan already made need redoing because they depend on that list. It says what the lead must do: reply "yes", or name the rows to change.
+- The message contains no `FB-<n>`, `Q<n>`, `D<n>`, gate ID, file name or command, and none of the terms "stale", "class", "reopen C3", "bounded approval" or "decision card". The IDs and file names appear only in the files it writes afterwards and in the commit.
+- No file changes before the yes.
+
+Fail: the message keeps the IDs, file names or gate names, uses "stale" or "reopen" without saying what it means, or does not say what approving makes expensive.
 
 ## Results
 

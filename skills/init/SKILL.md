@@ -5,7 +5,7 @@ description: Use when starting a new project with the kickoff plugin and the rep
 
 # Init
 
-Sets up a repository for the kickoff workflow: `.kickoff/project.yaml` filled from an interview with the project lead, the docs folder skeleton, and `AGENTS.md` with the project's rules.
+Sets up a repository for the kickoff workflow: `.kickoff/project.yaml` filled from a short interview with the project lead, the clarity register, the docs folder skeleton, and `AGENTS.md` with the project's rules. The interview is slim: it asks only what the first phases need. Team, calendar and hard dates wait until the lead turns scheduling on in `kickoff:plan`.
 
 ## When to use
 
@@ -37,21 +37,23 @@ Not for changing an existing project's settings: edit `.kickoff/project.yaml` an
 | --- | --- | --- | --- |
 | 1 | Project name | `name` | Also used in `AGENTS.md`. |
 | 2 | Languages | `languages.repo`, `chat`, `workbook`, `ui` | `repo` and `workbook` accept `en` or `vi` in v1; `chat` and `ui` are free language codes. |
-| 3 | Team roles | `roles[]`: `id`, `name`, `focus`, `duties` | One person per role. `id` lowercase letters and digits (`lead`, `dev`, `qa`); `focus` the share of a full day on this project (0 < focus ≤ 1, e.g. 0.8); `name` in the workbook language. |
-| 4 | Calendar | `calendar.weekend`, `calendar.holidays` | Weekend as `[sat, sun]`. Ask for the country, then propose its official public holidays for every year the project spans as `{date, name, kind}`: `kind: official` when the date is announced, `kind: expected` for future years not yet announced. The lead confirms or edits the list. |
-| 5 | Releases | `releases` | In delivery order; the first one is the MVP. List them all: the prototype covers the full product. |
-| 6 | Hard dates | `hard_dates` | See step 3 for where to record them. |
-| 7 | Security rules | `security[]` | One sentence each, e.g. "Never log, print, or send to analytics any customer content." They are copied into `AGENTS.md`. |
-| 8 | Forbidden phrases | `rules.forbidden_phrases[]` | Regular expressions no document may match. Recommend `'\bClaude\b'` and `'AI[- ]assist'`. Keep `owners_by_role: true` and `synthetic_data_only: true`. |
-| 9 | Design | `design.ux_spec`, `design.forbidden[]` | Default `ux_spec`: `docs/05-design/ux-spec.md`. `design.forbidden`: regular expressions for patterns that must never reach the product's user-facing text (VPN names, private IP ranges such as `10\.8\.\d+\.\d+`, internal hosts); `kickoff check-docs` applies them. No stack or tool question here: the prototype tooling is decided in `kickoff:prototype`, the design rules in `kickoff:ux-design`. |
+| 3 | The idea in one line | the Product line of `AGENTS.md` | One sentence: who it is for and the problem. It is a seed, not a vision: `kickoff:discovery` refines it. If it is too vague to write, keep what the lead said and say so; clarity (`problem`, `users`) starts `open`. |
+| 4 | Releases | `releases` | In delivery order; the first one is the MVP. Default `[MVP, R2]`: confirm or change. List them all: the prototype covers the full product. |
+| 5 | Security rules | `security[]` | May be skipped. One sentence each, e.g. "Never log, print, or send to analytics any customer content." They are copied into `AGENTS.md`. |
+| 6 | Forbidden phrases | `rules.forbidden_phrases[]` | May be skipped. Regular expressions no document may match. Recommend `'\bClaude\b'` and `'AI[- ]assist'`. Keep `owners_by_role: true` and `synthetic_data_only: true`. |
+| 7 | Design | `design.forbidden[]` | May be skipped. Regular expressions for patterns that must never reach the product's user-facing text (VPN names, private IP ranges such as `10\.8\.\d+\.\d+`, internal hosts); `kickoff check-docs` applies them. Keep `design.ux_spec` at its default `docs/05-design/ux-spec.md`. No stack or tool question here: the prototype tooling is decided in `kickoff:prototype`, the design rules in `kickoff:ux-design`. |
+
+Word every question in everyday words (`../using-kickoff/references/methods.md`, Plain words): the lead has not seen the plugin. For releases ask "what must the first version do, and what can come later?", not "which releases"; the field names above are for the file, not for the question.
+
+Not asked here: roles and focus, the calendar and holidays, hard dates. The template `project.yaml` keeps default roles (`lead`, `dev`, `qa`) so it stays valid, and `scheduling: "off"`. `kickoff:plan` asks for the team, the calendar and the hard dates when the lead turns scheduling on. Do not ask for them now, even when the lead offers them: note them for `kickoff:plan`.
 
 Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the lead wants another root, move the created folders and set `docs_root` to match.
 
-2. **Create the skeleton:** `kickoff init --name "<name>"` (`kickoff init --nested --name "<name>"` for a nested project; without `--nested` it refuses when a parent folder has `.kickoff/`). It writes `.kickoff/{project,state,features,plan}.yaml` and `docs/{01-discovery,02-requirements,03-research,04-architecture/adr,05-design,06-planning,07-task-specs,08-task-plans}/`.
+2. **Create the skeleton:** `kickoff init --name "<name>"` (`kickoff init --nested --name "<name>"` for a nested project; without `--nested` it refuses when a parent folder has `.kickoff/`). It writes `.kickoff/{project,state,features,plan,clarity}.yaml` and `docs/{01-discovery,02-requirements,03-research,04-architecture/adr,05-design,06-planning,07-task-specs,08-task-plans}/`. `clarity.yaml` is the clarity register; `kickoff status` shows it from the first session.
 
-3. **Fill `.kickoff/project.yaml`** with the answers, using the Edit tool (never a shell heredoc). Quote strings that look like numbers or dates. Hard dates: `hard_dates` keys must be gate IDs that exist in `plan.yaml` (`kickoff validate` rejects any other key), and `plan.yaml` has no gates yet. Until the `plan` skill creates the gates, keep the hard dates as comments under `hard_dates: {}`, one per line: `# <gate id> <what must be done>: <YYYY-MM-DD>`.
+3. **Fill `.kickoff/project.yaml`** with the answers (name, languages, releases, security, forbidden phrases, `design.forbidden`), using the Edit tool (never a shell heredoc). Quote strings that look like numbers or dates. Leave `roles`, `calendar`, `hard_dates`, `scheduling: "off"` and `estimate.overhead` as the template has them. Set the clarity areas that the idea already answers: `kickoff clarity set problem --status assumed --confidence low --note "<the idea>"`; leave the others `open`.
 
-4. **Write `AGENTS.md`** in the repository root from `templates/AGENTS.md`: replace every `{{...}}` placeholder, copy the `security` rules verbatim, keep the repository map as a placeholder table until the code exists. If an `AGENTS.md` already exists, use the Bounded approval method to merge the kickoff sections into it:
+4. **Write `AGENTS.md`** in the repository root from `templates/AGENTS.md`: replace every `{{...}}` placeholder (the idea line goes into the Product section), copy the `security` rules verbatim, keep the repository map as a placeholder table until the code exists. Roles and calendar are not filled: the file points to `project.yaml`. If an `AGENTS.md` already exists, use the Bounded approval method to merge the kickoff sections into it:
 
 > **Bounded approval:** present one table of proposed changes; change nothing before an explicit yes or edit.
 
@@ -65,7 +67,7 @@ Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the
 
 ## Outputs
 
-- `.kickoff/project.yaml` (filled), `.kickoff/state.yaml`, `.kickoff/features.yaml`, `.kickoff/plan.yaml`
+- `.kickoff/project.yaml` (filled), `.kickoff/state.yaml`, `.kickoff/features.yaml`, `.kickoff/plan.yaml`, `.kickoff/clarity.yaml` (the clarity register)
 - `docs/01-discovery/`, `docs/02-requirements/`, `docs/03-research/`, `docs/04-architecture/adr/`, `docs/05-design/`, `docs/06-planning/`, `docs/07-task-specs/`, `docs/08-task-plans/` (each with `.gitkeep`)
 - `AGENTS.md` in the repository root
 
@@ -74,7 +76,9 @@ Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the
 1. `kickoff validate` reports `0 errors`; explain any warning to the lead.
 2. `kickoff check-docs AGENTS.md` prints `check-docs passed` (no placeholder, no forbidden phrase).
 3. `kickoff ecc doctor` exits 0, and its D5 line is `ok` (or the lead declined the setup, recorded as a ruling).
-4. `kickoff status` shows `init` in progress and no error.
+4. `kickoff status` shows `init` in progress, a `Clarity:` block and no error.
+5. `kickoff clarity` lists the areas; `problem` is `assumed` or `open`, never `decided`.
+6. `AGENTS.md` names the idea in its Product section, and `project.yaml` still has `scheduling: "off"`.
 
 > **Verify:** run the commands in this skill's Verify section, read the real output, report failures and skipped checks as they are; only then `kickoff phase done <phase>` and commit.
 
@@ -85,4 +89,4 @@ Keep `docs_root: docs`: `kickoff init` creates the folders under `docs/`. If the
 
 ## Handoff
 
-`kickoff status` now names `kickoff:discovery`. Ask the lead for the customer inputs (meeting notes, briefs, calls, documents) and invoke `kickoff:discovery`.
+`kickoff status` now names `kickoff:discovery` and shows the clarity register. Ask the lead for the customer inputs (meeting notes, briefs, calls, documents) and invoke `kickoff:discovery`. Tell the lead that the team, calendar and hard dates are asked by `kickoff:plan` when scheduling is turned on; until then the plan is an estimate.
