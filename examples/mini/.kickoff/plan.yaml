@@ -15,11 +15,19 @@ packages:
     name: Loans web
     role: dev
     effort: 5
+    min: 4
+    max: 8
+    confidence: medium
+    basis: "a similar desk app of the same size"
     ref: F1.1
   - code: "1.1.2"
     name: Phone list
     role: dev
     effort: 3
+    min: 2
+    max: 6
+    confidence: low
+    basis: "first phone client for this team"
     deps: ["1.1.1"]
     ref: F1.2
   - code: "1.1.3"

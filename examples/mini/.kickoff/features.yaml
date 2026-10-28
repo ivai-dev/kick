@@ -26,3 +26,9 @@ epics:
         platforms: W
         wbs: ["2.1.1"]
         screens: [SC-03]
+      - id: F1.4
+        name: Overdue reminders
+        release: R2
+        prio: P2
+        platforms: W
+        estimate: { min: 2, likely: 4, max: 9, confidence: low, basis: "no comparable feature yet; depends on how members are notified (open question)" }

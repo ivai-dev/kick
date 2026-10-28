@@ -1,0 +1,37 @@
+schema_version: 1
+areas:
+- id: problem
+  status: decided
+  confidence: high
+  updated: 2026-10-02
+  note: Library desks lose track of loans
+- id: users
+  status: decided
+  confidence: high
+  updated: 2026-10-02
+  note: Librarians and members
+- id: scope
+  status: decided
+  confidence: medium
+  updated: 2026-10-02
+  note: MVP agreed at C2
+- id: solution
+  status: assumed
+  confidence: low
+  updated: 2026-10-02
+  note: Web desk app plus phone list
+- id: architecture
+  status: open
+  confidence: low
+  updated: 2026-10-02
+  note: No sketch yet
+- id: design
+  status: decided
+  confidence: medium
+  updated: 2026-10-02
+  note: UX spec written
+- id: estimate
+  status: assumed
+  confidence: medium
+  updated: 2026-10-02
+  note: Ranges on the riskiest packages

@@ -8,9 +8,9 @@ Person-days at 100% focus. Likely is the plan's effort; min and max bound it.
 
 | Release    | Min   | Likely | Max   |
 | ---------- | ----- | ------ | ----- |
-| MVP        | 87.75 | 87.75  | 87.75 |
+| MVP        | 86.75 | 87.75  | 92.75 |
 | Pilot      | 14.5  | 14.5   | 14.5  |
-| Apps       | 23    | 23     | 23    |
+| Apps       | 22    | 23     | 26    |
 | R2         | 72.5  | 72.5   | 72.5  |
 | R3         | 51.5  | 51.5   | 51.5  |
 | Rollout    | 13.5  | 13.5   | 13.5  |
@@ -21,16 +21,16 @@ Person-days at 100% focus. Likely is the plan's effort; min and max bound it.
 
 | Role         | Min    | Likely | Max    |
 | ------------ | ------ | ------ | ------ |
-| Project lead | 178.25 | 178.25 | 178.25 |
+| Project lead | 176.25 | 178.25 | 184.25 |
 | Developer    | 97.5   | 97.5   | 97.5   |
-| QA           | 61     | 61     | 61     |
+| QA           | 61     | 61     | 63     |
 
 ## Total
 
 | All                      | Min    | Likely | Max    |
 | ------------------------ | ------ | ------ | ------ |
-| Work                     | 336.75 | 336.75 | 336.75 |
+| Work                     | 334.75 | 336.75 | 344.75 |
 | Management overhead (0%) | 0      | 0      | 0      |
-| Total                    | 336.75 | 336.75 | 336.75 |
+| Total                    | 334.75 | 336.75 | 344.75 |
 
-**Basis:** 0 features estimated top-down, 155 packages bottom-up (148 point estimates), 0 items with low confidence, 0 active features without any estimate.
+**Basis:** 0 features estimated top-down, 155 packages bottom-up (145 point estimates), 1 items with low confidence, 0 active features without any estimate.
