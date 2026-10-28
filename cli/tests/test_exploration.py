@@ -6,12 +6,12 @@ from datetime import date
 import pytest
 from helpers import PROJECT, STATE, pkg, plan_dict, project_dict, write_kickoff
 
-from kickoff.cli import main
-from kickoff.errors import KickoffError
-from kickoff.hook import pre_write
-from kickoff.model import Project, load_project
-from kickoff.state import approve, init_project, next_step
-from kickoff.validate import validate_root
+from kick.cli import main
+from kick.errors import KickError
+from kick.hook import pre_write
+from kick.model import Project, load_project
+from kick.state import approve, init_project, next_step
+from kick.validate import validate_root
 
 DAY = date(2026, 10, 28)
 ARCH = "docs/04-architecture/system-architecture.md"
@@ -20,7 +20,7 @@ ARCH = "docs/04-architecture/system-architecture.md"
 @pytest.fixture(autouse=True)
 def no_ecc(tmp_path, monkeypatch):
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "claude"))
-    monkeypatch.delenv("KICKOFF_ECC_ROOT", raising=False)
+    monkeypatch.delenv("KICK_ECC_ROOT", raising=False)
 
 
 def write(root, rel, content):
@@ -151,7 +151,7 @@ def test_the_customers_gates_still_need_evidence(gate, done):
     state = state_with(**{done: "done"})
     if gate == "C4":
         state["gates"]["C3"] = {"approved_by": "Customer", "date": DAY, "evidence": "x"}
-    with pytest.raises(KickoffError, match="without evidence"):
+    with pytest.raises(KickError, match="without evidence"):
         approve(state, gate, "Customer", "  ", DAY)
 
 
@@ -185,8 +185,8 @@ def test_a_draft_label_survives_a_byte_order_mark(tmp_path):
 
 
 def test_the_estimate_rows_add_up_after_rounding(tmp_path):
-    from kickoff.estimate import estimate
-    from kickoff.model import Features, Plan
+    from kick.estimate import estimate
+    from kick.model import Features, Plan
 
     project = project_from({"estimate": {"overhead": 0.1}})
     est = estimate(project, Plan.from_dict(plan_dict([pkg("1.1.1", effort=336.75)])), Features([]))
@@ -202,7 +202,7 @@ def test_status_survives_a_malformed_register(tmp_path, capsys):
 
 
 def test_a_repeated_ref_is_stored_once():
-    from kickoff.clarity import default_clarity, set_area
+    from kick.clarity import default_clarity, set_area
 
     data = default_clarity(DAY)
     set_area(data, "scope", None, None, None, ["Q1", "Q1", "D2"], DAY)

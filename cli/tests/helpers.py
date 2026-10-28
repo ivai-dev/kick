@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 from pathlib import Path
 
-from kickoff.model import KICKOFF_DIR, Plan, Project, write_yaml
+from kick.model import KICKOFF_DIR, Plan, Project, write_yaml
 
 PROJECT = {
     "schema_version": 1,

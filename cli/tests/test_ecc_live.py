@@ -2,7 +2,7 @@
 
 import pytest
 
-from kickoff import ecc
+from kick import ecc
 
 pytestmark = pytest.mark.ecc
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ..errors import KickoffError
+from ..errors import KickError
 from ..model import KICKOFF_DIR, load_state, resolve_root, write_yaml
 
 
@@ -22,9 +22,9 @@ def run_record(args) -> int:
     current = (state.get("prototype") or {}).get("version")
     version = args.version if args.version is not None else (current or 0) + 1
     if version < 1:
-        raise KickoffError(f"version {version}: versions start at 1")
+        raise KickError(f"version {version}: versions start at 1")
     if current is not None and version < current:
-        raise KickoffError(f"version {version} is lower than the recorded version {current}")
+        raise KickError(f"version {version} is lower than the recorded version {current}")
     state["prototype"] = {"artifact": args.artifact, "version": version}
     write_yaml(root / KICKOFF_DIR / "state.yaml", state)
     print(f"prototype v{version}: {args.artifact}")

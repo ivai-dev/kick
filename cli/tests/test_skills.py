@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from kickoff.cli import build_parser
-from kickoff.ecc import COMPONENTS
+from kick.cli import build_parser
+from kick.ecc import COMPONENTS
 
 ROOT = Path(__file__).resolve().parents[2]
 SKILLS = sorted((ROOT / "skills").glob("*/SKILL.md"))
@@ -97,7 +97,7 @@ def test_commands_named_in_skills_exist():
 def test_twelve_skills_and_one_command():
     assert len(SKILLS) == 12
     assert "fe-foundation" not in ids(SKILLS) and "design-direction" not in ids(SKILLS)
-    assert sorted(p.name for p in (ROOT / "commands").glob("*.md")) == ["kickoff.md"]
+    assert sorted(p.name for p in (ROOT / "commands").glob("*.md")) == ["kick.md"]
 
 
 @pytest.mark.parametrize(("event", "action"), [("SessionStart", "session-start"), ("PreToolUse", "pre-write"),
@@ -105,7 +105,7 @@ def test_twelve_skills_and_one_command():
 def test_hooks_call_the_cli_only_when_it_is_installed(event, action):
     data = json.loads((ROOT / "hooks" / "hooks.json").read_text(encoding="utf-8"))
     commands = [h["command"] for group in data["hooks"][event] for h in group["hooks"]]
-    assert any(f"kickoff hook {action}" in c and "command -v kickoff" in c for c in commands)
+    assert any(f"kick hook {action}" in c and "command -v kick" in c for c in commands)
 
 
 ECC_NAME = re.compile(r"\becc:([a-z][a-z0-9-]*)")

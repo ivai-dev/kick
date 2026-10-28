@@ -4,8 +4,8 @@ import subprocess
 import pytest
 from helpers import project_dict, write_kickoff
 
-from kickoff import ecc
-from kickoff.cli import main
+from kick import ecc
+from kick.cli import main
 
 
 def fake_ecc(path, version="2.2.3", missing=()):
@@ -38,7 +38,7 @@ def register(cfg, *entries):
 def cfg(tmp_path, monkeypatch):
     cfg = tmp_path / "claude"
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(cfg))
-    for name in ("KICKOFF_ECC_ROOT", "ECC_DISABLED_HOOKS"):
+    for name in ("KICK_ECC_ROOT", "ECC_DISABLED_HOOKS"):
         monkeypatch.delenv(name, raising=False)
     return cfg
 
@@ -53,12 +53,12 @@ def installed(tmp_path, cfg):
 # ---------------------------------------------------------------- locating ECC
 def test_env_override_wins_and_reads_the_manifest_version(tmp_path, cfg, installed, monkeypatch):
     other = fake_ecc(tmp_path / "dev-ecc", version="2.3.0")
-    monkeypatch.setenv("KICKOFF_ECC_ROOT", str(other))
+    monkeypatch.setenv("KICK_ECC_ROOT", str(other))
     assert ecc.find_install() == ecc.Install(other, "2.3.0")
 
 
 def test_env_override_must_be_a_folder(tmp_path, cfg, monkeypatch):
-    monkeypatch.setenv("KICKOFF_ECC_ROOT", str(tmp_path / "nope"))
+    monkeypatch.setenv("KICK_ECC_ROOT", str(tmp_path / "nope"))
     with pytest.raises(ecc.EccError, match="is not a folder"):
         ecc.find_install()
 

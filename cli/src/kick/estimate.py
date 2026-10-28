@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .errors import KickoffError
+from .errors import KickError
 from .model import Features, Plan, Project, load_features, load_plan, load_project
 from .schedule import CycleError, build_schedule
 
@@ -123,7 +123,7 @@ def spread_text(root: Path) -> str | None:
     """`2–4 pd, spread 60%` for the clarity table; None when nothing is estimated or the project cannot be read."""
     try:
         total = estimate_root(root)["total"]
-    except KickoffError:
+    except KickError:
         return None
     if not total["likely"]:
         return None

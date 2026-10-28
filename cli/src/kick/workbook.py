@@ -1,7 +1,7 @@
 """Baseline estimate workbook: WBS, effort and schedule as live Excel formulas. It tracks nothing.
 
 Inputs (blue): plan start, each package's effort (or effort rate), fixed dates, role focus, hard dates, holidays.
-Everything else is a formula with the same rules as kickoff.schedule.build_schedule(..., baseline=True).
+Everything else is a formula with the same rules as kick.schedule.build_schedule(..., baseline=True).
 """
 
 from __future__ import annotations

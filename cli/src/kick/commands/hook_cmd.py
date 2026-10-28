@@ -1,7 +1,7 @@
 """kickoff hook session-start | pre-write | post-write  (called by the plugin's hooks.json)
 
 This runs on every Write and Edit in every repository where the plugin is enabled, so it imports only the standard
-library until it has found a .kickoff/ folder; `kickoff.cli.main` calls `fast_run` before it builds the parser."""
+library until it has found a .kickoff/ folder; `kick.cli.main` calls `fast_run` before it builds the parser."""
 
 from __future__ import annotations
 

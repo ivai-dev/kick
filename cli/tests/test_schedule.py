@@ -3,7 +3,7 @@ from datetime import date
 import pytest
 from helpers import pkg, plan, project
 
-from kickoff.schedule import CycleError, build_schedule, role_queues, slip_report
+from kick.schedule import CycleError, build_schedule, role_queues, slip_report
 
 D = date
 
@@ -94,7 +94,7 @@ def test_rollup_and_gate():
 
 
 def test_slip_report_lists_cut_candidates():
-    from kickoff.model import Features
+    from kick.model import Features
 
     features = Features.from_dict(
         {"schema_version": 1, "epics": [{"id": "E1", "name": "Core", "features": [

@@ -7,14 +7,14 @@ from datetime import date
 import pytest
 from helpers import STATE, pkg, plan_dict, write_kickoff
 
-from kickoff.cli import main
-from kickoff.hook import post_write, pre_write, session_start
+from kick.cli import main
+from kick.hook import post_write, pre_write, session_start
 
 
 @pytest.fixture(autouse=True)
 def no_ecc(tmp_path, monkeypatch):
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "claude"))  # ECC "not installed": hooks must not care
-    monkeypatch.delenv("KICKOFF_ECC_ROOT", raising=False)
+    monkeypatch.delenv("KICK_ECC_ROOT", raising=False)
 
 
 def edit(root, rel):
@@ -51,7 +51,7 @@ def test_case_variants_meet_the_same_guard_on_windows(tmp_path):
 
 
 def test_the_fast_path_ignores_files_outside_a_project(tmp_path, monkeypatch, capsys):
-    import kickoff.hook  # noqa: F401  (only proves the fast path returns before the handlers run)
+    import kick.hook  # noqa: F401  (only proves the fast path returns before the handlers run)
 
     code, out = run_hook(monkeypatch, capsys, "pre-write", edit(tmp_path, ".kickoff/state.yaml"))
     assert (code, out.out, out.err) == (0, "", "")

@@ -9,7 +9,7 @@ from pathlib import Path
 import yaml
 
 from .clarity import default_clarity
-from .errors import KickoffError
+from .errors import KickError
 from .model import KICKOFF_DIR, write_yaml
 
 PHASES = ["init", "discovery", "research", "feature-map", "design-concept", "ux-design", "prototype", "signoff",
@@ -102,7 +102,7 @@ def _gate_ok(state: dict, gate: str) -> bool:
 def blockers(state: dict, phase: str, baseline: bool = False) -> list[str]:
     key = "plan-baseline" if phase == "plan" and baseline else phase
     if key not in REQUIRES:
-        raise KickoffError(f"unknown phase {phase}; phases: {', '.join(PHASES)}, feedback")
+        raise KickError(f"unknown phase {phase}; phases: {', '.join(PHASES)}, feedback")
     phases, gates = REQUIRES[key]
     out = [f"phase {p} is not done" for p in phases if not _done(state, p)]
     out += [f"phase {p} is stale: re-run it first" for p in phases if _done(state, p) and p in state["stale"]]
@@ -112,7 +112,7 @@ def blockers(state: dict, phase: str, baseline: bool = False) -> list[str]:
 
 def set_phase(state: dict, phase: str, status: str) -> None:
     if phase not in PHASES:
-        raise KickoffError(f"unknown phase {phase}")
+        raise KickError(f"unknown phase {phase}")
     state["phases"][phase] = status
     if status == "done" and phase in state["stale"]:
         state["stale"].remove(phase)
@@ -123,28 +123,28 @@ def set_phase(state: dict, phase: str, status: str) -> None:
 
 def approve(state: dict, gate: str, by: str, evidence: str, day: date) -> None:
     if gate not in GATES:
-        raise KickoffError(f"unknown gate {gate}")
+        raise KickError(f"unknown gate {gate}")
     if not _done(state, GATE_AFTER[gate]):
-        raise KickoffError(f"cannot approve {gate}: phase {GATE_AFTER[gate]} is not done")
+        raise KickError(f"cannot approve {gate}: phase {GATE_AFTER[gate]} is not done")
     if GATE_AFTER[gate] in state["stale"]:
-        raise KickoffError(f"cannot approve {gate}: phase {GATE_AFTER[gate]} is stale, re-run it first")
+        raise KickError(f"cannot approve {gate}: phase {GATE_AFTER[gate]} is stale, re-run it first")
     if not by.strip():
-        raise KickoffError(f"cannot approve {gate} without --by (who approved it)")
+        raise KickError(f"cannot approve {gate} without --by (who approved it)")
     evidence = evidence.strip()
     if not evidence and gate in LEAD_GATES:
         evidence = f"decision in session {day.isoformat()}"  # the lead's own approval needs no link
     if not evidence:
-        raise KickoffError(f"cannot approve {gate} without evidence (a link to the record or commit)")
+        raise KickError(f"cannot approve {gate} without evidence (a link to the record or commit)")
     missing = [g for g in GATE_NEEDS.get(gate, []) if g not in state["gates"]]
     if missing:
-        raise KickoffError(f"cannot approve {gate}: gate {', '.join(missing)} is not approved")
+        raise KickError(f"cannot approve {gate}: gate {', '.join(missing)} is not approved")
     state["gates"][gate] = {"approved_by": by.strip(), "date": day, "evidence": evidence.strip()}
     state.setdefault("history", []).append(f"{day.isoformat()} approve {gate} by {by.strip()}: {evidence.strip()}")
 
 
 def reopen(state: dict, gate: str, reason: str) -> list[str]:
     if gate not in GATES:
-        raise KickoffError(f"unknown gate {gate}")
+        raise KickError(f"unknown gate {gate}")
     phase = GATE_AFTER[gate]
     for g, p in GATE_AFTER.items():
         if p == phase:
@@ -211,13 +211,13 @@ def enclosing_project(root: Path) -> Path | None:
 def init_project(root: Path, name: str, today: date, nested: bool = False) -> list[Path]:
     k = root / KICKOFF_DIR
     if k.exists():
-        raise KickoffError(f"{k} already exists")
+        raise KickError(f"{k} already exists")
     parent = enclosing_project(root)
     if parent is not None and not nested:
-        raise KickoffError(f"{parent / KICKOFF_DIR} already exists above {root}; pass --nested to start a separate "
+        raise KickError(f"{parent / KICKOFF_DIR} already exists above {root}; pass --nested to start a separate "
                            "project here (every command run inside this folder then uses the nested project)")
     written = []
-    data = yaml.safe_load(files("kickoff.templates").joinpath("project.yaml").read_text(encoding="utf-8"))
+    data = yaml.safe_load(files("kick.templates").joinpath("project.yaml").read_text(encoding="utf-8"))
     data["name"] = name
     k.mkdir(parents=True)
     write_yaml(k / "project.yaml", data)

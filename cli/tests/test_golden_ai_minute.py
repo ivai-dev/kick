@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from kickoff.model import load_plan, load_project
-from kickoff.schedule import build_schedule
-from kickoff.validate import validate_root
+from kick.model import load_plan, load_project
+from kick.schedule import build_schedule
+from kick.validate import validate_root
 
 ROOT = Path(__file__).resolve().parents[2] / "examples" / "ai-minute"
 EXPECTED = json.loads((ROOT / "expected" / "schedule.json").read_text(encoding="utf-8"))

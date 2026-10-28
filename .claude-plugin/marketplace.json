@@ -1,12 +1,12 @@
 {
-  "name": "kickoff",
+  "name": "kick",
   "owner": { "name": "ivai-dev" },
-  "metadata": { "description": "Project kickoff workflow plugin", "version": "0.9.0" },
+  "metadata": { "description": "kick: start any piece of work with AI", "version": "0.9.0" },
   "plugins": [
     {
-      "name": "kickoff",
+      "name": "kick",
       "source": "./",
-      "description": "Project kickoff workflow with approval gates for any kind of product: a customer-chosen design concept, a full-product prototype, a role-based estimate workbook and a WBS export.",
+      "description": "Kick off a new product from a vague idea or a feature in a running project: understand, shape the solution, architecture and UI early in plain words, plan with range estimates, then build with ECC.",
       "version": "0.9.0",
       "strict": true
     }

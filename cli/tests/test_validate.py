@@ -1,7 +1,7 @@
 from helpers import FEATURES, pkg, plan_dict, project_dict, write_kickoff
 
-from kickoff.cli import main
-from kickoff.validate import validate_root
+from kick.cli import main
+from kick.validate import validate_root
 
 
 def run(tmp_path, packages=(), features=None, project=None, **plan_kw):
@@ -58,10 +58,10 @@ def test_role_queues_rejects_bad_order_after_without_a_value_error():
     import pytest
     from helpers import plan
 
-    from kickoff.errors import KickoffError
-    from kickoff.schedule import role_queues
+    from kick.errors import KickError
+    from kick.schedule import role_queues
 
-    with pytest.raises(KickoffError, match="order_after"):
+    with pytest.raises(KickError, match="order_after"):
         role_queues(plan([pkg("1.1.1")], order_after={"1.1.1": "1.1.1"}))
 
 
@@ -130,7 +130,7 @@ def test_cli_exit_codes(tmp_path, capsys):
 def test_leftovers_of_ticket_management_are_warnings(tmp_path):
     from helpers import pkg, plan_dict, project_dict, write_kickoff
 
-    from kickoff.validate import validate_root
+    from kick.validate import validate_root
 
     item = {"title": "T", "type": "task", "epic": "E1"}
     root = write_kickoff(tmp_path, project=project_dict(tracker={"kind": "none"}),

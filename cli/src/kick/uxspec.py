@@ -6,7 +6,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from .errors import KickoffError
+from .errors import KickError
 from .model import Project, inside_root
 
 
@@ -29,7 +29,7 @@ def parse_inventory(path: Path) -> list[dict]:
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except FileNotFoundError as exc:
-        raise KickoffError(f"missing ux-spec: {path}") from exc
+        raise KickError(f"missing ux-spec: {path}") from exc
     rows: list[dict] = []
     in_table = False
     for line in lines:

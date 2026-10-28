@@ -12,7 +12,7 @@ from pathlib import Path, PurePosixPath
 
 from .clarity import clarity_lines, load_clarity
 from .ecc import doctor
-from .errors import KickoffError
+from .errors import KickError
 from .estimate import spread_text
 from .model import KICKOFF_DIR, ModelError, find_root, load_project, load_state
 from .state import blockers, status_lines
@@ -86,16 +86,16 @@ def session_start(payload: dict) -> tuple[int, str]:
     lines = ["kickoff project detected: use the kickoff:using-kickoff skill."]
     try:
         lines += status_lines(load_state(root))
-    except KickoffError as exc:
+    except KickError as exc:
         lines.append(f"kickoff status failed: {exc}")
     try:
         clarity = load_clarity(root)
         lines += clarity_lines(clarity, spread_text(root)) if clarity else []
-    except KickoffError as exc:
+    except KickError as exc:
         lines.append(f"clarity.yaml: {exc}")
     try:
         docs_root = load_project(root).docs_root
-    except KickoffError:
+    except KickError:
         docs_root = None
     checks = doctor(root, docs_root)
     lines += [f"ecc {c}" for c in checks if c.level != "ok"]
@@ -117,12 +117,12 @@ def pre_write(payload: dict) -> tuple[int, str]:
     try:
         project = load_project(root)
         arch = _under(path, project.docs_dir(root) / "04-architecture")
-    except KickoffError:
+    except KickError:
         return 0, ""  # a broken project.yaml is validate's finding, not a reason to block every write
     if arch is not None and arch.parts[:1] != ("adr",):
         try:
             reasons = blockers(load_state(root), "solution")
-        except KickoffError:
+        except KickError:
             reasons = []
         if reasons and not _is_draft(payload, path):
             return 2, ("architecture documents wait for C3 and C4: " + "; ".join(reasons)

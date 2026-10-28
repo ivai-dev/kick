@@ -9,14 +9,14 @@ from typing import Any
 
 import yaml
 
-from .errors import KickoffError
+from .errors import KickError
 from .schemas import schema_errors
 
 KICKOFF_DIR = ".kickoff"
 WEEKDAY = {"mon": 0, "tue": 1, "wed": 2, "thu": 3, "fri": 4, "sat": 5, "sun": 6}
 
 
-class ModelError(KickoffError):
+class ModelError(KickError):
     """A .kickoff file is missing, unreadable or fails its schema."""
 
 

@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from ..ecc import doctor, find_install, router_change, run_script, settings_change, write_change
-from ..errors import KickoffError
+from ..errors import KickError
 from ..model import ModelError, load_project, resolve_root
 
 
@@ -78,5 +78,5 @@ def run_setup(args) -> int:
 def run_run(args) -> int:
     project = _project(args)
     if project is None and args.root:
-        raise KickoffError(f"no .kickoff/ folder at {args.root}")
+        raise KickError(f"no .kickoff/ folder at {args.root}")
     return run_script(args.script, args.args, Path.cwd(), project)

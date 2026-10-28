@@ -1,6 +1,6 @@
 from helpers import project_dict, write_kickoff
 
-from kickoff.cli import main
+from kick.cli import main
 
 
 def project_with_rules(tmp_path):

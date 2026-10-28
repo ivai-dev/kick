@@ -1,4 +1,4 @@
-"""Command-line entry point: `kickoff <command>`."""
+"""Command-line entry point: `kick <command>`."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pathlib import Path
 
 from . import __version__
 from .commands import hook_cmd
-from .errors import KickoffError
+from .errors import KickError
 
 
 def commands() -> list:
@@ -32,8 +32,8 @@ def commands() -> list:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="kickoff", description="Project kickoff toolkit")
-    parser.add_argument("--version", action="version", version=f"kickoff {__version__}")
+    parser = argparse.ArgumentParser(prog="kick", description="kick: start any piece of work with AI")
+    parser.add_argument("--version", action="version", version=f"kick {__version__}")
     parser.add_argument("--root", type=Path, default=None, help="project root (default: nearest folder with .kickoff/)")
     sub = parser.add_subparsers(dest="command", metavar="<command>")
     for module in commands():
@@ -54,6 +54,6 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     try:
         return args.func(args)
-    except KickoffError as exc:
+    except KickError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

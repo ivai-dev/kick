@@ -1,20 +1,20 @@
 import pytest
 from helpers import pkg, plan_dict, project_dict, write_kickoff
 
-from kickoff.cli import main
-from kickoff.model import ModelError, load_project
+from kick.cli import main
+from kick.model import ModelError, load_project
 
 
 def test_version(capsys):
     with pytest.raises(SystemExit) as exc:
         main(["--version"])
     assert exc.value.code == 0
-    assert "kickoff 0.9.0" in capsys.readouterr().out
+    assert "kick 0.9.0" in capsys.readouterr().out
 
 
 def test_no_command_prints_help(capsys):
     assert main([]) == 0
-    assert "usage: kickoff" in capsys.readouterr().out
+    assert "usage: kick" in capsys.readouterr().out
 
 
 def test_schedule_json_is_written_with_lf(tmp_path):

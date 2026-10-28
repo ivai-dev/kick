@@ -26,7 +26,7 @@ def _jsonable(value: Any) -> Any:
 
 @cache
 def _validator(kind: str) -> Draft202012Validator:
-    schema = json.loads(files("kickoff.schemas").joinpath(f"{kind}.schema.json").read_text(encoding="utf-8"))
+    schema = json.loads(files("kick.schemas").joinpath(f"{kind}.schema.json").read_text(encoding="utf-8"))
     return Draft202012Validator(schema, format_checker=Draft202012Validator.FORMAT_CHECKER)
 
 

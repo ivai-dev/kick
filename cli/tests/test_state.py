@@ -2,10 +2,10 @@ from datetime import date
 
 import pytest
 
-from kickoff.cli import main
-from kickoff.errors import KickoffError
-from kickoff.model import find_root, load_state, read_yaml
-from kickoff.state import approve, blockers, migrate, next_step, reopen, set_phase, status_lines
+from kick.cli import main
+from kick.errors import KickError
+from kick.model import find_root, load_state, read_yaml
+from kick.state import approve, blockers, migrate, next_step, reopen, set_phase, status_lines
 
 
 def fresh():
@@ -32,13 +32,13 @@ def test_plan_draft_vs_baseline():
 
 def test_approve_needs_phase_and_evidence():
     s = fresh()
-    with pytest.raises(KickoffError, match="phase discovery is not done"):
+    with pytest.raises(KickError, match="phase discovery is not done"):
         approve(s, "C1", "Project lead", "link", date(2026, 9, 25))
     set_phase(s, "discovery", "done")
-    with pytest.raises(KickoffError, match="--by"):
+    with pytest.raises(KickError, match="--by"):
         approve(s, "C1", " ", "link", date(2026, 9, 25))
     set_phase(s, "signoff", "done")
-    with pytest.raises(KickoffError, match="evidence"):  # a customer gate; the lead's own gates need none (0.9)
+    with pytest.raises(KickError, match="evidence"):  # a customer gate; the lead's own gates need none (0.9)
         approve(s, "C3", "Customer", " ", date(2026, 9, 25))
 
 
@@ -158,7 +158,7 @@ def test_phase_start_refuses_a_blocked_phase(tmp_path, capsys):
     state = load_state(root)
     state["phases"] = {p: "done" for p in ("init", "discovery", "feature-map")}
     state["gates"] = {g: {"approved_by": "Lead", "date": date(2026, 10, 1), "evidence": "x"} for g in ("C1", "C2")}
-    from kickoff.model import write_yaml
+    from kick.model import write_yaml
     write_yaml(root / ".kickoff" / "state.yaml", state)
     assert main(["--root", str(root), "phase", "start", "ux-design"]) == 2
     assert "cannot start ux-design: phase design-concept is not done" in capsys.readouterr().err
@@ -195,7 +195,7 @@ def test_the_last_step_hands_the_wbs_over():
 def test_c6_needs_c5():
     s = fresh()
     set_phase(s, "plan", "done")
-    with pytest.raises(KickoffError, match="gate C5 is not approved"):
+    with pytest.raises(KickError, match="gate C5 is not approved"):
         approve(s, "C6", "Project lead", "x", date(2026, 10, 1))
     assert "approve gate C6" not in next_step(s)
 

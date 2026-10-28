@@ -8,10 +8,10 @@ from pathlib import Path
 import pytest
 from helpers import project_dict, write_kickoff
 
-from kickoff.cli import main
-from kickoff.model import load_project, load_state
-from kickoff.uxspec import parse_inventory, ux_spec_path
-from kickoff.validate import check_docs, validate_root
+from kick.cli import main
+from kick.model import load_project, load_state
+from kick.uxspec import parse_inventory, ux_spec_path
+from kick.validate import check_docs, validate_root
 
 MINI = Path(__file__).resolve().parents[2] / "examples" / "mini"
 

@@ -1,9 +1,9 @@
 {
-  "name": "kickoff",
-  "description": "Project kickoff workflow with approval gates, for any kind of product: discovery, research, feature map, a design concept the customer chooses, UX specification, a full-product prototype in the team's own tools, customer sign-off, solution design, plan/WBS/estimate workbook and a WBS export.",
+  "name": "kick",
+  "description": "Kick off any piece of work with AI: a new product from a vague idea, or a feature in a running project. Understand, shape the solution, architecture and UI early in plain words, plan with range estimates, then build with ECC.",
   "version": "0.9.0",
   "author": { "name": "ivai-dev" },
-  "repository": "https://github.com/ivai-dev/kickoff-plugin",
+  "repository": "https://github.com/ivai-dev/kick",
   "license": "UNLICENSED",
-  "keywords": ["project-management", "kickoff", "prototype", "wbs", "estimate", "design"]
+  "keywords": ["kickoff", "brainstorm", "architecture", "ux", "estimate", "spec", "planning"]
 }

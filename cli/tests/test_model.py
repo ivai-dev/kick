@@ -3,7 +3,7 @@ from datetime import date
 import pytest
 from helpers import FEATURES, PLAN, pkg, plan_dict, write_kickoff
 
-from kickoff.model import (
+from kick.model import (
     ModelError,
     find_root,
     load_features,

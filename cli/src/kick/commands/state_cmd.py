@@ -8,7 +8,7 @@ from datetime import date
 from pathlib import Path
 
 from ..clarity import clarity_lines, load_clarity
-from ..errors import KickoffError
+from ..errors import KickError
 from ..estimate import spread_text
 from ..model import KICKOFF_DIR, load_state, resolve_root, write_yaml
 from ..state import PHASES, approve, blockers, init_project, next_step, reopen, set_phase, status_lines
@@ -58,7 +58,7 @@ def run_status(args) -> int:
     state = load_state(root)
     try:
         clarity = load_clarity(root)
-    except KickoffError as exc:  # `kickoff validate` reports it; status still shows the phases
+    except KickError as exc:  # `kickoff validate` reports it; status still shows the phases
         print(f"clarity.yaml: {exc}", file=sys.stderr)
         clarity = None
     if args.json:
@@ -87,7 +87,7 @@ def run_phase(args) -> int:
     # skipped phase look like a legacy pass (state.LEGACY).
     reasons = blockers(state, args.phase) if args.phase in PHASES else []
     if reasons:
-        raise KickoffError(f"cannot {'start' if args.action == 'start' else 'finish'} {args.phase}: "
+        raise KickError(f"cannot {'start' if args.action == 'start' else 'finish'} {args.phase}: "
                            + "; ".join(reasons))
     set_phase(state, args.phase, "in_progress" if args.action == "start" else "done")
     _save(root, state)

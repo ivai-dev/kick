@@ -2,11 +2,11 @@ import json
 
 from helpers import FEATURES, pkg, plan_dict, project_dict, write_kickoff
 
-from kickoff.cli import main
-from kickoff.estimate import estimate, estimate_md, spread_text
-from kickoff.export import records
-from kickoff.model import Features, load_features, load_plan, load_project
-from kickoff.validate import check_features, check_plan, validate_root
+from kick.cli import main
+from kick.estimate import estimate, estimate_md, spread_text
+from kick.export import records
+from kick.model import Features, load_features, load_plan, load_project
+from kick.validate import check_features, check_plan, validate_root
 
 
 def feature(fid, wbs=None, **kw):

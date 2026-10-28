@@ -14,11 +14,11 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 
 from .calendar import WorkCalendar, edate_minus1
-from .errors import KickoffError
+from .errors import KickError
 from .model import Features, Plan, Project, code_key
 
 
-class CycleError(KickoffError):
+class CycleError(KickError):
     def __init__(self, cycle: list[str]):
         super().__init__(" -> ".join(cycle))
         self.cycle = cycle
@@ -57,7 +57,7 @@ def role_queues(plan: Plan) -> dict[str, list[str]]:
     for code, after in plan.order_after.items():
         queue = queues.get(by[code].role, []) if code in by else []
         if code == after or code not in queue or after not in queue:
-            raise KickoffError(f"order_after {code}: {after}: both must be different seq packages of the same role")
+            raise KickError(f"order_after {code}: {after}: both must be different seq packages of the same role")
         queue.remove(code)
         queue.insert(queue.index(after) + 1, code)
     return queues

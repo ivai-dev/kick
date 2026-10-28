@@ -10,7 +10,7 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-from .errors import KickoffError
+from .errors import KickError
 
 TESTED_ECC = "2.2.3"
 MIN_ECC = "2.2.3"
@@ -36,7 +36,7 @@ Inside a repository with `.kickoff/`, kickoff phases own the PRD, ADR, architect
 """
 
 
-class EccError(KickoffError):
+class EccError(KickError):
     """ECC is missing, or a file kickoff would change cannot be read."""
 
 
@@ -88,13 +88,13 @@ def _manifest_version(root: Path) -> str:
 
 
 def find_install(project: Path | None = None) -> Install:
-    """`KICKOFF_ECC_ROOT`, else installed_plugins.json: a project-scope entry for `project` first, then the user
+    """`KICK_ECC_ROOT`, else installed_plugins.json: a project-scope entry for `project` first, then the user
     scope; the highest version wins within a scope."""
-    env = os.environ.get("KICKOFF_ECC_ROOT")
+    env = os.environ.get("KICK_ECC_ROOT")
     if env:
         root = Path(env)
         if not root.is_dir():
-            raise EccError(f"KICKOFF_ECC_ROOT={env} is not a folder")
+            raise EccError(f"KICK_ECC_ROOT={env} is not a folder")
         return Install(root, _manifest_version(root))
     best = plugin_install(lambda key: key == PLUGIN_KEY, project)
     if best is None:
@@ -281,10 +281,10 @@ def run_script(name: str, args: list[str], cwd: Path, project: Path | None = Non
     """Run an ECC script from the ECC root with `cwd` as the working folder (the epic-* commands use a path
     relative to the current folder, which only works inside the ECC repository)."""
     if name not in SCRIPTS:
-        raise KickoffError(f"unknown ECC script {name}; known: {', '.join(sorted(SCRIPTS))}")
+        raise KickError(f"unknown ECC script {name}; known: {', '.join(sorted(SCRIPTS))}")
     node = shutil.which("node")
     if not node:
-        raise KickoffError("node not found")
+        raise KickError("node not found")
     script = find_install(project).root / SCRIPTS[name]
     if not script.is_file():
         raise EccError(f"{script} does not exist in the installed ECC")

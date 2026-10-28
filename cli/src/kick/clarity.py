@@ -6,7 +6,7 @@ import re
 from datetime import date
 from pathlib import Path
 
-from .errors import KickoffError
+from .errors import KickError
 from .model import KICKOFF_DIR, load_raw
 
 AREAS = ["problem", "users", "scope", "solution", "architecture", "design", "estimate"]
@@ -33,11 +33,11 @@ def set_area(data: dict, area: str, status: str | None, confidence: str | None, 
              refs: list[str], day: date) -> None:
     """Update one area, adding it when the project defines an area of its own. `refs` are added, never dropped."""
     if not AREA_ID.match(area):
-        raise KickoffError(f"area id {area!r}: lowercase letters, digits and hyphens, starting with a letter")
+        raise KickError(f"area id {area!r}: lowercase letters, digits and hyphens, starting with a letter")
     if status is not None and status not in STATUS:
-        raise KickoffError(f"status {status!r}: one of {', '.join(STATUS)}")
+        raise KickError(f"status {status!r}: one of {', '.join(STATUS)}")
     if confidence is not None and confidence not in CONFIDENCE:
-        raise KickoffError(f"confidence {confidence!r}: one of {', '.join(CONFIDENCE)}")
+        raise KickError(f"confidence {confidence!r}: one of {', '.join(CONFIDENCE)}")
     entry = next((a for a in data["areas"] if a["id"] == area), None)
     if entry is None:
         entry = {"id": area, "status": "open", "confidence": "low"}

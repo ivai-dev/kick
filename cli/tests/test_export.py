@@ -3,7 +3,7 @@ import json
 
 from helpers import FEATURES, PLAN, pkg, plan_dict, project_dict, write_kickoff
 
-from kickoff.cli import main
+from kick.cli import main
 
 
 def plan_with_items():

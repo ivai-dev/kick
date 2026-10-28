@@ -7,11 +7,11 @@ from pathlib import Path
 import pytest
 from helpers import pkg, plan_dict, project_dict, write_kickoff
 
-from kickoff.cli import main
-from kickoff.docs import write_docs
-from kickoff.model import ModelError, inside_root, load_project
-from kickoff.schemas import schema_errors
-from kickoff.uxspec import ux_spec_path
+from kick.cli import main
+from kick.docs import write_docs
+from kick.model import ModelError, inside_root, load_project
+from kick.schemas import schema_errors
+from kick.uxspec import ux_spec_path
 
 MINI = Path(__file__).resolve().parents[2] / "examples" / "mini"
 BAD = ["../escaped", "docs/../../escaped", "/abs/docs", "\\abs\\docs", "C:\\abs\\docs", "C:/abs/docs", ".."]

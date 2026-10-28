@@ -1,6 +1,6 @@
 from datetime import date
 
-from kickoff.calendar import WorkCalendar, edate_minus1
+from kick.calendar import WorkCalendar, edate_minus1
 
 CAL = WorkCalendar((5, 6), [date(2027, 1, 1)])
 

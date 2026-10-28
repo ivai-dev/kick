@@ -10,7 +10,7 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-from .errors import KickoffError
+from .errors import KickError
 from .model import Plan
 from .schedule import Schedule
 
@@ -32,7 +32,7 @@ def ensure_image(image: str = IMAGE) -> None:
     r = subprocess.run(["docker", "build", "-t", image, str(DOCKERFILE_DIR)], capture_output=True, text=True,
                        encoding="utf-8")
     if r.returncode:
-        raise KickoffError(f"docker build failed: {r.stderr[-500:]}")
+        raise KickError(f"docker build failed: {r.stderr[-500:]}")
 
 
 def recalc(path: Path, image: str = IMAGE) -> Path:
@@ -45,7 +45,7 @@ def recalc(path: Path, image: str = IMAGE) -> Path:
                        capture_output=True, text=True, encoding="utf-8")
     out = work / "out" / "in.xlsx"
     if r.returncode or not out.exists():
-        raise KickoffError(f"LibreOffice recalculation failed: {r.stderr[-500:]}")
+        raise KickError(f"LibreOffice recalculation failed: {r.stderr[-500:]}")
     return out
 
 

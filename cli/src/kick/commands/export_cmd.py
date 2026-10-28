@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ..errors import KickoffError
+from ..errors import KickError
 from ..export import FORMATS, export
 from ..model import load_features, load_plan, load_project, resolve_root
 from ..validate import report_plan_errors
@@ -25,7 +25,7 @@ def run(args) -> int:
     formats = [f.strip() for f in args.format.split(",") if f.strip()]
     unknown = [f for f in formats if f not in FORMATS]
     if unknown or not formats:
-        raise KickoffError(f"unknown format {', '.join(unknown) or '(none)'}; formats: {', '.join(FORMATS)}")
+        raise KickError(f"unknown format {', '.join(unknown) or '(none)'}; formats: {', '.join(FORMATS)}")
     if report_plan_errors(project, plan):
         return 1
     out = args.out or project.docs_dir(root) / "06-planning" / "export"

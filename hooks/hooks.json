@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v kickoff >/dev/null 2>&1; then kickoff hook session-start 2>/dev/null || { [ -d .kickoff ] && echo 'kickoff project detected: use the kickoff:using-kickoff skill (kickoff hook session-start failed: the CLI may be older than the plugin; run kickoff --version).' && kickoff status; }; elif [ -d .kickoff ]; then echo 'kickoff project detected, but the kickoff CLI is missing: see kickoff:using-kickoff.'; fi; true",
+            "command": "if command -v kick >/dev/null 2>&1; then kick hook session-start 2>/dev/null || { [ -d .kickoff ] && echo 'kickoff project detected: use the kickoff:using-kickoff skill (kick hook session-start failed: the CLI may be older than the plugin; run kickoff --version).' && kickoff status; }; elif [ -d .kickoff ]; then echo 'kickoff project detected, but the kickoff CLI is missing: see kickoff:using-kickoff.'; fi; true",
             "timeout": 15
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v kickoff >/dev/null 2>&1; then kickoff hook pre-write || true; fi",
+            "command": "if command -v kick >/dev/null 2>&1; then kick hook pre-write || true; fi",
             "timeout": 10
           }
         ]
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v kickoff >/dev/null 2>&1; then kickoff hook post-write || true; fi",
+            "command": "if command -v kick >/dev/null 2>&1; then kick hook post-write || true; fi",
             "timeout": 20
           }
         ]

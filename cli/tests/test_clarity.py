@@ -4,10 +4,10 @@ from datetime import date
 import pytest
 from helpers import STATE, write_kickoff
 
-from kickoff.clarity import AREAS, clarity_lines, default_clarity, load_clarity, set_area, weakest
-from kickoff.cli import main
-from kickoff.errors import KickoffError
-from kickoff.model import ModelError, write_yaml
+from kick.clarity import AREAS, clarity_lines, default_clarity, load_clarity, set_area, weakest
+from kick.cli import main
+from kick.errors import KickError
+from kick.model import ModelError, write_yaml
 
 DAY = date(2026, 10, 28)
 
@@ -35,11 +35,11 @@ def test_set_adds_an_area_the_project_defines_itself():
 
 def test_set_rejects_a_bad_id_or_value():
     data = default_clarity(DAY)
-    with pytest.raises(KickoffError, match="area id"):
+    with pytest.raises(KickError, match="area id"):
         set_area(data, "Bad Id", "open", "low", None, [], DAY)
-    with pytest.raises(KickoffError, match="status"):
+    with pytest.raises(KickError, match="status"):
         set_area(data, "scope", "done", None, None, [], DAY)
-    with pytest.raises(KickoffError, match="confidence"):
+    with pytest.raises(KickError, match="confidence"):
         set_area(data, "scope", None, "certain", None, [], DAY)
 
 
@@ -108,8 +108,8 @@ def test_status_shows_the_register_when_the_file_exists(tmp_path, capsys):
 
 
 def test_session_start_and_validate_know_the_register(tmp_path, monkeypatch):
-    from kickoff.hook import session_start
-    from kickoff.validate import validate_root
+    from kick.hook import session_start
+    from kick.validate import validate_root
 
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "claude"))
     root = write_kickoff(tmp_path)
@@ -122,7 +122,7 @@ def test_session_start_and_validate_know_the_register(tmp_path, monkeypatch):
 
 
 def test_init_writes_the_register(tmp_path):
-    from kickoff.state import init_project
+    from kick.state import init_project
 
     written = init_project(tmp_path, "Demo", DAY)
     assert tmp_path / ".kickoff" / "clarity.yaml" in written

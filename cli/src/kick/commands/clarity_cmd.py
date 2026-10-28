@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date
 
 from ..clarity import clarity_lines, clarity_path, default_clarity, load_clarity, set_area
-from ..errors import KickoffError
+from ..errors import KickError
 from ..estimate import spread_text
 from ..model import resolve_root, write_yaml
 
@@ -28,16 +28,16 @@ def run(args) -> int:
     day = args.date or date.today()
     if args.action == "init":
         if clarity_path(root).exists():
-            raise KickoffError(f"{clarity_path(root)} already exists")
+            raise KickError(f"{clarity_path(root)} already exists")
         write_yaml(clarity_path(root), default_clarity(day))
         print("wrote", clarity_path(root).relative_to(root))
         return 0
     data = load_clarity(root)
     if args.action == "set":
         if data is None:
-            raise KickoffError("no .kickoff/clarity.yaml: run kickoff clarity init first")
+            raise KickError("no .kickoff/clarity.yaml: run kickoff clarity init first")
         if not args.area:
-            raise KickoffError("kickoff clarity set needs an area id")
+            raise KickError("kickoff clarity set needs an area id")
         set_area(data, args.area, args.status, args.confidence, args.note, args.ref, day)
         write_yaml(clarity_path(root), data)
         print(f"{args.area}: updated")

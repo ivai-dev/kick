@@ -2,8 +2,8 @@ from pathlib import Path
 
 from helpers import pkg, plan_dict, write_kickoff
 
-from kickoff.cli import main
-from kickoff.docs import fill_markers, md_table, write_docs
+from kick.cli import main
+from kick.docs import fill_markers, md_table, write_docs
 
 FEATURES = {
     "schema_version": 1,

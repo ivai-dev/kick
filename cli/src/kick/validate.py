@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .clarity import load_clarity
-from .errors import KickoffError
+from .errors import KickError
 from .model import Features, ModelError, Plan, Project, load_raw, load_state
 from .schedule import CycleError, build_schedule
 from .state import blockers
@@ -219,7 +219,7 @@ def _doc_files(paths: list[Path]) -> list[Path]:
         elif p.is_file():
             out[p] = None
         else:
-            raise KickoffError(f"no such file or folder: {p}")
+            raise KickError(f"no such file or folder: {p}")
     return list(out)
 
 
@@ -229,11 +229,11 @@ def check_docs(project: Project, paths: list[Path]) -> tuple[list[str], int]:
     try:
         patterns = [re.compile(p, re.I) for p in project.rules.get("forbidden_phrases") or []]
     except re.error as exc:
-        raise KickoffError(f"rules.forbidden_phrases in project.yaml: invalid regular expression: {exc}") from exc
+        raise KickError(f"rules.forbidden_phrases in project.yaml: invalid regular expression: {exc}") from exc
     try:
         patterns += [re.compile(p, re.I) for p in forbidden_patterns(project)]
     except re.error as exc:
-        raise KickoffError(f"design.forbidden in project.yaml: invalid regular expression: {exc}") from exc
+        raise KickError(f"design.forbidden in project.yaml: invalid regular expression: {exc}") from exc
     files = _doc_files(paths)
     out: list[str] = []
     for f in files:
@@ -268,7 +268,7 @@ def validate_root(root: Path) -> list[Finding]:
         project = Project.from_dict(raw["project"])
         plan = Plan.from_dict(raw["plan"])
         features = Features.from_dict(raw["features"])
-    except KickoffError as exc:
+    except KickError as exc:
         return [Finding("error", "model", str(exc))]
     return [*check_plan(project, plan), *check_features(project, plan, features),
             *check_languages(project, plan), *check_phrases(project, raw), *check_ux_spec(root, project, features),
@@ -280,7 +280,7 @@ def check_ux_spec(root: Path, project: Project, features: Features) -> list[Find
     features' `screens` IDs on both sides of it."""
     try:
         path = ux_spec_path(root, project)
-    except KickoffError as exc:
+    except KickError as exc:
         return [Finding("error", "project.yaml design.ux_spec", str(exc))]
     if not path.is_file():
         return []

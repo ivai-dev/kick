@@ -6,15 +6,15 @@ import pytest
 from helpers import pkg, plan, project, write_kickoff
 from openpyxl import load_workbook
 
-from kickoff import lo_verify
-from kickoff.cli import main
-from kickoff.labels import LABELS
-from kickoff.model import load_plan, load_project
-from kickoff.schedule import build_schedule
-from kickoff.workbook import WBS_COLUMNS, build_workbook
+from kick import lo_verify
+from kick.cli import main
+from kick.labels import LABELS
+from kick.model import load_plan, load_project
+from kick.schedule import build_schedule
+from kick.workbook import WBS_COLUMNS, build_workbook
 
 EXAMPLES = Path(__file__).resolve().parents[2] / "examples"
-SRC = Path(__file__).resolve().parents[1] / "src" / "kickoff"
+SRC = Path(__file__).resolve().parents[1] / "src" / "kick"
 MODES = [
     pkg("1.1.1", effort=2),
     pkg("1.1.2", role="qa", deps=["1.1.1"]),
