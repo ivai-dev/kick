@@ -15,7 +15,7 @@ def install():
         pytest.skip(str(exc))
 
 
-def test_every_component_kickoff_uses_is_installed(install):
+def test_every_component_kick_uses_is_installed(install):
     assert ecc.missing_components(install.root) == []
 
 

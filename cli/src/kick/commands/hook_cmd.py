@@ -1,7 +1,7 @@
-"""kickoff hook session-start | pre-write | post-write  (called by the plugin's hooks.json)
+"""kick hook session-start | post-write  (called by the plugin's hooks.json)
 
 This runs on every Write and Edit in every repository where the plugin is enabled, so it imports only the standard
-library until it has found a .kickoff/ folder; `kick.cli.main` calls `fast_run` before it builds the parser."""
+library until it has found a docs/kick/ folder; `kick.cli.main` calls `fast_run` before it builds the parser."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import json
 import sys
 from pathlib import Path
 
-EVENTS = ("post-write", "pre-write", "session-start")
+EVENTS = ("post-write", "session-start")
 
 
 def register(sub) -> None:
@@ -19,7 +19,7 @@ def register(sub) -> None:
 
 
 def _start(event: str, payload: dict) -> Path | None:
-    """The folder to search upwards from for .kickoff/, or None when the payload names no file."""
+    """The folder to search upwards from for docs/kick/, or None when the payload names no file."""
     cwd = Path(payload.get("cwd") or Path.cwd())
     if event == "session-start":
         return cwd
@@ -33,21 +33,14 @@ def _start(event: str, payload: dict) -> Path | None:
 
 def _in_project(start: Path) -> bool:
     start = start.resolve()
-    return any((p / ".kickoff").is_dir() for p in (start, *start.parents))
-
-
-def _decision(event: str, reason: str) -> dict:
-    if event == "pre-write":
-        return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
-                                       "permissionDecisionReason": reason}}
-    return {"decision": "block", "reason": reason}
+    return any((p / "docs" / "kick").is_dir() for p in (start, *start.parents))
 
 
 def fast_run(event: str) -> int:
-    # A block is a JSON decision on stdout with exit 0, never exit 2: hooks.json ends each command with `|| true`,
-    # so an older CLI without `hook` (argparse exits 2) can never block a write. A kickoff bug exits 1.
+    # kick never blocks: a message is printed for the agent to read, and a kick bug exits 1 (hooks.json ends with
+    # `|| true`, so the session goes on).
     if event not in EVENTS:
-        print(f"kickoff hook: unknown event {event}; events: {', '.join(EVENTS)}", file=sys.stderr)
+        print(f"kick hook: unknown event {event}; events: {', '.join(EVENTS)}", file=sys.stderr)
         return 1
     try:
         raw = sys.stdin.buffer.read().decode("utf-8") if not sys.stdin.isatty() else ""
@@ -57,15 +50,13 @@ def fast_run(event: str) -> int:
         start = _start(event, payload)
         if start is None or not _in_project(start):
             return 0
-        from ..hook import HANDLERS  # the heavy imports start here, inside a kickoff project only
+        from ..hook import HANDLERS  # the heavy imports start here, inside a kick project only
 
-        code, message = HANDLERS[event](payload)
+        _, message = HANDLERS[event](payload)
     except Exception as exc:  # noqa: BLE001
-        print(f"kickoff hook {event}: {type(exc).__name__}: {exc}", file=sys.stderr)
+        print(f"kick hook {event}: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
-    if code == 2:
-        print(json.dumps(_decision(event, message), ensure_ascii=False))
-    elif message:
+    if message:
         print(message)
     return 0
 

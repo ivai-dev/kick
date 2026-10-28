@@ -3,7 +3,7 @@ name = "kick-cli"
 version = "0.9.0"
 description = "CLI for the kick Claude Code plugin"
 requires-python = ">=3.11"
-dependencies = ["pyyaml>=6.0", "openpyxl>=3.1", "jsonschema>=4.20"]
+dependencies = ["pyyaml>=6.0", "jsonschema>=4.20"]
 
 [project.scripts]
 kick = "kick.cli:main"
@@ -21,8 +21,6 @@ packages = ["src/kick"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
-    "docker: needs Docker",
-    "browser: needs Edge or Chrome and network access to the CDN",
     "ecc: checks the ECC plugin installed on this machine (skipped without it)",
 ]
 

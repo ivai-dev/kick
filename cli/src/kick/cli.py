@@ -13,28 +13,14 @@ from .errors import KickError
 
 def commands() -> list:
     """Command modules, each with register(subparsers) and run(args) -> int; imported on demand, because
-    `kickoff hook` runs on every edit and must not pay for jsonschema and yaml."""
-    from .commands import (
-        clarity_cmd,
-        docs_cmd,
-        ecc_cmd,
-        estimate_cmd,
-        export_cmd,
-        prototype_cmd,
-        schedule_cmd,
-        state_cmd,
-        validate_cmd,
-        workbook_cmd,
-    )
-
-    return [schedule_cmd, estimate_cmd, validate_cmd, docs_cmd, workbook_cmd, export_cmd, state_cmd, clarity_cmd,
-            prototype_cmd, ecc_cmd, hook_cmd]
+    `kick hook` runs on every edit and must not pay for jsonschema and yaml."""
+    return [hook_cmd]
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="kick", description="kick: start any piece of work with AI")
     parser.add_argument("--version", action="version", version=f"kick {__version__}")
-    parser.add_argument("--root", type=Path, default=None, help="project root (default: nearest folder with .kickoff/)")
+    parser.add_argument("--root", type=Path, default=None, help="project root (default: the nearest folder with docs/kick/, else the current folder)")
     sub = parser.add_subparsers(dest="command", metavar="<command>")
     for module in commands():
         module.register(sub)

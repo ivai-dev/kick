@@ -1,4 +1,4 @@
-"""JSON Schemas for the .kickoff/*.yaml files."""
+"""JSON Schemas for the kick YAML files."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from typing import Any
 
 from jsonschema import Draft202012Validator
 
-KINDS = ("project", "features", "plan", "state", "clarity")
+KINDS = ("project", "kick")
 
 
 def _jsonable(value: Any) -> Any:
