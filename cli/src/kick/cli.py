@@ -14,9 +14,9 @@ from .errors import KickError
 def commands() -> list:
     """Command modules, each with register(subparsers) and run(args) -> int; imported on demand, because
     `kick hook` runs on every edit and must not pay for jsonschema and yaml."""
-    from .commands import kick_cmd
+    from .commands import kick_cmd, report_cmd
 
-    return [kick_cmd, hook_cmd]
+    return [kick_cmd, report_cmd, hook_cmd]
 
 
 def build_parser() -> argparse.ArgumentParser:
