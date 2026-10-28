@@ -1,12 +1,12 @@
 [project]
-name = "kickoff"
-version = "0.9.0"
-description = "CLI for the kickoff Claude Code plugin"
+name = "kick-cli"
+version = "1.0.0"
+description = "CLI for the kick Claude Code plugin"
 requires-python = ">=3.11"
-dependencies = ["pyyaml>=6.0", "openpyxl>=3.1", "jsonschema>=4.20"]
+dependencies = ["pyyaml>=6.0", "jsonschema>=4.20"]
 
 [project.scripts]
-kickoff = "kickoff.cli:main"
+kick = "kick.cli:main"
 
 [dependency-groups]
 dev = ["pytest>=8", "ruff>=0.6"]
@@ -16,13 +16,11 @@ requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/kickoff"]
+packages = ["src/kick"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
-    "docker: needs Docker",
-    "browser: needs Edge or Chrome and network access to the CDN",
     "ecc: checks the ECC plugin installed on this machine (skipped without it)",
 ]
 

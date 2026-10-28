@@ -2,6 +2,38 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [1.0.0] - 2026-10-28
+
+kickoff becomes **kick**. kickoff 0.9 was still a bid-delivery pipeline: 10 phases in a fixed order, 7 approval gates, and numbered items in documents and conversation that the person working with the AI did not understand. Its clickable prototype also cost a lot and was thrown away. kick is a starter for any piece of work done with AI: a product kick takes a vague idea to the real frontend on mock data, and feature kicks follow; the flow is understand → shape → plan → build, in plain words, and nothing is blocked. Brainstorm and decisions: docs/plans/2026-10-28-kick-v1.0.0-brainstorm.md; plan: docs/plans/2026-10-28-kick-v1.0.0.md.
+
+### Breaking
+
+- **New names.**
+  - Plugin and marketplace `kick` (was `kickoff`), skills `kick:*`, the `/kick` command.
+  - CLI `kick` from the package `kick-cli` (was `kickoff`); the environment variable `KICK_ECC_ROOT` (was `KICKOFF_ECC_ROOT`).
+  - The repository is `ivai-dev/kick`.
+- **New files.** `docs/kick/project/` (project.yaml with the languages, overview, design, api, data, roadmap) and one folder per kick (kick.yaml, brief, design, tasks, feedback, log) replace `.kickoff/` (state.yaml, project.yaml, features.yaml, plan.yaml, clarity.yaml) and the numbered `docs/01-…/` folders. There is no automatic conversion: the `start` skill offers to set up the new pages from a `.kickoff/` project.
+- **Removed commands:** `can`, `phase`, `gate`, `clarity`, `schedule`, `workbook` (and the LibreOffice check), `export`, `docs`, `validate` (now `kick check`), `prototype record`, `ecc root`, `ecc run`, `ecc setup --router` (the router patch). `kick estimate` replaces `kickoff estimate`; `kick doctor` and `kick setup` replace `kickoff ecc doctor` and `kickoff ecc setup`.
+- **Removed skills:** `using-kickoff`, `init`, `discovery`, `research`, `feature-map`, `design-concept`, `ux-design`, `prototype`, `signoff`, `solution`, `plan`, `feedback`. The new skills are `using-kick`, `start`, `understand`, `shape`, `plan`, `build`, `change`.
+- **No blocking hook.** The PreToolUse hook that refused writes before an approval is gone. kick advises, asks and logs the answer; `kick check` reports skipped agreements as warnings.
+- **Dropped bid-process work:** the customer sign-off workshop and record, evidence links, role-based schedule, calendar and hard dates, the estimate workbook and the tracker CSV/JSON export.
+
+### Added
+
+- **Two kinds of kick.**
+  - A product kick ends at "this is the product": the real UI on a mock API that people have tried, plus the decisions, a draft API contract, a draft data model, and a roadmap of feature kicks with Foundation first.
+  - A feature kick builds real code with ECC and replaces mock endpoints with real ones under contract tests.
+- `kick init` (languages for chat, documents, code, the product's text and commits), `kick new`, `kick done`.
+- `kick status`: every kick with its step, tasks, remaining range and unclear points; the roadmap; the API (mock versus real, costly endpoints).
+- `kick estimate`: range totals of a kick or of the whole product. A roadmap row is replaced by its kick's tasks once that kick exists. Overhead, releases and an optional time budget are included.
+- `kick check`: the YAML files, the task, roadmap and endpoint tables (ranges, unknown or circular dependencies, duplicate keys), and warnings for work started before the plan was agreed or unclear points left after it.
+- **Companions:** `kick companions` and `kick companions mark`.
+  - superpowers, mattpocock-skills, drawio, frontend-design, impeccable, ui-ux-pro-max, figma, superdesign, playwright, context7.
+  - They are offered at the step that needs them and installed by kick after an explicit yes. The answers are remembered in `~/.kick/companions.yaml`.
+- `[unclear: …]` markers anywhere in the pages; `kick status` lists them.
+- The session-start hook prints the languages line and the status; the post-write hook runs `kick check` after edits of kick files.
+- Examples: `examples/library-product/` (a finished product kick, Vietnamese) and `examples/existing-app/` (feature kicks in a running app, English).
+
 ## [0.9.0] - 2026-10-28
 
 Clarity, not ceremony. Kickoff 0.8 was a delivery-governance pipeline, not a clarity engine: `init` asked for roles, a holiday calendar and hard dates before the product was understood; estimates were one number per package, with no range, no confidence and no estimate before a full WBS; architecture was locked out entirely before C3 and C4, so the early estimate was made blind; nothing showed what was still unclear; and every gate needed an evidence link even when the lead approved in the session. Now a clarity register shows what is unclear, estimates are ranges with a confidence and a basis, the schedule is optional, architecture can be explored as labelled drafts (commit late, explore early) and the lead's own gates are lighter. Spec: docs/plans/2026-10-28-kickoff-v0.9.0.md.

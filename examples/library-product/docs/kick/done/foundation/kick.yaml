@@ -1,0 +1,11 @@
+schema_version: 1
+title: Nền tảng
+kind: feature
+started: '2026-10-06'
+status: done
+agreed:
+  understand: '2026-10-06'
+  shape: '2026-10-06'
+  plan: '2026-10-07'
+  result: '2026-10-14'
+roadmap: foundation

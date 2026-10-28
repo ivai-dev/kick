@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "docs/kick/project/project.yaml",
+  "type": "object",
+  "required": ["schema_version", "languages"],
+  "additionalProperties": false,
+  "$defs": {
+    "lang": { "type": "string", "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$" }
+  },
+  "properties": {
+    "schema_version": { "const": 1 },
+    "languages": {
+      "type": "object",
+      "required": ["chat", "docs", "code", "ui", "commits"],
+      "additionalProperties": false,
+      "properties": {
+        "chat": { "$ref": "#/$defs/lang" },
+        "docs": { "$ref": "#/$defs/lang" },
+        "code": { "$ref": "#/$defs/lang" },
+        "ui": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/lang" } },
+        "commits": { "$ref": "#/$defs/lang" }
+      }
+    },
+    "overhead": { "type": "number", "minimum": 0, "maximum": 1 },
+    "budget_days": { "type": "number", "exclusiveMinimum": 0 }
+  }
+}

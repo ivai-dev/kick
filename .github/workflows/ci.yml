@@ -25,13 +25,12 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
-      - run: uv run kickoff --root ../examples/ai-minute validate
-        working-directory: cli
-      - run: uv run kickoff --root ../examples/mini validate
-        working-directory: cli
-      - run: uv run kickoff --root ../examples/ai-minute docs --check
-        working-directory: cli
-      - run: uv run pytest -q -m docker
+      - run: |
+          for example in library-product existing-app; do
+            uv run kick --root ../examples/$example check
+            uv run kick --root ../examples/$example status
+            uv run kick --root ../examples/$example estimate --remaining
+          done
         working-directory: cli
   windows:
     runs-on: windows-latest
@@ -40,7 +39,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
-      - run: uv run pytest -q -m "not docker and not browser"
+      - run: uv run pytest -q
         working-directory: cli
   package:
     runs-on: ubuntu-latest
@@ -49,4 +48,4 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv build --wheel
         working-directory: cli
-      - run: python -c "import glob, zipfile; n = zipfile.ZipFile(glob.glob('cli/dist/*.whl')[0]).namelist(); assert 'kickoff/templates/project.yaml' in n and 'kickoff/schemas/project.schema.json' in n and 'kickoff/docker/lo-calc/Dockerfile' in n, 'package data missing'"
+      - run: python -c "import glob, zipfile; n = zipfile.ZipFile(glob.glob('cli/dist/*.whl')[0]).namelist(); assert all(f in n for f in ('kick/schemas/project.schema.json', 'kick/schemas/kick.schema.json', 'kick/templates/project/roadmap.md', 'kick/templates/kick/tasks.md')), 'package data missing'"
