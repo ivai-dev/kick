@@ -2,7 +2,8 @@
 
 - **Updated:** {{YYYY-MM-DD}}
 - **Owner:** Project lead
-- **Scope:** the feature set signed off on {{YYYY-MM-DD}}, all releases
+- **Status:** {{Draft (hypothesis) or Accepted — YYYY-MM-DD}}
+- **Scope:** the feature set signed off on {{YYYY-MM-DD}}, all releases; for a Draft, the feature set of `.kickoff/features.yaml` as drafted
 - **Store:** {{data store and ADR-<nnn>}}
 
 ## Entities

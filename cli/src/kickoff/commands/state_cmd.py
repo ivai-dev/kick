@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+import sys
 from datetime import date
 from pathlib import Path
 
+from ..clarity import clarity_lines, load_clarity
 from ..errors import KickoffError
+from ..estimate import spread_text
 from ..model import KICKOFF_DIR, load_state, resolve_root, write_yaml
 from ..state import PHASES, approve, blockers, init_project, next_step, reopen, set_phase, status_lines
 
@@ -14,6 +17,8 @@ from ..state import PHASES, approve, blockers, init_project, next_step, reopen, 
 def register(sub) -> None:
     p = sub.add_parser("init", help="create .kickoff/ and the docs folders")
     p.add_argument("--name", required=True)
+    p.add_argument("--nested", action="store_true",
+                   help="allow a separate project inside a folder of another kickoff project (a product sold apart)")
     p.set_defaults(func=run_init)
     p = sub.add_parser("status", help="phases, gates, stale items and the next step")
     p.add_argument("--json", action="store_true")
@@ -42,18 +47,27 @@ def _save(root: Path, state: dict) -> None:
 
 def run_init(args) -> int:
     root = (args.root or Path.cwd()).resolve()
-    for path in init_project(root, args.name, date.today()):
+    for path in init_project(root, args.name, date.today(), args.nested):
         print("wrote", path.relative_to(root))
     print("next: fill .kickoff/project.yaml (kickoff:init skill), then kickoff validate")
     return 0
 
 
 def run_status(args) -> int:
-    state = load_state(resolve_root(args.root))
+    root = resolve_root(args.root)
+    state = load_state(root)
+    try:
+        clarity = load_clarity(root)
+    except KickoffError as exc:  # `kickoff validate` reports it; status still shows the phases
+        print(f"clarity.yaml: {exc}", file=sys.stderr)
+        clarity = None
     if args.json:
-        print(json.dumps({**state, "next": next_step(state)}, default=str, ensure_ascii=False, indent=2))
+        out = {**state, "next": next_step(state)}
+        if clarity:
+            out["clarity"] = clarity
+        print(json.dumps(out, default=str, ensure_ascii=False, indent=2))
     else:
-        print("\n".join(status_lines(state)))
+        print("\n".join(status_lines(state) + (clarity_lines(clarity, spread_text(root)) if clarity else [])))
     return 0
 
 

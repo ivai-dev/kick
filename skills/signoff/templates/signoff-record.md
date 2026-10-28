@@ -1,6 +1,8 @@
-# {{project_name}} — feature sign-off record
+# {{project_name}} — record of the feature agreement
 
-- **Workshop pack:** `{{YYYY-MM-DD}}-workshop-pack.md`
+Written in plain words so the customer can confirm it as it stands. Codes in the Reference columns are for the project team's records only, and the last section, "For the project team only", is not part of what the customer reads or confirms.
+
+- **Workshop document:** the workshop document of {{YYYY-MM-DD}}
 - **Prototype:** {{prototype link or file}}, version {{n}}
 - **Recorded by:** Project lead
 
@@ -12,44 +14,53 @@
 | --- | --- | --- |
 | {{role}} | {{organisation}} | {{yes / no}} |
 
-## Features signed off by release
+## Features agreed, by release
 
-Reference: `.kickoff/features.yaml` at commit `{{commit}}`.
+The list of features as it stood at the workshop. Its version is in the team-only section at the end.
 
-| Release | Features signed off | Count | Notes |
-| --- | --- | --- | --- |
-| {{release}} | {{F<n>.<n>, F<n>.<n>, …}} | {{n}} | {{notes}} |
+| Release | Features agreed (in words) | Count | Notes | Reference |
+| --- | --- | --- | --- | --- |
+| {{release}} | {{each feature in a few words}} | {{n}} | {{notes}} | {{F<n>.<n>, F<n>.<n>, …}} |
 
-## MVP scope
+## First release
 
-- **First release:** {{release}}, with features {{F<n>.<n>, …}}.
-- **Moved out of the first release at this workshop:** {{F<n>.<n> → release, with decision D<n>; or "none"}}
-- **MVP locked:** {{yes / no, and what is still open}}
+- **What the first release contains:** {{release}}, with {{features in words}} (Reference: {{F<n>.<n>, …}}).
+- **Moved to a later release at this workshop:** {{feature in words → release, with the decision made; or "none"}} (Reference: {{F<n>.<n>, D<n>}})
+- **First release agreed:** {{yes / no, and what is still open}}
 
 ## Changes requested
 
-Each request goes to the feedback session (`01-discovery/feedback/`), which updates the feature map, the UX specification, the prototype and the plan in that order.
+Each request is worked through with you: we update the list of features, the screens, the prototype and the plan, in that order, and ask you to look again.
 
-| # | Request (as said) | Raised by (role) | Feature or screen | Feedback item |
+| # | Request (as said) | Raised by (role) | What it affects | Reference |
 | --- | --- | --- | --- | --- |
-| 1 | "{{quote}}" | {{role}} | {{F<n>.<n> or screen ID}} | {{FB-<n>, or "none"}} |
+| 1 | "{{quote}}" | {{role}} | {{feature or screen, in words}} | {{F<n>.<n> or screen ID; FB-<n>, or "none"}} |
 
 ## Decisions
 
-Also recorded in the Decision log of `open-questions.md`.
+Each decision is also kept in the project's list of decisions.
 
-| ID | Decision | Taken by (role) | Answers | Source |
+| Decision | Taken by (role) | Question it answers | Source | Reference |
 | --- | --- | --- | --- | --- |
-| {{D<n>}} | {{decision}} | {{role}} | {{Q<n>}} | {{minutes, e-mail or signed document}} |
+| {{decision in a sentence}} | {{role}} | {{the question in words}} | {{minutes, e-mail or signed document}} | {{D<n>, Q<n>}} |
 
-## Sign-off
+## Agreement
 
-- **Full feature set:** {{signed off / signed off subject to the changes above / not signed off}}, by {{role}}, evidence: {{signed minutes, e-mail or document link}}
-- **MVP lock:** {{locked / not locked}}, by {{roles}}, evidence: {{link}}
+- **Full list of features:** {{agreed / agreed subject to the changes above / not agreed}}, by {{role}}, evidence: {{signed minutes, e-mail or document link}}
+- **First release locked:** {{locked / not locked}}, by {{roles}}, evidence: {{link}}
 - **Confirmation after changes:** {{YYYY-MM-DD, how the customer confirmed the changed prototype; or "not needed"}}
 
 ## Next steps
 
-| Step | Owner (role) | Due |
+| Step | Owner (role) | Due (when a date is set) |
 | --- | --- | --- |
-| {{step}} | {{role}} | {{YYYY-MM-DD}} |
+| {{step}} | {{role}} | {{YYYY-MM-DD, or "after the step above"}} |
+
+## For the project team only
+
+Not part of what the customer reads or confirms: omit this section from any copy shown or sent to the customer.
+
+- **Workshop pack file:** `{{YYYY-MM-DD}}-workshop-pack.md`
+- **Feature list version:** `.kickoff/features.yaml` at commit `{{commit}}`
+- **Changes requested are worked through in:** `01-discovery/feedback/` (a feedback session)
+- **Decisions also recorded in:** the Decision log of `open-questions.md`

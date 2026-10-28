@@ -2,6 +2,50 @@
 
 All notable changes to this plugin are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.9.0] - 2026-10-28
+
+Clarity, not ceremony. Kickoff 0.8 was a delivery-governance pipeline, not a clarity engine: `init` asked for roles, a holiday calendar and hard dates before the product was understood; estimates were one number per package, with no range, no confidence and no estimate before a full WBS; architecture was locked out entirely before C3 and C4, so the early estimate was made blind; nothing showed what was still unclear; and every gate needed an evidence link even when the lead approved in the session. Now a clarity register shows what is unclear, estimates are ranges with a confidence and a basis, the schedule is optional, architecture can be explored as labelled drafts (commit late, explore early) and the lead's own gates are lighter. Spec: docs/plans/2026-10-28-kickoff-v0.9.0.md.
+
+### Added
+
+- **Clarity register** `.kickoff/clarity.yaml` (areas problem, users, scope, solution, architecture, design, estimate; status `open`, `assumed`, `decided`, `validated`; confidence; notes and refs) and `kickoff clarity`, `kickoff clarity init`, `kickoff clarity set AREA ...`. `kickoff init` creates it; `kickoff status` and the session-start hook show the block and the weakest area.
+- **Estimate ranges:** packages in `plan.yaml` accept `min`, `max`, `confidence` and `basis` (`effort` stays the likely value, so old plans read unchanged); features in `features.yaml` accept `estimate: {min, likely, max, confidence, basis}`, so a feature can be estimated before it has a WBS.
+- **`kickoff estimate [--json FILE]`:** min, likely and max by release and by role, the overhead and a Basis line; `kickoff docs` writes `<docs_root>/06-planning/estimate.md`.
+- `kickoff export` gains the columns and fields `effort_min`, `effort_max` and `confidence`.
+- `project.yaml` settings `scheduling` (`"off"` or `"on"`; absent means on) and `estimate.overhead` (the management share added to the work total).
+- `kickoff validate` errors on an ADR marked *Accepted* before C3 and C4.
+- `kickoff validate` also errors on a malformed `.kickoff/clarity.yaml`.
+- **Plain words rule:** confirmations and gate requests are written in everyday words, without phase names, gate IDs, item IDs, commands or file names (`methods.md`, `conventions.md`, a pressure scenario).
+- Lessons rows 19-21 and pressure scenarios 6-8 (a vague idea, a sketch before sign-off, a jargon-filled gate request).
+
+### Changed
+
+- **The hook allows draft architecture:** a Write or Edit under `<docs_root>/04-architecture/` (not `adr/`) before C3 and C4 passes when the resulting file has a `Status: Draft` line in its first 20 lines; otherwise it is blocked as before. The core principle is now "commit late, explore early".
+- **`--evidence` is optional for the lead's gates** C1, C2, C5 and C6 (recorded as "decision in session <date>"); it stays required for CD, C3 and C4. A gate approval's `state.yaml` change may ride in the next commit.
+- `kickoff status` lists every phase in progress ("continue kickoff:research and kickoff:feature-map").
+- `kickoff docs` also writes `estimate.md`, and `--check` covers it.
+- **New projects start with `scheduling: "off"` and a slim `init`** (skills): name, languages, the idea in one line, releases, optional rules. Team, calendar and hard dates are asked by `kickoff:plan` when scheduling is turned on. With scheduling off, `kickoff schedule` and `kickoff workbook` print "scheduling is off" and exit 0.
+- `signoff` and `feedback` handle scheduling off: no date is stated and the effect on the plan is the `kickoff estimate` range; open questions need a priority, and a needed-by date only when scheduling is on. Skills read `kickoff can` output themselves and tell the person in plain words what is missing, never the raw `blocked:` lines. The customer-facing templates keep file names and IDs in a team-only section.
+- The warning "active feature without a WBS package" becomes "active feature without a WBS package or an estimate" and is raised only when neither exists.
+- `using-kickoff` routes by clarity first, rewrites the hard gate and the core principle, and gains red flags for a draft sketch, lead versus customer approvals, scheduling off, init questions and single-number estimates.
+
+### Migration
+
+Nothing breaks. A project without `clarity.yaml` shows no clarity block; `kickoff clarity init` adds one. An existing project without a `scheduling` key keeps scheduling on. The one new error is an *Accepted* ADR before C3 and C4.
+
+## [0.8.1] - 2026-10-27
+
+A product can live inside another project's repository and still be sold on its own (AI Minute inside the FIS Platform monorepo). The CLI already used the nearest `.kickoff/`, but `kickoff:init` told the agent to stop whenever a parent had one.
+
+### Added
+
+- `kickoff init --nested`: starts a separate project in a folder below another project's `.kickoff/`.
+
+### Changed
+
+- `kickoff init` refuses to create a project below another one unless `--nested` is passed, so a nested project is never created by accident.
+- `kickoff:init` and `kickoff:using-kickoff` describe the nested case: when to nest (a separately sold product) and when to use an epic instead, and that the nearest `.kickoff/` decides every command.
+
 ## [0.8.0] - 2026-10-27
 
 Process, not stack. A game project run through 0.7.0 came out of `ux-design` as a web management console. The plugin shipped one product shape (shells `app` and `site`, four business home shapes and a floor of rules taken from two web projects), so a product that is not a web app had nowhere to go; structure was decided early, alone and unreviewed, and the customer chose only colours at CD; and the confirmations were blind, one-line options with no preview and no word on what a wrong answer costs. Now the plugin holds process and design philosophy only and runs for any project (web, game, mobile, desktop, service). Spec: docs/plans/2026-10-27-kickoff-v0.8.0.md.

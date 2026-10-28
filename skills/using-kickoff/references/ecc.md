@@ -29,7 +29,7 @@ These ECC skills write their own artefacts in their own places, so they are **ne
 
 ## Gates do not merge
 
-ECC's own approvals do not approve a kickoff gate. That includes the plan approval and the commit confirmation of the `orch-*` pipeline, and an ADR confirmation. A kickoff gate still needs `kickoff gate approve <id> --by "<role>" --evidence "<link>"` after an explicit yes from the approver.
+ECC's own approvals do not approve a kickoff gate. That includes the plan approval and the commit confirmation of the `orch-*` pipeline, and an ADR confirmation. A kickoff gate still needs `kickoff gate approve <id> --by "<role>"` (plus `--evidence "<link>"` for the customer's gates CD, C3 and C4) after an explicit yes from the approver.
 
 ## GateGuard and the router
 

@@ -53,6 +53,40 @@ def test_methods_file_has_every_method():
     assert [h for h in headings if h in METHODS] == METHODS
 
 
+def test_plain_words_rule_has_a_translation_for_every_gate():
+    text = (ROOT / "skills" / "using-kickoff" / "references" / "methods.md").read_text(encoding="utf-8")
+    assert re.search(r"^## Plain words$", text, re.M)
+    for gate in ("C1", "C2", "CD", "C3", "C4", "C5", "C6"):
+        assert re.search(rf"^\| Gate {gate}\b", text, re.M), f"no plain-words row for gate {gate}"
+
+
+APPROVING = [p for p in SKILLS if "kickoff gate approve" in p.read_text(encoding="utf-8")]
+
+
+@pytest.mark.parametrize("path", APPROVING, ids=ids(APPROVING))
+def test_a_skill_that_records_an_approval_names_plain_words(path):
+    text = path.read_text(encoding="utf-8")
+    assert text.count("Plain words") >= 2, "approvals are asked in plain words (methods.md)"
+
+
+@pytest.mark.parametrize("path", [p for p in APPROVING if p.parent.name != "using-kickoff"], ids=lambda p: p.parent.name)
+def test_every_step_that_records_an_approval_names_plain_words(path):
+    text = path.read_text(encoding="utf-8")
+    steps = text.split("## Steps", 1)[1].split("\n## Outputs", 1)[0]
+    for chunk in re.split(r"(?m)^(?=\d+\. )", steps):
+        if "kickoff gate approve" in chunk:
+            assert "Plain words" in chunk, f"approval step without the Plain words pointer: {chunk[:60]!r}"
+
+
+SHOWS_BLOCKED = re.compile(r"(?i)\b(?:show|quot\w+|report|paste|display|print)\b(?:\s+\w+){0,3}\s+`blocked:`")
+
+
+@pytest.mark.parametrize("path", SKILLS, ids=ids(SKILLS))
+def test_no_skill_shows_the_raw_blocked_lines_to_the_person(path):
+    text = path.read_text(encoding="utf-8")
+    assert not SHOWS_BLOCKED.search(text), "`blocked:` lines hold phase names and gate IDs: tell the person in plain words"
+
+
 def test_commands_named_in_skills_exist():
     top = set(next(a.choices for a in build_parser()._actions if isinstance(a.choices, dict)))
     files = [*SKILLS, *(ROOT / "commands").glob("*.md")]

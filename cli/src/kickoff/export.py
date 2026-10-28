@@ -16,8 +16,12 @@ from .schedule import build_schedule
 FORMATS = ("csv", "json", "md")
 FILES = {"csv": "wbs.csv", "json": "wbs.json", "md": "wbs-items.md"}
 FIELDS = ["code", "name", "phase", "group", "role", "effort", "deps", "release", "prio", "features", "start", "end",
-          "type", "title", "epic", "areas", "desc", "ac", "sprint"]
+          "type", "title", "epic", "areas", "desc", "ac", "sprint", "effort_min", "effort_max", "confidence"]
 LIST_FIELDS = {"deps", "features", "areas", "ac"}
+
+
+def _num(value: float) -> int | float:
+    return int(value) if float(value).is_integer() else value
 
 
 def _node_names(nodes: list[dict], lang: str | None) -> dict[str, str]:
@@ -43,7 +47,7 @@ def records(project: Project, plan: Plan, features: Features, lang: str | None =
         item = p.item or {}
         parts = p.code.split(".")
         slot = sched.slots.get(p.code)
-        effort = int(p.effort) if float(p.effort).is_integer() else p.effort
+        effort = _num(p.effort)
         rows.append({
             "code": p.code,
             "name": text(p.as_item(), "name", lang),
@@ -64,6 +68,9 @@ def records(project: Project, plan: Plan, features: Features, lang: str | None =
             "desc": item.get("desc") or text(p.as_item(), "desc", lang),
             "ac": list(item.get("ac") or []),
             "sprint": item.get("sprint", ""),
+            "effort_min": _num(p.effort if p.effort_min is None else p.effort_min),
+            "effort_max": _num(p.effort if p.effort_max is None else p.effort_max),
+            "confidence": p.confidence,
         })
     return rows
 
@@ -90,7 +97,9 @@ def to_md(project: Project, rows: list[dict]) -> str:
            "not this file.", ""]
     for r in rows:
         out += [f"## {r['code']} {r['title']}", ""]
-        facts = [("Role", r["role"]), ("Effort (pd)", r["effort"]), ("Dates", f"{r['start']} → {r['end']}"),
+        spread = f"{r['effort_min']} to {r['effort_max']}" if r["effort_min"] != r["effort_max"] else ""
+        facts = [("Role", r["role"]), ("Effort (pd)", r["effort"]), ("Range (pd)", spread),
+                 ("Confidence", r["confidence"]), ("Dates", f"{r['start']} → {r['end']}"),
                  ("Depends on", ", ".join(r["deps"])), ("Release", r["release"]), ("Priority", r["prio"]),
                  ("Features", ", ".join(r["features"])), ("Epic", r["epic"]), ("Type", r["type"]),
                  ("Sprint", r["sprint"]), ("Areas", ", ".join(r["areas"]))]

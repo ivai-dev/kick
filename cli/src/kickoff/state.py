@@ -8,6 +8,7 @@ from pathlib import Path
 
 import yaml
 
+from .clarity import default_clarity
 from .errors import KickoffError
 from .model import KICKOFF_DIR, write_yaml
 
@@ -34,6 +35,7 @@ REQUIRES: dict[str, tuple[list[str], list[str]]] = {
     "plan-baseline": (["solution"], ["C5"]),
 }
 GATE_NEEDS = {"C4": ["C3"], "C6": ["C5"]}
+LEAD_GATES = {"C1", "C2", "C5", "C6"}  # approved by the project lead: evidence is optional; CD, C3 and C4 are the customer's
 DOC_DIRS = ["01-discovery", "02-requirements", "03-research", "04-architecture/adr", "05-design", "06-planning",
             "07-task-specs", "08-task-plans"]
 
@@ -128,7 +130,10 @@ def approve(state: dict, gate: str, by: str, evidence: str, day: date) -> None:
         raise KickoffError(f"cannot approve {gate}: phase {GATE_AFTER[gate]} is stale, re-run it first")
     if not by.strip():
         raise KickoffError(f"cannot approve {gate} without --by (who approved it)")
-    if not evidence.strip():
+    evidence = evidence.strip()
+    if not evidence and gate in LEAD_GATES:
+        evidence = f"decision in session {day.isoformat()}"  # the lead's own approval needs no link
+    if not evidence:
         raise KickoffError(f"cannot approve {gate} without evidence (a link to the record or commit)")
     missing = [g for g in GATE_NEEDS.get(gate, []) if g not in state["gates"]]
     if missing:
@@ -159,14 +164,15 @@ def next_step(state: dict) -> str:
     stale = state["stale"]
     in_progress = [p for p in PHASES if state["phases"].get(p) == "in_progress"]
     if in_progress:
-        later = [p for p in stale if p != in_progress[0]]  # the phase being continued is not "then re-run"
+        later = [p for p in stale if p not in in_progress]  # a phase being continued is not "then re-run"
         tail = f"; then re-run stale: {', '.join(later)}" if later else ""
-        return f"continue kickoff:{in_progress[0]}{tail}"
+        names = [f"kickoff:{p}" for p in in_progress]
+        return f"continue {', '.join(names[:-1]) + ' and ' + names[-1] if len(names) > 1 else names[0]}{tail}"
     for gate, phase in GATE_AFTER.items():
         ready = all(g in state["gates"] for g in GATE_NEEDS.get(gate, []))
         if _done(state, phase) and phase not in stale and not _gate_ok(state, gate) and ready:
             return (f"approve gate {gate} ({GATES[gate]}): kickoff gate approve {gate} --by <who> "
-                    "--evidence <link>")
+                    + ("[--evidence <link>]" if gate in LEAD_GATES else "--evidence <link>"))
     for phase in stale:
         if not blockers(state, phase):
             rest = [p for p in stale if p != phase]
@@ -197,10 +203,19 @@ def status_lines(state: dict) -> list[str]:
     return lines
 
 
-def init_project(root: Path, name: str, today: date) -> list[Path]:
+def enclosing_project(root: Path) -> Path | None:
+    """The nearest parent folder of `root` that holds a .kickoff/ folder, or None."""
+    return next((p for p in root.resolve().parents if (p / KICKOFF_DIR).is_dir()), None)
+
+
+def init_project(root: Path, name: str, today: date, nested: bool = False) -> list[Path]:
     k = root / KICKOFF_DIR
     if k.exists():
         raise KickoffError(f"{k} already exists")
+    parent = enclosing_project(root)
+    if parent is not None and not nested:
+        raise KickoffError(f"{parent / KICKOFF_DIR} already exists above {root}; pass --nested to start a separate "
+                           "project here (every command run inside this folder then uses the nested project)")
     written = []
     data = yaml.safe_load(files("kickoff.templates").joinpath("project.yaml").read_text(encoding="utf-8"))
     data["name"] = name
@@ -211,6 +226,7 @@ def init_project(root: Path, name: str, today: date) -> list[Path]:
         "state.yaml": {"schema_version": 1, "phases": {"init": "in_progress"}, "gates": {}, "stale": []},
         "features.yaml": {"schema_version": 1, "epics": []},
         "plan.yaml": {"schema_version": 1, "start": today, "phases": [], "groups": [], "packages": [], "gates": []},
+        "clarity.yaml": default_clarity(today),
     }
     for fname, data in files_.items():
         write_yaml(k / fname, data)

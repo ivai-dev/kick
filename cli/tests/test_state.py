@@ -4,7 +4,7 @@ import pytest
 
 from kickoff.cli import main
 from kickoff.errors import KickoffError
-from kickoff.model import load_state, read_yaml
+from kickoff.model import find_root, load_state, read_yaml
 from kickoff.state import approve, blockers, migrate, next_step, reopen, set_phase, status_lines
 
 
@@ -35,10 +35,11 @@ def test_approve_needs_phase_and_evidence():
     with pytest.raises(KickoffError, match="phase discovery is not done"):
         approve(s, "C1", "Project lead", "link", date(2026, 9, 25))
     set_phase(s, "discovery", "done")
-    with pytest.raises(KickoffError, match="evidence"):
-        approve(s, "C1", "Project lead", " ", date(2026, 9, 25))
     with pytest.raises(KickoffError, match="--by"):
         approve(s, "C1", " ", "link", date(2026, 9, 25))
+    set_phase(s, "signoff", "done")
+    with pytest.raises(KickoffError, match="evidence"):  # a customer gate; the lead's own gates need none (0.9)
+        approve(s, "C3", "Customer", " ", date(2026, 9, 25))
 
 
 def test_reopen_c3_marks_later_phases_stale():
@@ -220,7 +221,7 @@ def test_next_step_walks_the_flow():
     set_phase(s, "init", "done")
     assert next_step(s) == "run kickoff:discovery"
     set_phase(s, "discovery", "done")
-    assert next_step(s) == "approve gate C1 (Vision approved): kickoff gate approve C1 --by <who> --evidence <link>"
+    assert next_step(s) == "approve gate C1 (Vision approved): kickoff gate approve C1 --by <who> [--evidence <link>]"
 
 
 @pytest.mark.parametrize("name", ["2026", "yes", "A: B", "Library Loans"])
@@ -242,3 +243,17 @@ def test_cli_init_and_status(tmp_path, capsys):
     assert main(["--root", str(tmp_path), "can", "solution"]) == 1
     assert main(["--root", str(tmp_path), "phase", "done", "init"]) == 0
     assert main(["--root", str(tmp_path), "validate"]) == 0
+
+
+def test_init_inside_another_project_needs_nested(tmp_path, capsys):
+    assert main(["--root", str(tmp_path), "init", "--name", "Platform"]) == 0
+    child = tmp_path / "apps" / "minute"
+    child.mkdir(parents=True)
+    assert main(["--root", str(child), "init", "--name", "Minute"]) == 2
+    assert "--nested" in capsys.readouterr().err
+    assert not (child / ".kickoff").exists()
+    assert main(["--root", str(child), "init", "--name", "Minute", "--nested"]) == 0
+    assert read_yaml(child / ".kickoff" / "project.yaml")["name"] == "Minute"
+    assert read_yaml(tmp_path / ".kickoff" / "project.yaml")["name"] == "Platform"
+    assert find_root(child) == child.resolve()
+    assert find_root(tmp_path / "apps") == tmp_path.resolve()

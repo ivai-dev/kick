@@ -24,6 +24,9 @@ roles:
     focus: 0.9
     duties: Test data, test automation, UAT support
 releases: [MVP, R2]
+scheduling: "off"
+estimate:
+  overhead: 0.10
 hard_dates: {}
 rules:
   owners_by_role: true

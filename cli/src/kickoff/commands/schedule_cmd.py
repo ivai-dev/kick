@@ -19,6 +19,9 @@ def register(sub) -> None:
 def run(args) -> int:
     root = resolve_root(args.root)
     project, plan, features = load_project(root), load_plan(root), load_features(root)
+    if project.scheduling == "off":
+        print("scheduling is off (project.yaml scheduling: off): kickoff estimate gives the effort")
+        return 0
     if report_plan_errors(project, plan):
         return 1
     sched = build_schedule(project, plan)

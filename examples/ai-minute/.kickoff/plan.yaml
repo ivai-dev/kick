@@ -399,6 +399,10 @@ packages:
   ref: F5.12
   role: qa
   effort: 3
+  min: 3
+  max: 5
+  confidence: high
+  basis: "Công việc quen thuộc, đã làm nhiều lần"
   done: 0.0
   prio: P0
   deps: []
@@ -457,6 +461,10 @@ packages:
   ref: F5.11
   role: lead
   effort: 3
+  min: 2
+  max: 6
+  confidence: low
+  basis: "Chưa có mẫu ghi âm thật để đo"
   done: 0.0
   prio: P0
   deps:
@@ -2232,6 +2240,10 @@ packages:
   ref: F13.2
   role: lead
   effort: 4
+  min: 3
+  max: 7
+  confidence: medium
+  basis: "Tích hợp tương tự đã làm ở gói trước"
   done: 0.0
   prio: P0
   deps:

@@ -87,7 +87,7 @@ def test_feature_checks(tmp_path):
     assert "error: F1.1: unknown WBS code 8.8.8" in out
     assert "error: F1.2: unknown release R9" in out
     assert "error: F1.2: duplicate feature id" in out
-    assert "warning: F1.2: active feature without a WBS package" in out
+    assert "warning: F1.2: active feature without a WBS package or an estimate" in out
     assert "warning: 1.1.1: ref names unknown feature F7.7" in out
     assert "error: cut_order: unknown feature F4.4" in out
 

@@ -22,6 +22,9 @@ Each row is a mistake made on a real project and where it is now prevented. The 
 | 16 | Structure was decided early, alone and unreviewed: the customer chose only colour, and a game became a management console | `design-concept` comes before the spec and CD covers structure and feel; the IA, viewpoint and art-director reviewers run on the concepts and the ux-spec; `ux-design` ends with the fit test |
 | 17 | A confirmation of two bare options hid the cost of the choice and when a mistake would show | the Decision card method for every design confirmation and gate request |
 | 18 | One product's rules became the floor of every product | no shipped rules: `design-rules.md` is derived per project, each row with its reason in the brief and its test (principle 4) |
+| 19 | Architecture was locked out entirely before C3 and C4, so the estimate after C2 was made blind and feasibility surfaced only after the prototype | commit late, explore early: `research` writes a `Status: Draft` architecture sketch that binds nothing; the hook allows only labelled drafts and `validate` rejects an Accepted ADR before C3 and C4 |
+| 20 | Management set-up (roles, calendar for every year, hard dates) was asked before the idea was understood | slim `init` (name, languages, the idea, releases, rules); `scheduling: "off"` in a new project; `plan` asks for team, calendar and hard dates when the lead turns scheduling on |
+| 21 | Point estimates hid the uncertainty: one number per package, no confidence, no basis | ranges with confidence and basis on packages and features; `kickoff estimate` and `estimate.md` show min, likely and max and the share of low-confidence items; overhead as a rate |
 
 ## Retired with the kit in 0.8.0
 
@@ -31,12 +34,15 @@ Earlier versions held rules for one product shape in the plugin's own kit: type 
 
 | Skill | Rows |
 | --- | --- |
-| `plan` | 1, 3 (runs `kickoff validate` before `kickoff schedule`; keeps the workshop package and its risk) |
+| `plan` | 1, 3 (runs `kickoff validate` before `kickoff schedule`; keeps the workshop package and its risk), 20, 21 (asks team and calendar when scheduling is turned on; ranges, confidence, basis) |
+| `research` | 19 (the Draft architecture sketch) |
+| `solution` | 19 (starts from the draft; commits only after C3 and C4) |
+| `feature-map` | 21 (a feature-level estimate range) |
 | `signoff` | 3, 11 |
 | `design-concept` | 14, 15, 16, 17, 18 (brief, concepts that differ in kind, the co-design session, decision cards) |
 | `ux-design` | 9, 12, 13, 16, 18 (inventory audiences, copy guide, the project's rules, fit test, review of the spec) |
 | `prototype` | 4, 8, 9, 10, 11, 12, 14 (coverage, fidelity, extremes, verification report, publish check) |
 | `feedback` | 13 (fixes across the whole product) |
 | every skill | 2 (file tools), 17 (decision cards) |
-| `init` | 5, 10 (ECC setup; `design.forbidden` recorded at the start) |
-| `using-kickoff` | 5, 6, 7 (GateGuard offer, `kickoff ecc run`, start-up check 1) |
+| `init` | 5, 10, 20 (ECC setup; `design.forbidden` recorded at the start; the slim interview) |
+| `using-kickoff` | 5, 6, 7, 19, 20, 21 (GateGuard offer, `kickoff ecc run`, start-up check 1; the Draft rule, the slim init and the range rule as red flags) |

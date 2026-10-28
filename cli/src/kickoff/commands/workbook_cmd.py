@@ -22,6 +22,9 @@ def register(sub) -> None:
 def run(args) -> int:
     root = resolve_root(args.root)
     project, plan = load_project(root), load_plan(root)
+    if project.scheduling == "off":
+        print("scheduling is off (project.yaml scheduling: off): no estimate workbook; kickoff estimate gives the effort")
+        return 0
     if report_plan_errors(project, plan):
         return 1
     slug = re.sub(r"[^a-z0-9]+", "-", project.name.lower()).strip("-")

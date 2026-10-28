@@ -59,4 +59,4 @@ def test_export_of_an_empty_plan(tmp_path):
     assert main(["--root", str(root), "export", "--format", "csv"]) == 0
     text = (root / "docs" / "06-planning" / "export" / "wbs.csv").read_text(encoding="utf-8-sig")
     assert text.splitlines() == ["code,name,phase,group,role,effort,deps,release,prio,features,start,end,type,title,"
-                                 "epic,areas,desc,ac,sprint"]
+                                 "epic,areas,desc,ac,sprint,effort_min,effort_max,confidence"]
