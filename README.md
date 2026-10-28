@@ -90,7 +90,7 @@ kick works with ECC (required) and offers optional tools at the step that needs 
 | frontend-design, impeccable, ui-ux-pro-max | shape, build | UI direction, styles and polish |
 | figma (account) | shape | reading designs and putting concepts on the canvas |
 | superdesign (account) | shape | many design variants quickly |
-| playwright | build | letting the reviewers click through the running screens |
+| playwright | shape, build | letting the reviewers look at the key screens and click through the running screens |
 | context7 | build | current library documentation |
 
 `kick companions` lists them and their state.

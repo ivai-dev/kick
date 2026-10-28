@@ -67,7 +67,7 @@ CATALOGUE = (
               "generates design variants you can branch and compare side by side",
               "anthropics/claude-plugins-official", f"superdesign@{OFFICIAL}", account=True,
               plugins=("superdesign",)),
-    Companion("playwright", ("build",), "the review agents look at the running screens",
+    Companion("playwright", ("shape", "build"), "the review agents look at the key screens or the running screens",
               "opens the running app in a browser to click through journeys and take screenshots",
               "anthropics/claude-plugins-official", f"playwright@{OFFICIAL}", plugins=("playwright",),
               mcp=("playwright", "chrome-devtools"), note="ECC's Chrome DevTools counts as a browser tool"),

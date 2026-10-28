@@ -14,7 +14,7 @@ Optional tools a step can use when they are installed. kick never requires them 
 | ui-ux-pro-max | shape | the product has screens | a searchable library of styles, palettes, font pairings and UX rules | no |
 | figma | shape | the team designs in Figma | reads frames and tokens from Figma, puts directions on the canvas | yes |
 | superdesign | shape | many design variants are wanted quickly | design variants to branch and compare | yes |
-| playwright | build | the review agents look at the running screens | opens the running app in a browser to click through journeys and take screenshots (ECC's Chrome DevTools counts too) | no |
+| playwright | shape, build | the review agents look at the key screens or the running screens | opens the running app in a browser to click through journeys and take screenshots (ECC's Chrome DevTools counts too) | no |
 | context7 | build | the code uses libraries whose current documentation matters | current documentation of libraries while building | no |
 
 **superpowers** brings its own plan and build steps. kick uses only its brainstorming interview; its plan and build steps would compete with ECC. Say so in one line when you offer it.

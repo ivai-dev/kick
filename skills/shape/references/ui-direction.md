@@ -25,7 +25,7 @@ Prepare 2–3 directions. They differ on at least three of: flow and structure, 
 
 Each direction is shown as **one key screen**: the screen that says most about the product (for a library desk, the lending screen), with real content in the product's language and its extremes (an empty list, a very long name, an error). Build it with the companions that are installed (frontend-design, impeccable, ui-ux-pro-max; superdesign for quick variants; Figma when the team works there), as a static page in the chosen frontend stack. Never draw every screen.
 
-Before showing them, run the `kick:art-director` and `kick:ia-reviewer` agents on the key screens (screenshots and a short note per direction under `<kick>/reviews/<date>/`, with a `BRIEF.md`). Fix every P1, then show the directions as a decision card. The person chooses one, or "none of these", or "show me first".
+Before showing them, run the `kick:art-director` and `kick:ia-reviewer` agents on the key screens (screenshots, taken with playwright or ECC's Chrome DevTools, and a short note per direction under `<kick>/reviews/<date>/`, with a `BRIEF.md`). Each agent prompt names the absolute paths of the review folder, the `BRIEF.md`, the kick's `brief.md` and `design.md`, and the design philosophy (`skills/using-kick/references/design-philosophy.md` under the plugin root, two levels above this skill's folder); ask for the report in the docs language. Fix every P1, then show the directions as a decision card. The person chooses one, or "none of these", or "show me first".
 
 ## 4. Design rules
 

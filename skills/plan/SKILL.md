@@ -41,6 +41,10 @@ Plan the UI stage (the `ui-on-mocks.md` reference of `kick:build`):
 
 Then, under `## Finished when`, the criteria for "this is the product": the main journeys can be completed; every screen had at most two rounds of comments; how many unclear points may remain. They are agreed with the plan.
 
+### Product kick without screens
+
+A service, an API or a tool: one task to turn the drafted contract into a mock server or a set of contract tests that the future users (another team, a partner, a script) can call; one `(probe)` task per technical risk; one task to walk the future users through the contract and classify their comments. `## Finished when`: the users agree the contract covers what they need. The `api.md` rows stay `mock` until feature kicks build them.
+
 ### Feature kick
 
 One task per piece of real work: endpoints, data, screens, migrations, tests. On a product built on mock data, add per endpoint its contract test and the switch from the mock (the `contract-tests.md` reference of `kick:build`). Pick the first slice: the smallest set of tasks that makes one flow work end to end.
@@ -48,7 +52,7 @@ One task per piece of real work: endpoints, data, screens, migrations, tests. On
 ## 4. Totals and review
 
 1. Run `kick check <name>` and fix every error.
-2. Run `kick estimate <name>`; for a product, also `kick estimate` (the product total from the roadmap). When a time budget is set and does not fit, propose cuts as a Bounded approval.
+2. Run `kick estimate <name>`; for a product, also `kick estimate` (the product total from the roadmap). When a time budget is set and does not fit, propose cuts as a Bounded approval. For a product, ask once whether a share of time goes to coordination (meetings, handovers); when it does, write it as `overhead` (for example `0.1`) in `docs/kick/project/project.yaml`, and say the total with it.
 3. For a larger kick, ask the `ecc:planner` agent (read-only) to look for missing work; add what is real.
 
 ## 5. Agree

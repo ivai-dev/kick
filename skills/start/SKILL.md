@@ -44,12 +44,12 @@ Ask in plain words:
 
 - **C:** no kick. Hand it to ECC (`ecc:orch-fix-defect` or `ecc:orch-change-feature`).
 - **A:** a product kick. In a repository that already holds a product, it can be a new app beside it; say so.
-- **B:** a feature kick. When `docs/kick/project/roadmap.md` has rows, offer the next row whose prerequisites are done, by its plain title; Foundation comes first.
+- **B:** a feature kick. When `docs/kick/project/roadmap.md` has rows, offer the next row whose prerequisites are done, by its plain title; Foundation comes first. When the person picks a feature before Foundation (or before its prerequisites), say in plain words what that risks ("the sign-in and the database do not exist yet, so this feature would have to build them or wait"), ask, and log the answer. When the feature has no row yet, add one first (key, title, After, a rough range with low confidence), so the product total counts it.
 
 ## 4. Create the kick
 
 1. Propose a short name for the folder and a title in the docs language; the person only sees the title.
-2. Run `kick new <name> --title "<title>" --kind product` or `--kind feature` (add `--roadmap <key>` when it implements a roadmap row, and write the name into that row's Kick cell).
+2. Run `kick new <name> --title "<title>" --kind product` or `--kind feature` (add `--roadmap <key>` when it implements a roadmap row; `kick new` then fills that row's Kick cell, and warns when the row is missing or already linked).
 3. Hand over to `kick:understand`.
 
 ## Carrying over a `.kickoff/` project

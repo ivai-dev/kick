@@ -24,7 +24,7 @@ Files: `docs/kick/project/` holds how the product is now (languages, overview, d
 
 1. **Plain words.** Read `references/plain-words.md` before you say anything to the person. They have never seen kick: no step names used as jargon, no file names, no codes, no commands in what you say to them.
 2. **Advice only.** Nothing is blocked. When something is not agreed yet, say what is missing and what it risks, ask, and write the answer as a dated line in the kick's `log.md`.
-3. **Languages.** `docs/kick/project/project.yaml` sets the chat, docs, code, UI and commit languages. Talk in the chat language; write documents, code, the product's own text and commits in theirs. The session-start hook prints them in one line.
+3. **Languages.** `docs/kick/project/project.yaml` sets the chat, docs, code, UI and commit languages. Talk in the chat language; write documents, code, the product's own text and commits in theirs. The session-start hook prints them in one line. When the person wants to change one, confirm it in plain words and run `kick init --update --chat …` (or `--docs`, `--code`, `--ui`, `--commits`).
 4. **Companions.** Each step skill starts with `kick companions --step <step>` and offers what is missing, in plain words (`references/companions.md`). Install only after an explicit yes.
 5. **ECC does the work.** Use the ECC parts listed in `references/ecc.md`. ECC's own approvals do not replace kick's agreements.
 6. **Write files with the file tools**, never with shell heredocs.
@@ -33,8 +33,8 @@ Files: `docs/kick/project/` holds how the product is now (languages, overview, d
 
 Run these in order at the start of every session:
 
-1. **CLI version.** Run `kick --version` (prints `kick <version>`). The plugin root is two levels above this skill's base directory; read `"version"` in `<plugin root>/.claude-plugin/plugin.json`. If the command is missing or the versions differ, run `uv tool install --force "<plugin root>/cli"` and check again. If they still differ, stop and show both outputs.
-2. **ECC.** Run `kick doctor`. When it says `doctor failed`, tell the person in plain words that kick needs the ECC plugin (version 2.2.3 or later) and how to install it, then stop. When it warns that GateGuard does not exempt the kick documents, offer `kick setup` (it edits the project's `.claude/settings.json`; ask first).
+1. **CLI version.** Run `kick --version` (prints `kick <version>`). The plugin root is two levels above this skill's base directory; read `"version"` in `<plugin root>/.claude-plugin/plugin.json`. If the command is missing or the versions differ, run `uv tool install --force "<plugin root>/cli"` and check again. If they still differ, tell the person in plain words that kick's helper program is out of date and could not be updated, offer to continue without its checks or to stop, and keep both outputs for whoever fixes it.
+2. **ECC.** Run `kick doctor`. When it says `doctor failed`, tell the person in plain words that kick needs another plugin, the toolkit that writes, tests and reviews the code (ECC, version 2.2.3 or later), how to install it, and stop: nothing can be built without it. When it warns that GateGuard does not exempt the kick documents, offer `kick setup` (it edits the project's `.claude/settings.json`; ask first).
 3. **Where things stand.** Run `kick status`. When it says there is no kick project here, invoke `kick:start`.
 
 ## Route
@@ -60,7 +60,13 @@ When the person asks for a later step than the current one, do not refuse. Say i
 
 Every step ends with one plain question (`references/methods.md`, Agreement). On an explicit yes:
 
-1. Write the date into `agreed` in the kick's `kick.yaml` (`understand`, `shape`, `plan` or `result`).
+1. Write the date into `agreed` in the kick's `kick.yaml` (`understand`, `shape`, `plan`, or `result` for the final "this is the product" or "it works as agreed"):
+
+   ```yaml
+   agreed:
+     understand: 2026-10-28
+     shape: 2026-10-30
+   ```
 2. Add a dated line to `log.md` saying, in the person's words, what was agreed.
 3. Run `kick check <name>` and read its output.
 
