@@ -1,13 +1,13 @@
 {
   "name": "kick",
   "owner": { "name": "ivai-dev" },
-  "metadata": { "description": "kick: start any piece of work with AI", "version": "0.9.0" },
+  "metadata": { "description": "kick: start any piece of work with AI", "version": "1.0.0" },
   "plugins": [
     {
       "name": "kick",
       "source": "./",
       "description": "Kick off a new product from a vague idea or a feature in a running project: understand, shape the solution, architecture and UI early in plain words, plan with range estimates, then build with ECC.",
-      "version": "0.9.0",
+      "version": "1.0.0",
       "strict": true
     }
   ]

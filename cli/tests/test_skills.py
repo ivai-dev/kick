@@ -168,3 +168,15 @@ def test_hooks_call_the_cli_only_when_it_is_installed(event, action):
 def test_no_blocking_hook():
     data = json.loads(text(ROOT / "hooks" / "hooks.json"))
     assert set(data["hooks"]) == {"SessionStart", "PostToolUse"}
+
+
+def test_readme_uses_kick_words_outside_the_switching_section():
+    readme = text(ROOT / "README.md").split("## Switching from kickoff", 1)
+    assert len(readme) == 2, "README.md lost its 'Switching from kickoff' section"
+    found = []
+    for number, line in enumerate(readme[0].splitlines(), 1):
+        clean = ALLOWED.sub("", line)
+        found += [f"{number}: {m.group(0)}" for m in BANNED_CASED.finditer(clean)]
+        found += [f"{number}: {m.group(0)}" for m in BANNED_WORDS.finditer(clean)]
+        found += [f"{number}: kickoff" for _ in re.finditer(r"\bkickoff\b", clean)]
+    assert not found, f"README.md uses words kick no longer uses: {found}"
