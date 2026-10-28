@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "docs/kick/<name>/kick.yaml",
+  "type": "object",
+  "required": ["schema_version", "title", "kind", "started", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "kind": { "enum": ["product", "feature"] },
+    "started": { "type": "string", "format": "date" },
+    "status": { "enum": ["active", "paused", "done"] },
+    "agreed": {
+      "type": "object",
+      "propertyNames": { "enum": ["understand", "shape", "plan", "result"] },
+      "additionalProperties": { "type": "string", "format": "date" }
+    },
+    "budget_days": { "type": "number", "exclusiveMinimum": 0 },
+    "roadmap": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "notes": { "type": "string" }
+  }
+}
